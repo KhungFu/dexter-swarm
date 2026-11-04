@@ -546,6 +546,8 @@ Läuft ohne Internet und ohne Keys (Anbieter `mock`, eigene Datenbank).
 
 Der 👑 CEO-Kontrollgang schreibt bei Feierabend einen Abendbericht. In der 📬 Post und in den Aufgaben des CEO steht dabei **🖨 Drucken**: ein Klick, kurze Rückfrage, dann geht er an den Drucker. Drucker wählen unter **🖨 Drucker** in der Seitenleiste (Pi: Netzwerkdrucker über CUPS, `./install.sh --print`; Windows: freigegebener Drucker unter Drucker & Scanner). Im selben Fenster erlaubt oder sperrt der CEO das Drucken (Recht „Darf Abendberichte drucken“). Der **Testdrucker (Datei)** speichert den Ausdruck nur als Textdatei in `workspace/.druck/`. Anleitung: [docs/drucken.md](docs/drucken.md).
 
+**Richtiger Drucker?** Im Fenster 🖨 Drucker einen Drucker auswählen und **🧾 Testseite drucken** klicken. Die Seite nennt Drucker, Rechner und Uhrzeit und enthält Umlaute. Liegt sie im richtigen Drucker, auf **Speichern** klicken. Die Testseite allein speichert nichts und braucht kein Druckrecht des CEO.
+
 ## 🌐 Echter Browser und ▶ Code ausführen
 
 - **Browser** (`./install.sh --browser`, installiert Playwright + Chromium, ca. 400 MB, nur 64-Bit-System): Agenten mit dem Recht
