@@ -186,7 +186,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 #app.view-org #orgReset:not([hidden]){display:block}
 #app.view-org #edges,#app.view-org #nodes{display:none}
 /* Agenten-Leiste ist in jeder Grafik da (Wunsch ABI 2026-11-04); Hinweis und Ordnen passen sich an */
-#palette .hint-org,#palette .hint-hub{display:none}#app.view-org #palette .hint-plan,#app.view-hub #palette .hint-plan{display:none}#app.view-org #palette .hint-org,#app.view-hub #palette .hint-hub{display:inline}#app.view-hub #palette .pal-order{display:none}
+#palette .hint-org,#palette .hint-hub{display:none}#app.view-org #palette .hint-plan,#app.view-hub #palette .hint-plan{display:none}#app.view-org #palette .hint-org,#app.view-hub #palette .hint-hub{display:inline}
 /* Grafik-Auswahl (aufklappbar) */
 .vpick{position:relative}
 #gViewBtn{white-space:nowrap}
@@ -224,7 +224,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 #bcard .mem:hover{background:var(--panel2)}
 #bcard .mem small{color:var(--mute);margin-left:auto}
 /* Moderne Ebene „Alle Firmen“ (Stadt/Kosmos): immer dunkel mit Leuchtkanten, eigenes SVG, Umschalter oben, Infofenster rechts */
-#hubsvg{position:absolute;left:0;top:0;overflow:visible;display:none}
+#hubsvg{position:absolute;left:0;top:0;overflow:visible;display:none;--hrot:0}
+/* Drehen und Neigen der modernen Welten (Wunsch ABI 2026-11-04): Beschriftungen drehen sich zurueck und bleiben lesbar */
+#hubsvg text{transform-box:view-box;transform:rotate(calc(var(--hrot) * -1deg))}#hubsvg .hlogo{transform-box:fill-box;transform-origin:center;transform:rotate(calc(var(--hrot) * -1deg))}
+.zoom .cam{display:none}#app.view-hub .zoom .cam{display:block}
+#vp.turning{cursor:grabbing}
 #hubbar{display:none;position:absolute;left:50%;transform:translateX(-50%);top:10px;z-index:5;max-width:calc(100% - 20px)}
 #hubbar .seg{display:inline-flex;border:1px solid #2b3a5c;border-radius:12px;overflow:hidden;background:rgba(10,16,34,.85);box-shadow:0 6px 24px rgba(0,0,0,.45);backdrop-filter:blur(8px)}
 #hubbar .seg button{background:none;border:0;padding:8px 14px;cursor:pointer;color:#cbd5e1;font-size:14px;white-space:nowrap}
@@ -642,7 +646,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <span style="color:var(--mute)">Agent hinzufügen (ziehen oder klicken):</span>
     </div>
     <div id="vp">
-      <div class="zoom"><button id="zin" title="Hineinzoomen" aria-label="Hineinzoomen">+</button><button id="zout" title="Herauszoomen" aria-label="Herauszoomen">−</button><button id="zfit">Fit</button></div>
+      <div class="zoom"><button id="zin" title="Hineinzoomen" aria-label="Hineinzoomen">+</button><button id="zout" title="Herauszoomen" aria-label="Herauszoomen">−</button><button id="zfit">Fit</button><button class="cam" id="hRotL" title="Nach links drehen (auch: rechte Maustaste ziehen oder zwei Finger drehen)" aria-label="Nach links drehen">⟲</button><button class="cam" id="hRotR" title="Nach rechts drehen" aria-label="Nach rechts drehen">⟳</button><button class="cam" id="hTiltUp" title="Stärker neigen (auch: rechte Maustaste nach oben/unten ziehen oder zwei Finger gemeinsam schieben)" aria-label="Stärker neigen">⤵</button><button class="cam" id="hTiltDn" title="Weniger neigen" aria-label="Weniger neigen">⤴</button><button class="cam" id="hCam0" title="Gerade stellen: Drehung und Neigung zurücksetzen" aria-label="Gerade stellen">⌂</button></div>
       <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="atomsvg" width="1" height="1"></svg><svg id="hubsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
       <div id="hubbar" role="toolbar" aria-label="Ansicht wählen">
         <span class="hubrow"><button class="btn sm" id="hubLink" title="Zusammenarbeit: zwei Firmen als Partner verbinden oder trennen. Zwischen Partnern fahren Lieferwagen bzw. fliegen Raumschiffe">🤝 Zusammenarbeit</button><button class="btn sm" id="hubOut" title="Aus der Firma heraus, zurück zu allen Firmen (Esc)">← Alle Firmen</button>
@@ -870,7 +874,11 @@ function zoomAt(f,cx,cy){
   const ns=Math.min(2,Math.max(.3,V.s*f)); V.x=mx-(mx-V.x)*(ns/V.s); V.y=my-(my-V.y)*(ns/V.s); V.s=ns; applyView();
 }
 function fit(){
-  if(VIEW==='hub'){ const vp=$('#vp').getBoundingClientRect(), b=HUB.box, top=$('#hubbar').offsetHeight+16; if(!b) return;
+  if(VIEW==='hub'){ const vp=$('#vp').getBoundingClientRect(), top=$('#hubbar').offsetHeight+16; let b=HUB.box; if(!b) return;
+    const c=hubCam(); if(c.rot||c.tilt){  // gedreht/geneigt: Umriss der gedrehten Flaeche einpassen
+      const a=c.rot*Math.PI/180, cx=(b.x0+b.x1)/2, cy=(b.y0+b.y1)/2, w=(b.x1-b.x0)/2, h=(b.y1-b.y0)/2;
+      const W2=Math.abs(w*Math.cos(a))+Math.abs(h*Math.sin(a)), H2=(Math.abs(w*Math.sin(a))+Math.abs(h*Math.cos(a)))*Math.cos(c.tilt*Math.PI/180);
+      b={x0:cx-W2,x1:cx+W2,y0:cy-H2,y1:cy+H2}; }
     const wide=vp.width>820, L=wide&&HUB.inside?226:0, Rt=wide&&$('#hubcard').classList.contains('on')?346:0, aw=vp.width-L-Rt;
     const s=Math.min(1.2,Math.max(.2,Math.min((aw-30)/(b.x1-b.x0),(vp.height-top-20)/(b.y1-b.y0))));
     V.s=s; V.x=L+(aw-(b.x1-b.x0)*s)/2-b.x0*s; V.y=top+(vp.height-top-(b.y1-b.y0)*s)/2-b.y0*s; return applyView(); }
@@ -905,7 +913,7 @@ $('#vp').addEventListener('pointerdown',e=>{
     if(touches.size===2){
       if(drag&&drag.type==='link'){ const t=$('#tmp'); if(t) t.remove(); }
       drag=null; const [a,b]=[...touches.values()];
-      pinch={d:Math.hypot(a.x-b.x,a.y-b.y)}; return;
+      pinch={d:Math.hypot(a.x-b.x,a.y-b.y), ang:Math.atan2(b.y-a.y,b.x-a.x), my:(a.y+b.y)/2}; return;
     }
     if(touches.size>2) return;
   }
@@ -929,6 +937,7 @@ $('#vp').addEventListener('pointerdown',e=>{
     drag={type:'org', id, sx:e.clientX, sy:e.clientY, o0:o, moved:false}; return;
   }
   if(e.target.closest('#edges path.hit')) return;
+  if(VIEW==='hub' && e.pointerType!=='touch' && (e.button===2 || e.shiftKey)){ e.preventDefault(); drag={type:'turn',sx:e.clientX,sy:e.clientY}; $('#vp').classList.add('turning'); return; }
   drag={type:'pan',sx:e.clientX,sy:e.clientY,vx:V.x,vy:V.y}; $('#vp').classList.add('panning');
 });
 window.addEventListener('pointermove',e=>{
@@ -936,10 +945,15 @@ window.addEventListener('pointermove',e=>{
     touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(pinch&&touches.size===2){
       const [a,b]=[...touches.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y);
-      if(pinch.d>0) zoomAt(d/pinch.d,(a.x+b.x)/2,(a.y+b.y)/2); pinch.d=d; return;
+      if(pinch.d>0) zoomAt(d/pinch.d,(a.x+b.x)/2,(a.y+b.y)/2); pinch.d=d;
+      if(VIEW==='hub'){  // moderne Welten: zwei Finger drehen = drehen, zwei Finger gemeinsam hoch/runter = neigen
+        const ang=Math.atan2(b.y-a.y,b.x-a.x), my=(a.y+b.y)/2; let da=(ang-pinch.ang)*180/Math.PI; if(da>180) da-=360; if(da<-180) da+=360;
+        hubTurn(da, -(my-pinch.my)*.3); pinch.ang=ang; pinch.my=my; }
+      return;
     }
   }
   if(!drag) return;
+  if(drag.type==='turn'){ hubTurn((e.clientX-drag.sx)*.4, -(e.clientY-drag.sy)*.25); drag.sx=e.clientX; drag.sy=e.clientY; return; }
   if(drag.type==='pan'){ V.x=drag.vx+e.clientX-drag.sx; V.y=drag.vy+e.clientY-drag.sy; applyView(); }
   else if(drag.type==='node'){
     const w=toWorld(e.clientX,e.clientY); const a=agentById(drag.id);
@@ -959,7 +973,7 @@ const endTouch=e=>{ touches.delete(e.pointerId); if(touches.size<2) pinch=null; 
 window.addEventListener('pointercancel',e=>{ endTouch(e); if(drag&&drag.type==='link'){ const t=$('#tmp'); if(t) t.remove(); } drag=null; $('#vp').classList.remove('panning'); });
 window.addEventListener('pointerup',async e=>{
   endTouch(e);
-  if(!drag) return; const d=drag; drag=null; $('#vp').classList.remove('panning');
+  if(!drag) return; const d=drag; drag=null; $('#vp').classList.remove('panning','turning');
   const dropOn=(sel,self)=>{ for(const el of document.elementsFromPoint(e.clientX,e.clientY)){ const c=el.closest(sel); if(c && +(c.dataset.id||c.dataset.agent)!==self) return +(c.dataset.id||c.dataset.agent); } return 0; };
   if(d.type==='org' && d.moved){
     const target=dropOn('#orgsvg .ocard', d.id);
@@ -998,8 +1012,8 @@ async function connectAsk(childId, bossId){  // Verbinden immer mit Rueckfrage, 
     b.onclick=()=>{ if(VIEW!=='plan'){ addAgent(k); return; } const r=$('#vp').getBoundingClientRect(); const w=toWorld(r.left+r.width/2-W/2*V.s, r.top+r.height/3); addAgent(k,w.x,w.y); };
     pal.appendChild(b);
   });
-  const ob=document.createElement('div'); ob.className='pal pal-order'; ob.textContent='🗂 Ordnen'; ob.title='Ordnen: im Bauplan alle Agenten als Organigramm anordnen, im Organigramm von Hand verschobene Karten zurücksetzen';
-  ob.onclick=()=>{ if(VIEW==='org'){ delete ORG.off[orgOffKey()]; orgSaveOff(); ORG.sig=''; drawOrg(); fit(); } else autoLayout(); }; pal.appendChild(ob);
+  const ob=document.createElement('div'); ob.className='pal pal-order'; ob.textContent='🗂 Ordnen'; ob.title='Ordnen: im Bauplan alle Agenten als Organigramm anordnen, im Organigramm von Hand verschobene Karten zurücksetzen, in Stadt/Kosmos/Molekül Drehung und Neigung zurücksetzen und alles einpassen';
+  ob.onclick=()=>{ if(VIEW==='hub'){ const c=hubCam(); hubTurn(-c.rot,-c.tilt); fit(); return; } if(VIEW==='org'){ delete ORG.off[orgOffKey()]; orgSaveOff(); ORG.sig=''; drawOrg(); fit(); } else autoLayout(); }; pal.appendChild(ob);
   [['hint-plan','Unterer Punkt am Knoten → auf anderen Knoten ziehen = verbinden. Linie anklicken = trennen.'],
    ['hint-org','Neue Agenten stehen zuerst ohne Chef. Karte auf eine andere ziehen = unterstellen.'],
    ['hint-hub','Neue Agenten kommen in das Projekt, das oben steht.']].forEach(([c,t])=>{ const h=document.createElement('span'); h.className='hint '+c; h.textContent=t; pal.appendChild(h); });
@@ -1904,6 +1918,7 @@ const HELP=[
 <li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: eine Etage je Hierarchie-Ebene, so tief wie die Firma ist: ganz oben in der Chefetage die Leitung, darunter die Abteilungsleitungen, dann jede weitere Ebene. Jede Person sitzt in ihrem eigenen Raum in der Farbe ihrer Abteilung; hat eine Abteilung auf einer Ebene 4 Leute, gibt es dort 4 Räume. Mit Erfolg wächst das Gebäude: ab Stufe 2 Anbau und Dachgarten, ab Stufe 3 Antenne, ab Stufe 4 Hubschrauberlandeplatz. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
 <li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
 <li><b>← Alle Firmen</b> oder Esc führt wieder hinaus.</li>
+<li><b>Drehen und Neigen:</b> Rechts unten drehen ⟲ ⟳ die Welt, ⤵ ⤴ neigen sie nach hinten, ⌂ oder „🗂 Ordnen“ oben stellt sie wieder gerade und passt alles ein, falls man sich verloren hat. Mit der Maus geht es auch: rechte Maustaste (oder Umschalttaste) gedrückt halten und ziehen, seitlich = drehen, hoch/runter = neigen. Auf dem Handy mit zwei Fingern drehen bzw. beide Finger gemeinsam hoch- oder runterschieben. Die Namen bleiben dabei lesbar, das Gerät merkt sich die Stellung je Welt.</li>
 <li><b>Agent hinzufügen:</b> Die Leiste unter der Wachstumsleiste ist in jeder Grafik da. Ein neuer Agent kommt in das Projekt, das oben steht.</li>
 <li><b>🤝 Zusammenarbeit:</b> Oben (oder 🤝 im Infofenster einer Firma) verbindest du zwei Firmen als Partner, mit „Lösen“ trennst du sie wieder. Nur Partner bekommen in der Stadt eine Straße, auf der Lieferwagen fahren, und im Kosmos fliegen Raumschiffe zwischen ihren Sonnen. Ruhen beide Firmen, ist nur ein langsames Fahrzeug unterwegs und die Straße bleibt dunkel. Arbeiten sie, leuchtet die Straße und es wird mehr Verkehr. Firmen ohne Partnerschaft bleiben unverbunden. Die Agenten merken davon nichts.</li>
 <li><b>🔍 Suche:</b> oben Firma oder Agent eintippen (Name oder Rolle). Ein Treffer zoomt in die Firma und zeigt den Agenten in seiner Abteilung.</li></ul>`},
@@ -2570,6 +2585,28 @@ async function loadFirms(force){
   try{ HUB.d = await api('/firms'); }catch(e){ return; }
   drawHub();
 }
+/* Kamera der modernen Welten: drehen (HUB.rot, Grad) und neigen (HUB.tilt, 0–60 Grad), je Welt auf dem Geraet gemerkt */
+HUB.cam={};
+try{ HUB.cam=JSON.parse(localStorage.getItem('hs-hubcam')||'{}')||{}; }catch(e){}
+function hubCam(){ return HUB.cam[HUB.world] || (HUB.cam[HUB.world]={rot:0,tilt:0}); }
+function hubCamApply(){
+  const svg=$('#hubsvg'), c=hubCam(), b=HUB.box;
+  if(VIEW!=='hub' || !b || (!c.rot && !c.tilt)){ svg.style.transform=''; svg.style.setProperty('--hrot',0); return; }
+  svg.style.transformOrigin=`${((b.x0+b.x1)/2).toFixed(0)}px ${((b.y0+b.y1)/2).toFixed(0)}px`;
+  svg.style.transform=`perspective(${Math.round(Math.max(900,(b.x1-b.x0)*1.6))}px) rotateX(${c.tilt.toFixed(1)}deg) rotateZ(${c.rot.toFixed(1)}deg)`;
+  svg.style.setProperty('--hrot', c.rot.toFixed(1));
+  if(svg.dataset.org!==HUB.sig){ svg.dataset.org=HUB.sig;  // Beschriftung dreht um ihren Ankerpunkt, zweizeilige bleiben untereinander
+    svg.querySelectorAll('text').forEach(t=>{ t.style.transformOrigin=`${t.getAttribute('x')||0}px ${t.getAttribute('y')||0}px`; }); }
+}
+function hubTurn(dr,dt){
+  const c=hubCam(); c.rot=((c.rot+dr)%360+540)%360-180; c.tilt=Math.min(60,Math.max(0,c.tilt+dt));
+  if(Math.abs(c.rot)<.5) c.rot=0;
+  hubCamApply(); clearTimeout(hubTurn.t); hubTurn.t=setTimeout(()=>{ try{ localStorage.setItem('hs-hubcam', JSON.stringify(HUB.cam)); }catch(e){} },300);
+}
+$('#hRotL').onclick=()=>hubTurn(-15,0); $('#hRotR').onclick=()=>hubTurn(15,0);
+$('#hTiltUp').onclick=()=>hubTurn(0,10); $('#hTiltDn').onclick=()=>hubTurn(0,-10);
+$('#hCam0').onclick=()=>{ const c=hubCam(); hubTurn(-c.rot,-c.tilt); };
+$('#vp').addEventListener('contextmenu',e=>{ if(VIEW==='hub') e.preventDefault(); });
 function hubWorld(w){ HUB.world=w; HUB.agent=null; try{ localStorage.setItem('hs-hubworld', w); }catch(e){} HUB.sig=''; hideHubCard(); drawHub(); fit(); markView(); }
 function hubMark(){
   document.querySelectorAll('#hubbar [data-hubworld]').forEach(b=>{ const on=b.dataset.hubworld===HUB.world; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
@@ -2929,7 +2966,7 @@ function hubDepsList(f){
 }
 function drawHub(){
   const svg=$('#hubsvg');
-  if(VIEW!=='hub' || !HUB.d){ svg.innerHTML=''; HUB.box=null; HUB.sig=''; HUB.mv=[]; return; }
+  if(VIEW!=='hub' || !HUB.d){ svg.innerHTML=''; HUB.box=null; HUB.sig=''; HUB.mv=[]; hubCamApply(); return; }
   const f = HUB.inside && HUB.d.firms.find(x=>x.id===HUB.inside);
   if(HUB.inside && !f){ HUB.inside=null; HUB.dep=null; }
   hubMark();
@@ -2943,6 +2980,7 @@ function drawHub(){
   hubPlace(hubMoving() ? performance.now()/1000 : 0);
   startHub();
   if(f){ hubDepsList(f); if(!HUB.cardOff) hubCardFill(); } else if(HUB.sel) hubCardFill();
+  hubCamApply();
 }
 /* Zusammenarbeit (Phase 3): nur zwischen Partner-Firmen gibt es Straßen (Stadt) bzw. Flugrouten (Kosmos). Ohne Partnerschaft keine Linie.
    Verkehr nach echter Aktivität: ruhen beide Firmen, fährt/fliegt nur ein langsames Fahrzeug, arbeiten sie, wird es mehr und schneller. */

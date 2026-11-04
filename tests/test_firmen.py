@@ -232,3 +232,19 @@ def test_agenten_leiste_in_jeder_grafik():
     css = html[:html.index("</style>")]
     assert not re.search(r"#app\.view-\w+ #palette[,{]", css)
     assert "if(VIEW!=='plan'){ addAgent(k); return; }" in html and "if(x==null)" in html
+
+
+def test_hub_drehen_und_neigen():
+    """Stadt/Kosmos/Molekül lassen sich drehen und neigen, Beschriftungen drehen zurück (Wunsch ABI)."""
+    import os
+    import re
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    for b in ("hRotL", "hRotR", "hTiltUp", "hTiltDn", "hCam0"):
+        tag = re.search(r'<button[^>]*id="%s"[^>]*>' % b, html)
+        assert tag and "title=" in tag.group(0)
+    assert "function hubTurn(" in html and "function hubCamApply(" in html and "rotateX(" in html
+    assert "#hubsvg text{transform-box:view-box;transform:rotate(calc(var(--hrot) * -1deg))}" in html
+    assert "drag.type==='turn'" in html and "hs-hubcam" in html
+    # Texte im Hub haben kein eigenes transform-Attribut (sonst ueberschreibt die CSS-Rueckdrehung es)
+    hub = html[html.index("const HUB = {"):html.index("const ATOM")]
+    assert not re.search(r"<text[^>]*transform=", hub)
