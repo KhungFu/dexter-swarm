@@ -276,6 +276,19 @@ button,input,select,textarea{font:inherit;color:inherit}
 @media (prefers-reduced-motion: reduce){#hubsvg .screen.on{animation:none}}
 :root[data-motion="off"] #hubsvg .screen.on{animation:none}
 @media (max-width:820px){#hubSearch{width:170px}#hubdeps{left:6px;right:6px;top:auto;bottom:8px;width:auto;flex-direction:row;overflow-x:auto;max-height:none;padding:6px}#hubdeps .hd{white-space:nowrap}#hubdeps .hd small{margin-left:6px}#app.hub-in #hubcard.on~*{}#app.hub-in #hubcard{bottom:62px}}
+#hubLink{background:rgba(10,16,34,.9);border-color:#2b3a5c;color:#e2e8f0;white-space:nowrap}
+#app.hub-in #hubLink{display:none}
+#hubcard #hubCardLink{padding:1px 7px;margin-left:4px;background:#16223f;border-color:#2b3a5c;color:#e2e8f0}
+#hubsvg .road .rw{fill:none;stroke:#111a30;stroke-width:22;stroke-linejoin:round;stroke-linecap:round}
+#hubsvg .road .rl{fill:none;stroke:#22d3ee;stroke-opacity:.25;stroke-width:2;stroke-dasharray:12 10}
+#hubsvg .road.live .rw{stroke:#14213f}
+#hubsvg .road.live .rl{stroke-opacity:.8;filter:url(#hubGlow)}
+#hubsvg .veh{pointer-events:none}
+#hubsvg .van .hl{fill:#fef08a;filter:url(#hubGlow)}
+#hubsvg .ship .trail{fill:#7dd3fc;opacity:.25}
+#hubsvg .ship.live .trail{opacity:.55;filter:url(#hubGlow)}
+#hubsvg .ship .flame{fill:#fb923c;filter:url(#hubGlow)}
+#hubsvg .ship:not(.live){opacity:.6}
 #app.view-hub #hubsvg{display:block}
 #app.view-hub #hubbar{display:block}
 #app.view-hub #edges,#app.view-hub #nodes,#app.view-hub #palette,#app.view-hub #growth,#app.view-hub #empty,#app.view-hub #map,#app.view-hub #orgsvg,#app.view-hub #atomsvg,#app.view-hub #wlist,#app.view-hub #bcard{display:none !important}
@@ -580,7 +593,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="atomsvg" width="1" height="1"></svg><svg id="hubsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
       <div id="hubbar" role="toolbar" aria-label="Ansicht wählen">
         <span class="seg"><button id="hubClassic" title="Klassisch: zurück zur sachlichen Ansicht der aktuellen Firma (Organigramm, Bauplan …)">📐 Klassisch</button><button data-hubworld="stadt" title="Stadt: jede Firma ist ein Gebäude. Je weiter die Firma gewachsen ist, desto höher das Haus">🏙 Stadt</button><button data-hubworld="kosmos" title="Kosmos: jede Firma ist ein Sonnensystem, die Planeten sind ihre Abteilungen">🌌 Kosmos</button></span>
-        <span class="hubrow"><button class="btn sm" id="hubOut" title="Aus der Firma heraus, zurück zu allen Firmen (Esc)">← Alle Firmen</button>
+        <span class="hubrow"><button class="btn sm" id="hubLink" title="Zusammenarbeit: zwei Firmen als Partner verbinden oder trennen. Zwischen Partnern fahren Lieferwagen bzw. fliegen Raumschiffe">🤝 Zusammenarbeit</button><button class="btn sm" id="hubOut" title="Aus der Firma heraus, zurück zu allen Firmen (Esc)">← Alle Firmen</button>
         <span id="hubFind"><input id="hubSearch" type="search" placeholder="🔍 Firma oder Agent suchen" aria-label="Firma oder Agent suchen" autocomplete="off"><span id="hubResults" hidden></span></span></span>
       </div>
       <nav id="hubdeps" aria-label="Abteilungen"></nav>
@@ -1827,12 +1840,13 @@ const HELP=[
 <li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude von innen: unten (EG) die Leitung, darüber eine Etage je Abteilung, die Agenten an ihren Tischen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
 <li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
 <li><b>← Alle Firmen</b> oder Esc führt wieder hinaus.</li>
+<li><b>🤝 Zusammenarbeit:</b> Oben (oder 🤝 im Infofenster einer Firma) verbindest du zwei Firmen als Partner, mit „Lösen“ trennst du sie wieder. Nur Partner bekommen in der Stadt eine Straße, auf der Lieferwagen fahren, und im Kosmos fliegen Raumschiffe zwischen ihren Sonnen. Ruhen beide Firmen, ist nur ein langsames Fahrzeug unterwegs und die Straße bleibt dunkel. Arbeiten sie, leuchtet die Straße und es wird mehr Verkehr. Firmen ohne Partnerschaft bleiben unverbunden. Die Agenten merken davon nichts.</li>
 <li><b>🔍 Suche:</b> oben Firma oder Agent eintippen (Name oder Rolle). Ein Treffer zoomt in die Firma und zeigt den Agenten in seiner Abteilung.</li></ul>`},
  {id:'hilfe',t:'❓ Hilfe-Modus und Hinweise',h:`<p>Fast jeder Knopf hat eine kurze Erklärung. Am PC erscheint sie, wenn du mit der Maus darauf zeigst.</p>
 <p>Auf dem Handy gibt es kein Draufzeigen. Schalte dafür hier den <b>Hilfe-Modus</b> ein: Dann zeigt das erste Tippen auf einen Knopf die Erklärung, erst das zweite Tippen führt ihn aus. Unten erscheint eine Leiste, mit „Aus“ beendest du ihn.</p>
 <p>ⓘ oben in einem Fenster springt direkt zum passenden Kapitel dieser Anleitung.</p>`},
 ];
-const HELP_MAP=[['Freigaben','auftraege'],['Post','auftraege'],['Ziele','auftraege'],['Zeitplan','zeitplan'],['Cloud','dateien'],['Hochladen','dateien'],['Dateien','dateien'],['🔌','dateien'],['Betriebszentrale','betrieb'],['Nutzung','betrieb'],['Verlauf','betrieb'],['Wachstum','welt'],['Modelle','agenten'],['KI für','agenten'],['Firmenwissen','agenten'],['Vorlage','start'],['Stimme','stimmen']];
+const HELP_MAP=[['Freigaben','auftraege'],['Post','auftraege'],['Ziele','auftraege'],['Zeitplan','zeitplan'],['Cloud','dateien'],['Hochladen','dateien'],['Dateien','dateien'],['🔌','dateien'],['Betriebszentrale','betrieb'],['Nutzung','betrieb'],['Verlauf','betrieb'],['Wachstum','welt'],['Modelle','agenten'],['KI für','agenten'],['Firmenwissen','agenten'],['Vorlage','start'],['Stimme','stimmen'],['Zusammenarbeit','firmen']];
 function helpFor(title){ if(String(title).startsWith('📖')) return null; const m=HELP_MAP.find(([k])=>String(title).includes(k)); return m?m[1]:null; }
 function showHelp(chapter){
   openOv('📖 Anleitung'); const body=$('#ovbody');
@@ -2564,7 +2578,8 @@ function hubCity(){
   HUB.at_city=at;
   const top=iso(0,0)[1]-HUB_FLOORS[4]*HUB_FH-90, b={x0:iso(-.5,V+.5)[0]-40, x1:iso(U+.5,-.5)[0]+40, y0:top, y1:iso(U+.5,V+.5)[1]+60};
   HUB.box=b; HUB.mv=[];
-  return HUB_DEFS+`<g>${hubStars({x0:b.x0-400,x1:b.x1+400,y0:b.y0-300,y1:b.y1+300}, 17)}</g>`+ground+(()=>{ const parts=lots.map(({f})=>hubBuilding(f,...at[f.id]).split('\u0000')); return parts.map(x=>x[0]).join('')+parts.map(x=>x[1]).join(''); })();
+  const RD=hubCityRoads(at);
+  return HUB_DEFS+`<g>${hubStars({x0:b.x0-400,x1:b.x1+400,y0:b.y0-300,y1:b.y1+300}, 17)}</g>`+ground+RD.roads+RD.veh+(()=>{ const parts=lots.map(({f})=>hubBuilding(f,...at[f.id]).split('\u0000')); return parts.map(x=>x[0]).join('')+parts.map(x=>x[1]).join(''); })();
 }
 
 /* Kosmos: jede Firma ein eigenes Sonnensystem, Sonne = Leitung, Planeten = Abteilungen. Keine Linien zwischen den Systemen. */
@@ -2597,16 +2612,18 @@ function hubCosmos(){
   const cell=Math.max(260, ...sys.map(s=>s.R*2+60)), vr=$('#vp').getBoundingClientRect(), C=Math.max(1,Math.min(F.length,Math.ceil(Math.sqrt(F.length*Math.max(.4,vr.width/Math.max(1,vr.height)))))), out=[], RND=rnd(4242);
   sys.forEach((s,k)=>{ const i=k%C, j=Math.floor(k/C), x=i*cell+(j%2?cell/2:0)+(RND()-.5)*cell*.25, y=j*cell*.62+(RND()-.5)*cell*.12; s.x=x; s.y=y; });
   sys.forEach(s=>out.push(hubSystem(s.f, s.x, s.y).svg));
+  const pos={}; sys.forEach(s=>pos[s.f.id]=[s.x,s.y]); out.push(hubCosmosRoutes(pos));
   const xs=sys.map(s=>s.x), ys=sys.map(s=>s.y), b={x0:Math.min(...xs)-cell/2, x1:Math.max(...xs)+cell/2, y0:Math.min(...ys)-cell*.35, y1:Math.max(...ys)+cell*.45};
   HUB.box=b;
   return HUB_DEFS+`<g>${hubStars({x0:b.x0-600,x1:b.x1+600,y0:b.y0-400,y1:b.y1+400}, 99)}</g>`+out.join('');
 }
 function hubPlace(t){
+  hubPlaceTraffic(t);
   HUB.mv.forEach((m,i)=>{ const el=HUB.els[i]; if(!el) return; const a=m.a0+t*m.w;
     el.setAttribute('transform',`translate(${(m.rx*Math.cos(a)).toFixed(1)},${(m.ry*Math.sin(a)).toFixed(1)})`);
     el.parentNode && (el.style.opacity = Math.sin(a)<-.2 ? .85 : 1); });
 }
-function hubMoving(){ return VIEW==='hub' && HUB.mv.length && !document.hidden && !motionOff() && innerWidth>820; }
+function hubMoving(){ return VIEW==='hub' && (HUB.mv.length || (HUB.tr||[]).length) && !document.hidden && !motionOff() && innerWidth>820; }
 function hubTick(now){
   HUB.raf=0; if(!hubMoving()) return;
   if(now-HUB.last>40){ HUB.last=now; hubPlace(now/1000); }
@@ -2698,11 +2715,82 @@ function drawHub(){
   $('#app').classList.toggle('hub-in', !!f);
   if(!HUB.d.firms.length){ svg.innerHTML=`<text class="hlbl" x="0" y="0">Noch keine Firma. Lege links bei „Projekte“ mit ＋ eine an.</text>`; HUB.box={x0:-320,x1:320,y0:-60,y1:60}; return; }
   svg.innerHTML = f ? (HUB.world==='kosmos' ? hubInsideCosmos(f) : hubInsideCity(f)) : HUB_DRAW[HUB.world]();
-  HUB.els=[...svg.querySelectorAll('.hpl')];
+  if(f) HUB.tr=[];
+  HUB.els=[...svg.querySelectorAll('.hpl')]; HUB.trEls=[...svg.querySelectorAll('.veh')];
   hubPlace(hubMoving() ? performance.now()/1000 : 0);
   startHub();
   if(f){ hubDepsList(f); if(!HUB.cardOff) hubCardFill(); } else if(HUB.sel) hubCardFill();
 }
+/* Zusammenarbeit (Phase 3): nur zwischen Partner-Firmen gibt es Straßen (Stadt) bzw. Flugrouten (Kosmos). Ohne Partnerschaft keine Linie.
+   Verkehr nach echter Aktivität: ruhen beide Firmen, fährt/fliegt nur ein langsames Fahrzeug, arbeiten sie, wird es mehr und schneller. */
+function hubTraffic(l){
+  const F=HUB.d.firms, fa=F.find(f=>f.id===l.a), fb=F.find(f=>f.id===l.b); if(!fa||!fb) return null;
+  const act=(fa.busy||0)+(fb.busy||0), both=fa.busy&&fb.busy;
+  return {fa, fb, act, n: act ? Math.min(5, 1+Math.ceil(act/3)+(both?1:0)) : 1, sp: act ? 1.25 : .55, live: act>0};
+}
+function hubPolyLen(p){ let s=0; for(let k=1;k<p.length;k++) s+=Math.hypot(p[k][0]-p[k-1][0],p[k][1]-p[k-1][1]); return s; }
+function hubCityRoads(at){
+  const out=[], veh=[]; HUB.tr=[];
+  HUB.d.links.forEach((l,n)=>{
+    const T=hubTraffic(l); if(!T) return;
+    const [ua,va]=at[l.a], [ub,vb]=at[l.b], la=va+1+HUB_GAP/2, lb=vb+1+HUB_GAP/2, cu=ub-HUB_GAP/2;
+    const P=[[ua+.5,va+1],[ua+.5,la],[cu,la],[cu,lb],[ub+.5,lb],[ub+.5,vb+1]].filter((p,k,a)=>!k||p[0]!==a[k-1][0]||p[1]!==a[k-1][1]).map(([u,v])=>iso(u,v));
+    const d='M'+P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
+    out.push(`<g class="road${T.live?' live':''}"><title>Zusammenarbeit: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}${l.note?' – '+esc(l.note):''}${T.live?' · aktiv':' · gerade ruhig'}</title>
+      <path class="rw" d="${d}"/><path class="rl" d="${d}"/></g>`);
+    for(let k=0;k<T.n;k++){ HUB.tr.push({p:P, len:hubPolyLen(P), sp:T.sp*(1+.12*(k%3)), o:k/T.n+n*.13, iso:true});
+      veh.push(`<g class="veh van"><title>Lieferung: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}</title>
+        <g class="vb"><ellipse rx="10" ry="4" cy="3" fill="#000" opacity=".4"/><polygon points="-10,-2 0,-7 10,-2 0,3" fill="#e2e8f0"/><polygon points="-10,-2 0,3 0,8 -10,3" fill="#94a3b8"/><polygon points="0,3 10,-2 10,3 0,8" fill="#64748b"/><circle cx="9" cy="1" r="2.2" class="hl"/></g></g>`); }
+  });
+  return {roads:out.join(''), veh:veh.join('')};
+}
+function hubCosmosRoutes(pos){
+  const veh=[]; HUB.tr=[];
+  HUB.d.links.forEach((l,n)=>{
+    const T=hubTraffic(l), A=pos[l.a], B=pos[l.b]; if(!T||!A||!B) return;
+    const mx=(A[0]+B[0])/2, my=(A[1]+B[1])/2, dx=B[0]-A[0], dy=B[1]-A[1], L=Math.hypot(dx,dy)||1, bend=L*.18*(n%2?1:-1);
+    const cx=mx-dy/L*bend, cy=my+dx/L*bend, P=[];
+    for(let k=0;k<=32;k++){ const t=k/32, u=1-t; P.push([u*u*A[0]+2*u*t*cx+t*t*B[0], u*u*A[1]+2*u*t*cy+t*t*B[1]]); }
+    for(let k=0;k<T.n;k++){ HUB.tr.push({p:P, len:hubPolyLen(P), sp:T.sp*1.8*(1+.15*(k%3)), o:k/T.n+n*.21, ship:true});
+      veh.push(`<g class="veh ship${T.live?' live':''}"><title>Zusammenarbeit: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}${l.note?' – '+esc(l.note):''}${T.live?' · aktiv':' · gerade ruhig'}</title>
+        <g class="sb"><path class="trail" d="M-6,0 L-34,-3 L-34,3 Z"/><path d="M11,0 L-6,-6 L-3,0 L-6,6 Z" fill="#e2e8f0" stroke="#7dd3fc" stroke-width="1"/><circle cx="-5" r="2.4" class="flame"/></g></g>`); }
+  });
+  return veh.join('');
+}
+function hubAlong(m,t){  // Fahrzeug hin und zurück entlang der Strecke; liefert Punkt und Richtung
+  let s=((t*m.sp*40/m.len)+m.o)%2, back=s>1; if(back) s=2-s;
+  let d=s*m.len;
+  for(let k=1;k<m.p.length;k++){ const a=m.p[k-1], b=m.p[k], L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    if(d<=L||k===m.p.length-1){ const r=L?Math.min(1,d/L):0; let dx=b[0]-a[0], dy=b[1]-a[1]; if(back){ dx=-dx; dy=-dy; }
+      return [a[0]+(b[0]-a[0])*r, a[1]+(b[1]-a[1])*r, dx, dy]; } d-=L; }
+  const q=m.p[0]; return [q[0],q[1],1,0];
+}
+function hubPlaceTraffic(t){
+  (HUB.tr||[]).forEach((m,i)=>{ const el=HUB.trEls[i]; if(!el) return; const [x,y,dx,dy]=hubAlong(m,t);
+    const rot = m.ship ? ` rotate(${(Math.atan2(dy,dx)*180/Math.PI).toFixed(0)})` : (dx<0 ? ' scale(-1,1)' : '');
+    el.setAttribute('transform',`translate(${x.toFixed(1)},${y.toFixed(1)})${rot}`); });
+}
+/* Partnerschaften setzen und lösen. Nur du legst sie an, die Agenten sehen davon nichts. */
+async function showFirmLinks(pre){
+  openOv('🤝 Zusammenarbeit'); await loadFirms(true);
+  const F=HUB.d?HUB.d.firms:[], name=id=>(F.find(f=>f.id===id)||{name:'#'+id}).name;
+  const opts=F.map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('');
+  $('#ovbody').innerHTML = `<p style="color:var(--mute);margin-top:0">Arbeiten zwei Firmen zusammen, verbindet sie in der Stadt eine Straße mit Lieferwagen und im Kosmos fliegen Raumschiffe hin und her. Je mehr beide gerade arbeiten, desto mehr Verkehr. Firmen ohne Partnerschaft bleiben unverbunden. Die Agenten merken davon nichts, es ist nur die Ansicht.</p>
+    ${F.length<2?'<div class="ops-empty">Dafür brauchst du mindestens zwei Firmen (Projekte).</div>':`
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><select id="flA" aria-label="Erste Firma" style="width:auto;flex:1;min-width:130px">${opts}</select> ↔ <select id="flB" aria-label="Zweite Firma" style="width:auto;flex:1;min-width:130px">${opts}</select>
+    <input id="flNote" placeholder="Wofür? (optional)" maxlength="200" aria-label="Wofür arbeiten sie zusammen" style="flex:1;min-width:120px"><button class="btn sm" id="flAdd" title="Die beiden gewählten Firmen als Partner verbinden">🤝 Verbinden</button></div>`}
+    <div id="flList" style="margin-top:12px">${(HUB.d?HUB.d.links:[]).map(l=>`<div class="wcard" style="display:flex;align-items:center;gap:8px"><span>${esc(name(l.a))} ↔ ${esc(name(l.b))}${l.note?` <small style="color:var(--mute)">${esc(l.note)}</small>`:''}</span>
+      <button class="btn sm danger" data-unlink="${l.id}" style="margin-left:auto" title="Partnerschaft lösen: Straße und Raumschiffe verschwinden">Lösen</button></div>`).join('') || '<div class="ops-empty">Noch keine Partnerschaft.</div>'}</div>`;
+  if($('#flA') && pre) $('#flA').value=pre;
+  if($('#flB')){ const other=F.find(f=>f.id!==(+$('#flA').value)); if(other) $('#flB').value=other.id; }
+  if($('#flAdd')) $('#flAdd').onclick=async ()=>{ const a=+$('#flA').value, b=+$('#flB').value;
+    if(a===b) return toast('Bitte zwei verschiedene Firmen wählen.');
+    await api('/firms/links','POST',{a,b,note:$('#flNote').value}); HUB.sig=''; showFirmLinks(); };
+  $('#flList').onclick=async e=>{ const b=e.target.closest('[data-unlink]'); if(!b) return;
+    await api('/firms/links/'+b.dataset.unlink,'DELETE'); HUB.sig=''; showFirmLinks(); };
+}
+$('#hubLink').onclick=()=>showFirmLinks(HUB.sel||HUB.inside);
+
 /* Infofenster: Firma (Übersicht) oder eine Abteilung mit ihren Agenten, Status und laufenden Aufgaben. */
 function hideHubCard(){ HUB.sel=null; $('#hubcard').classList.remove('on'); $('#hubsvg').querySelectorAll('.firm.sel').forEach(e=>e.classList.remove('sel')); }
 function hubAgRow(f,a,sub){
@@ -2727,13 +2815,14 @@ function hubCardFill(){
       ${f.goal?`<div class="hc-goal">${esc(short(f.goal,160))}</div>`:''}
       <div class="hc-h">Leitung</div><div class="hc-list">${T.roots.map(a=>hubAgRow(f,a)).join('')||'<i>noch niemand</i>'}</div>
       <div class="hc-h">Abteilungen</div><div class="hc-list">${T.deps.map((d,i)=>`<button class="hc-ag" data-dep="${i}" data-firm="${f.id}" title="Abteilung ${esc(d.lead.name)} öffnen"><span class="dot ${d.busy?'run':''}"></span><span class="hc-n">${esc(d.lead.name)}<small>${esc(d.lead.role||'')}</small></span><small>${d.members.length} 👤${d.busy?' · ⚙ '+d.busy:''}</small></button>`).join('')||'<i>keine</i>'}</div>
-      ${f.partners.length?`<div class="hc-h">Arbeitet zusammen mit</div><div class="hc-goal">${f.partners.map(p=>esc(name(p))).join(', ')}</div>`:''}`;
+      <div class="hc-h">Arbeitet zusammen mit</div><div class="hc-goal">${f.partners.length?f.partners.map(p=>esc(name(p))).join(', '):'noch mit niemandem'} <button class="btn sm" id="hubCardLink" title="Partnerschaft dieser Firma mit einer anderen anlegen oder lösen">🤝</button></div>`;
   }
   h+=`<div class="hc-btns">${HUB.inside?'':`<button class="btn sm" id="hubEnter" title="In die Firma hineinzoomen und die Abteilungen sehen">🔍 Hineingehen</button>`}<button class="btn sm" id="hubOpen" title="Diese Firma in der klassischen Ansicht öffnen (Organigramm, Bauplan …) und dort verwalten">📐 Firma öffnen</button></div>`;
   $('#hubcard').innerHTML=h; $('#hubcard').classList.add('on');
   $('#hubCardX').onclick=()=>{ if(HUB.inside){ HUB.cardOff=true; HUB.dep=null; HUB.agent=null; HUB.sig=''; drawHub(); $('#hubcard').classList.remove('on'); } else hideHubCard(); };
   $('#hubOpen').onclick=()=>hubOpenFirm(f.id);
   if($('#hubEnter')) $('#hubEnter').onclick=()=>hubEnter(f.id);
+  if($('#hubCardLink')) $('#hubCardLink').onclick=()=>showFirmLinks(f.id);
 }
 async function hubOpenFirm(pid, agent){
   hideHubCard(); HUB.inside=null; HUB.dep=null; HUB.agent=null; $('#app').classList.remove('hub-in');

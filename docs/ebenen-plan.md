@@ -44,6 +44,10 @@ Bisher arbeiten Firmen in Hyperstead nicht über Projektgrenzen hinweg. Darum le
 an (🤝 Zusammenarbeit, Tabelle `firm_links`). Die Stärke des Verkehrs kommt aus der echten Aktivität beider Firmen.
 Arbeiten Agenten später wirklich firmenübergreifend, schreibt das in dieselbe Tabelle.
 
+## Stand
+
+Alle Schritte gebaut (2026-11-04): #8/#9 Plan und Daten, #13 Phase 1, #15 Phase 2, danach Phase 3. Auf Pi/Laptop noch ungetestet.
+
 ## Schritte (je ein PR, Tests grün, Squash-Merge)
 
 1. Dieser Plan.

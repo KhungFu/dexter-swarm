@@ -77,3 +77,17 @@ def test_oberflaeche_hineinzoomen_und_suche():
     hub = html[html.index("function hubDepsList("):html.index("/* ---------- Atom: Kern")]
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", hub))
     assert "Abteilung öffnen" in html and "Hineingehen" in html
+
+
+def test_oberflaeche_zusammenarbeit():
+    """Phase 3: Strassen/Raumschiffe nur aus Partnerschaften, Dialog mit Hilfetexten."""
+    import os
+    import re
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    for fn in ("function hubCityRoads(", "function hubCosmosRoutes(", "function showFirmLinks(", "function hubTraffic("):
+        assert fn in html
+    roads = html[html.index("function hubCityRoads("):html.index("function hubCosmosRoutes(")]
+    assert "HUB.d.links.forEach" in roads  # Strassen entstehen nur aus Partnerschaften
+    dlg = html[html.index("async function showFirmLinks("):html.index("$('#hubLink').onclick")]
+    assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", dlg))
+    assert "'/firms/links'" in dlg and 'id="hubLink"' in html and "['Zusammenarbeit','firmen']" in html
