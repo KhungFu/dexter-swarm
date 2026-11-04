@@ -40,3 +40,12 @@ def test_anleitung_im_dashboard():
     # jedes Ziel der Fenster-Zuordnung ist ein echtes Kapitel
     for ziel in re.findall(r"\['[^']+','([a-z]+)'\]", HTML[HTML.index("const HELP_MAP"):HTML.index("function helpFor")]):
         assert ziel in kap
+
+
+def test_drei_organigramme():
+    """Ansicht Organigramm mit drei Arten, jede Art mit Erklaerung im Knopf und in der Anleitung."""
+    html = HTML
+    assert 'data-view="org"' in html
+    for art, fn in (("baum", "orgBaum"), ("gliederung", "orgGliederung"), ("kreis", "orgKreis")):
+        assert f'data-org="{art}"' in html and f"function {fn}(" in html
+    assert "🏢 Organigramm:</b>" in html

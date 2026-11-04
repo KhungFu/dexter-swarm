@@ -145,6 +145,10 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   dem Handy, haelt bei Maus ueber einem Koerper (`MAP.hold`). `drawMap` baut nur neu, wenn sich `MAP.sig` (Agenten, Zaehler, Stufe, Auswahl) aendert.
   Zustandsringe `agentState` (appr > run > fail > wait). Klick ueber `mapPick`: Sonne/Planet mit Team -> `#bcard`, Mond -> Agent. Handy <=820 px `#wlist`
   (Sonne, Planeten, Monde als eingerueckte Karten). Ansicht `VIEW` world|plan (localStorage `hs-view`).
+- Organigramm (Ansicht `VIEW='org'`, Umschalter `#gViews` world|org|plan): `#orgsvg` im `#world`-Transform, `#orgbar` mit drei Arten
+  (`ORG.style` baum|gliederung|kreis, localStorage `hs-org`): `orgBaum` (oben nach unten, mehr als 2 Mitarbeiter ohne Team werden gestapelt),
+  `orgGliederung` (eine Zeile je Agent, eingerueckt; `fit` nur nach Breite), `orgKreis` (Wurzel in der Mitte, Ringe je Ebene, Winkel nach Blattzahl,
+  mehrere Wurzeln -> Projektname in der Mitte). Karten `orgCard` mit Zustandsfarbe `ORG_COL`, Klick -> `selectAgent`. `drawOrg` baut nur bei neuer `ORG.sig`.
 - Betriebszentrale: `project_ops(pid)` / `GET /api/projects/<id>/ops` (aktive + fehlgeschlagene Aufgaben 7 Tage, offene Freigaben, Zeitplaene,
   Kosten heute/7 Tage aus `llm_calls`, Fehler-Ereignisse und letzte Ereignisse aus `audit`, `open` = `is_open`). UI `showOps` (🛰, Klick auf `#gStats`),
   Knoepfe nutzen vorhandene APIs (`/tasks/<id>/run`, `/schedules/<id>/run`). Growth-API liefert zusaetzlich `cost_today`/`calls_today` (💶 in der Leiste).

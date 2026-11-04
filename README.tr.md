@@ -245,7 +245,7 @@ Bu liste programda her değişiklikle genişletilir. Her satır sistemin ne yapt
 | `growth.py` (program dosyası) | Hyperstead başlamaz (içe aktarma hatası). | `git pull` komutunu yeniden çalıştırın, dosya programın parçasıdır. |
 | Bir projede kayıtlı eski dünya (Lonca, Tycoon, Gizmo Şehri) | Proje otomatik olarak uzayı gösterir. Puanlar, aşama ve rütbeler aynı kalır, yalnızca adlar ve simgeler değişir. | Yapılacak bir şey yok. |
 | Bugün yapay zekâ çağrısı yok (operasyon merkezi, çubukta 💶) | 0 $ veya „keine Aufrufe“ gösterir. | Yapılacak bir şey yok. Maliyetler tahminidir, kendi fiyatlarınızı `.env` içinde `PCL_PRICES` ile belirleyin. |
-| Tarayıcı hiçbir şey kaydetmiyor (gizli pencere) | Açık/koyu, uzay/plan, hareket ve yardım modu her yüklemede varsayılana döner. | Normal pencere kullanın; proje verileri bundan etkilenmez. |
+| Tarayıcı hiçbir şey kaydetmiyor (gizli pencere) | Açık/koyu, görünüm (uzay/organizasyon şeması/plan), şema türü, hareket ve yardım modu her yüklemede varsayılana döner. | Normal pencere kullanın; proje verileri bundan etkilenmez. |
 
 ## İnternetten erişim
 
@@ -317,6 +317,8 @@ Puanlara yıldız tozu, görevlere görev (Mission) denir. Eski Lonca, Tycoon ve
 **Kullanım:** Çalışma alanının üstündeki çubuk aşamayı, bir sonraki aşamaya ilerlemeyi ve önemli sayıları gösterir. Sağda açık ve koyu arasında geçiş yapar (🌓) ve ⓘ ile aşamalar, puanlar ve rütbeler hakkındaki özeti açarsınız. Her ajanın rütbesi kartında simge olarak görünür.
 
 **Güneş sistemi:** Çubuktaki 🌌 / 📐 ile uzay ve plan (düğüm editörü) arasında geçiş yaparsınız. Gezegenler ve aylar yavaşça döner; fareyle birinin üzerine geldiğinizde kolayca tıklayabilmeniz için her şey durur. Mavi yanıp sönen halka "çalışıyor", sarı halka "onayınızı bekliyor", kırmızı halka "hata", mor kesikli halka "ekibini bekliyor" demektir. Güneşe veya bir gezegene dokunmak ekibi ve eylemleri gösterir, bir aya dokunmak ajanı açar. Her aşamada gökyüzü dolar, yıldız kümesinden itibaren bulutsular parlar, galakside bir sarmal belirir. Uzay açık temada da karanlık kalır. Telefonda harita yerine bir liste görünür: güneş, altında her gezegen ve ayları. Cihaz „hareketi azalt“ isterse hareket kapanır.
+
+**Organizasyon şeması:** Çubuktaki 🏢 ekibi üç farklı şemada gösterir, üst ortadan değiştirilebilir: ⬇ Baum (yukarıdan aşağıya ağaç, kendi ekibi olmayan çalışanlar alt alta durur), ➡ Gliederung (her ajan için bir satır, seviyeye göre girintili, telefon için en iyisi) ve ◎ Kreis (daire, yönetim ortada, her seviye bir halka). Renk durumu gösterir: yeşil hazır, mavi çalışıyor, sarı onayınızı bekliyor, kırmızı hata, mor ekibi bekliyor, gri duraklatıldı. Dokunmak ajanı açar; seçilen şemayı cihaz hatırlar.
 
 **Operasyon merkezi:** Kenar çubuğundaki 🛰 (veya büyüme çubuğundaki sayılara dokunmak) şu anda neyin çalıştığını ve beklediğini, hangi onayların açık olduğunu, son 7 günde neyin başarısız olduğunu (↻ Neu ile), zaman planlarını (▶ Jetzt ile), hata mesajlarını ve son olayları bir bakışta gösterir. Ayrıca bugünün ve son 7 günün tahmini yapay zekâ maliyetlerini gösterir; bugünkü maliyet çubukta 💶 olarak da görünür. Tüm sayılar mevcut görevlerden, onaylardan, zaman planlarından ve geçmişten gelir, hiçbir şey uydurulmaz.
 

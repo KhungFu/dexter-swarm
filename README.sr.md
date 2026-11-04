@@ -246,7 +246,7 @@ Ova lista se dopunjuje pri svakoj promeni programa. Svaki red kaže šta sistem 
 | `growth.py` (programski fajl) | Hyperstead se ne pokreće (greška pri uvozu). | Ponovo pokrenite `git pull`, fajl je deo programa. |
 | Raniji svet (Ceh, Tycoon, Gizmo grad) sačuvan u projektu | Projekat automatski prikazuje svemir. Poeni, nivo i rangovi ostaju isti, menjaju se samo nazivi i ikone. | Ništa ne treba raditi. |
 | Danas nema poziva veštačke inteligencije (operativni centar, 💶 u traci) | Prikazuje 0 $ odnosno „keine Aufrufe“. | Ništa ne treba raditi. Troškovi su procene, sopstvene cene preko `PCL_PRICES` u `.env`. |
-| Pregledač ništa ne čuva (privatni prozor) | Svetlo/tamno, svemir/nacrt, pokreti i režim pomoći se pri svakom učitavanju vraćaju na podrazumevano. | Koristite običan prozor; podaci projekata nisu pogođeni. |
+| Pregledač ništa ne čuva (privatni prozor) | Svetlo/tamno, prikaz (svemir/organigram/nacrt), vrsta organigrama, pokreti i režim pomoći se pri svakom učitavanju vraćaju na podrazumevano. | Koristite običan prozor; podaci projekata nisu pogođeni. |
 
 ## Pristup sa interneta
 
@@ -318,6 +318,8 @@ Poeni se zovu zvezdana prašina, zadaci se zovu misije. Raniji svetovi Ceh, Tyco
 **Upotreba:** Traka iznad površine prikazuje nivo, napredak do sledećeg nivoa i najvažnije brojeve. Desno prebacujete između svetlog i tamnog prikaza (🌓) i sa ⓘ otvarate pregled nivoa, poena i rangova. Rang svakog agenta je prikazan kao ikona na njegovoj kartici.
 
 **Sunčev sistem:** Sa 🌌 / 📐 u traci prelazite između svemira i nacrta (uređivač čvorova). Planete i meseci polako kruže; kada mišem pokažete na jedan od njih, sve se zaustavi da biste ga lako pogodili. Plavi prsten koji pulsira znači "radi", žuti prsten "čeka vaše odobrenje", crveni prsten "greška", ljubičasti isprekidani prsten "čeka svoj tim". Dodir na Sunce ili planetu prikazuje tim i radnje, dodir na mesec otvara agenta. Sa svakim nivoom nebo je punije, od zvezdanog jata svetle magline, a kao galaksija pojavljuje se spirala. Svemir ostaje taman i u svetlom prikazu. Na telefonu se umesto mape prikazuje lista: Sunce, ispod njega svaka planeta sa svojim mesecima. Pokreti se isključuju kada uređaj traži „smanji pokrete“.
+
+**Organigram:** 🏢 u traci prikazuje tim kao organigram u tri vrste, koje se menjaju gore u sredini: ⬇ Baum (stablo odozgo nadole, zaposleni bez sopstvenog tima stoje jedan ispod drugog), ➡ Gliederung (jedan red po agentu, uvučeno po nivou, najbolje za telefon) i ◎ Kreis (krug, rukovodstvo u sredini, svaki nivo jedan prsten). Boja pokazuje stanje: zeleno spremno, plavo radi, žuto čeka vaše odobrenje, crveno greška, ljubičasto čeka tim, sivo pauzirano. Dodir otvara agenta; uređaj pamti izabranu vrstu.
 
 **Operativni centar:** 🛰 u bočnoj traci (ili dodir na brojeve u traci rasta) na prvi pogled prikazuje šta trenutno radi i čeka, koja odobrenja su otvorena, šta nije uspelo u poslednjih 7 dana (sa ↻ Neu), rasporede (sa ▶ Jetzt), poruke o greškama i poslednje događaje. Uz to prikazuje procenjene troškove veštačke inteligencije za danas i poslednjih 7 dana; današnji trošak stoji i kao 💶 u traci. Svi brojevi dolaze iz postojećih zadataka, odobrenja, rasporeda i istorije, ništa nije izmišljeno.
 

@@ -246,7 +246,7 @@ This list is extended with every change to the program. Each row says what the s
 | `growth.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
 | Former world (Guild, Tycoon, Gizmo City) saved in a project | The project shows space automatically. Points, stage and ranks stay the same, only names and icons change. | Nothing to do. |
 | No AI calls today (operations centre, 💶 in the bar) | Shows 0 $ or “keine Aufrufe”. | Nothing to do. Costs are estimates, set your own prices with `PCL_PRICES` in `.env`. |
-| Browser stores nothing (private window) | Light/dark, space/blueprint, motion and help mode fall back to the default on every load. | Use a normal window; the project data is not affected. |
+| Browser stores nothing (private window) | Light/dark, view (space/org chart/blueprint), org chart style, motion and help mode fall back to the default on every load. | Use a normal window; the project data is not affected. |
 
 ## Access from the internet
 
@@ -318,6 +318,8 @@ Points are called stardust, tasks are called missions. The former worlds Guild, 
 **Usage:** The bar above the canvas shows the stage, progress to the next stage and the key numbers. On the right you switch between light and dark (🌓) and open the overview of stages, points and ranks with ⓘ. Each agent's rank is shown as an icon on its card.
 
 **Solar system:** With 🌌 / 📐 in the bar you switch between space and the blueprint (node editor). Planets and moons orbit slowly; when you point at one with the mouse, everything stops so you can hit it easily. A pulsing blue ring means "working", a yellow ring "waiting for your approval", a red ring "error", a dashed purple ring "waiting for its team". Tapping the sun or a planet shows the team and actions, tapping a moon opens the agent. With every stage the sky gets fuller, from star cluster on nebulae glow, and as a galaxy a spiral appears. Space stays dark even in the light theme. On the phone a list replaces the map: the sun, below it each planet with its moons. Motion is turned off when the device asks for "reduce motion".
+
+**Org chart:** 🏢 in the bar shows the team as an org chart in three styles, switchable at the top centre: ⬇ Baum (tree from top to bottom, members without their own team are stacked), ➡ Gliederung (outline, one row per agent, indented by level, best on the phone) and ◎ Kreis (circle, the lead in the middle, each level a ring). Colour shows the state: green ready, blue working, yellow waiting for your approval, red error, purple waiting for the team, grey paused. Tapping opens the agent; the device remembers the chosen style.
 
 **Operations centre:** 🛰 in the sidebar (or a tap on the numbers in the growth bar) shows at a glance what is running and waiting, which approvals are open, what failed in the last 7 days (with ↻ Neu), the schedules (with ▶ Jetzt), error messages and the latest events. It also shows the estimated AI costs for today and the last 7 days; today's cost also appears as 💶 in the bar. All numbers come from the existing tasks, approvals, schedules and the history, nothing is made up.
 

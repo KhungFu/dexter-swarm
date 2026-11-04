@@ -137,6 +137,34 @@ button,input,select,textarea{font:inherit;color:inherit}
 @keyframes corona{50%{transform:scale(1.12);opacity:.8}}
 @media (prefers-reduced-motion: reduce){#map .star.tw,#map .s-run,#map .sun .corona{animation:none}}
 :root[data-motion="off"] #map .star.tw,:root[data-motion="off"] #map .s-run,:root[data-motion="off"] #map .sun .corona{animation:none}
+/* Organigramm (drei Arten) */
+#orgsvg{position:absolute;left:0;top:0;overflow:visible;display:none}
+#orgbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:5;display:none;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+#orgbar .btn{white-space:nowrap}
+#orgbar .btn.on,.vseg .vbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+#app.view-org #orgsvg{display:block}
+#app.view-org #orgbar{display:flex}
+#app.view-org #edges,#app.view-org #nodes,#app.view-org #palette{display:none}
+.vseg{display:flex;gap:2px}
+.vseg .vbtn{border-radius:0}
+.vseg .vbtn:first-child{border-radius:8px 0 0 8px}
+.vseg .vbtn:last-child{border-radius:0 8px 8px 0}
+@media (max-width:820px){.vseg .vbtn span{display:none}}
+#orgsvg .ocard{cursor:pointer}
+#orgsvg .ocard:focus{outline:none}
+#orgsvg .ocard:focus-visible .obox,#orgsvg .ocard.sel .obox{stroke:var(--accent);stroke-width:2.5}
+#orgsvg .ocard:hover .obox{stroke:var(--accent)}
+#orgsvg .obox{fill:var(--panel);stroke:var(--line);stroke-width:1.2}
+#orgsvg .ohub{fill:var(--chip);stroke:var(--line)}
+#orgsvg .oline{fill:none;stroke:var(--mute);stroke-opacity:.6;stroke-width:1.6}
+#orgsvg .oring{fill:none;stroke:var(--line);stroke-dasharray:4 6}
+#orgsvg .oname{font:600 13px system-ui,sans-serif;fill:var(--text)}
+#orgsvg .orole{font:11px system-ui,sans-serif;fill:var(--mute)}
+#orgsvg .oname.c,#orgsvg .orole.c{text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+#orgsvg .oini{font:700 13px system-ui,sans-serif;fill:var(--text);text-anchor:middle}
+#orgsvg .opulse{animation:pulse 1.2s infinite}
+:root[data-motion="off"] #orgsvg .opulse{animation:none}
+@media (prefers-reduced-motion: reduce){#orgsvg .opulse{animation:none}}
 #bcard{position:absolute;z-index:6;display:none;width:min(320px,calc(100% - 20px));background:var(--panel);border:1px solid var(--line);border-radius:12px;
   box-shadow:0 10px 30px rgba(0,0,0,.35);padding:12px}
 #bcard.on{display:block}
@@ -367,7 +395,11 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="g-bar" title="Fortschritt bis zur nächsten Stufe"><i id="gBar"></i></div>
       <div class="g-stats" id="gStats"></div>
       <div class="g-tools">
-        <button class="btn sm vbtn" id="gView" title="Zwischen Weltall (Sonnensystem) und Bauplan (Knoten-Editor) wechseln">🌌 Weltall</button>
+        <div class="vseg" id="gViews" role="group" aria-label="Ansicht">
+          <button class="btn sm vbtn" data-view="world" title="Weltall: Sonnensystem mit Sonne, Planeten und Monden">🌌<span> Weltall</span></button>
+          <button class="btn sm vbtn" data-view="org" title="Organigramm: Baum, Gliederung oder Kreis">🏢<span> Organigramm</span></button>
+          <button class="btn sm vbtn" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐<span> Bauplan</span></button>
+        </div>
         <button class="icon-btn" id="gTheme" title="Wechselt zwischen hellem und dunklem Aussehen (gilt für dieses Gerät)">🌓</button>
         <button class="icon-btn" id="gInfo" title="Wie das Wachstum funktioniert">ⓘ</button>
       </div>
@@ -377,9 +409,10 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
     </div>
     <div id="vp">
       <div class="zoom"><button id="zin" title="Hineinzoomen" aria-label="Hineinzoomen">+</button><button id="zout" title="Herauszoomen" aria-label="Herauszoomen">−</button><button id="zfit">Fit</button></div>
-      <div id="world"><svg id="map" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
+      <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
       <div id="bcard" role="dialog" aria-label="Himmelskörper"></div>
       <div id="wlist"></div>
+      <div id="orgbar" role="group" aria-label="Art des Organigramms"><button class="btn sm" data-org="baum" title="Klassischer Baum von oben nach unten">⬇ Baum</button><button class="btn sm" data-org="gliederung" title="Gliederung von links nach rechts, eine Zeile je Agent (gut fürs Handy)">➡ Gliederung</button><button class="btn sm" data-org="kreis" title="Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Kreis</button></div>
       <div class="empty" id="empty">Wähle links ein Projekt oder lege eins mit ＋ an.</div>
     </div>
   </section>
@@ -514,6 +547,7 @@ function render(){
   });
   drawEdges();
   if(typeof drawMap==='function') drawMap();
+  if(typeof drawOrg==='function') drawOrg();
 }
 function drawEdges(){
   const svg = $('#edges'); let h='';
@@ -577,6 +611,10 @@ function zoomAt(f,cx,cy){
   const ns=Math.min(2,Math.max(.3,V.s*f)); V.x=mx-(mx-V.x)*(ns/V.s); V.y=my-(my-V.y)*(ns/V.s); V.s=ns; applyView();
 }
 function fit(){
+  if(VIEW==='org' && ORG.box){ const vp=$('#vp').getBoundingClientRect(), b=ORG.box, top=50;
+    const fw=(vp.width-30)/(b.x1-b.x0), fh=(vp.height-top-20)/(b.y1-b.y0);  // Gliederung: nur nach Breite, nach unten wird geblaettert
+    const s=Math.min(1.1,Math.max(.3, ORG.style==='gliederung' ? fw : Math.min(fw,fh)));
+    V.s=s; V.x=(vp.width-(b.x1-b.x0)*s)/2-b.x0*s; V.y = ORG.style==='kreis' ? top+(vp.height-top-(b.y1-b.y0)*s)/2-b.y0*s : top-b.y0*s; return applyView(); }
   if(VIEW==='world' && MAP.box){ const vp=$('#vp').getBoundingClientRect(), b=MAP.box;
     const s=Math.min(1.1,Math.max(.3,Math.min((vp.width-40)/(b.x1-b.x0),(vp.height-40)/(b.y1-b.y0))));
     V.s=s; V.x=(vp.width-(b.x1-b.x0)*s)/2-b.x0*s; V.y=(vp.height-(b.y1-b.y0)*s)/2-b.y0*s; return applyView(); }
@@ -1484,6 +1522,7 @@ const HELP=[
 <li><b>Stufen:</b> ab 0, 100, 300, 700 und 1500 Punkten. Die Stufe begrenzt nur, wie viele Agenten die Führung <i>selbst</i> anwirbt. Du kannst immer alles von Hand anlegen. Abschalten unter ⓘ in der Leiste.</li>
 <li><b>Ränge:</b> Agenten steigen nach ihren eigenen abgenommenen Lieferungen auf (ab 5, 20, 60).</li>
 <li><b>Weltall / Bauplan:</b> 🌌 zeigt das Sonnensystem, 📐 den Bauplan zum genauen Bearbeiten. Sonne oder Planet antippen öffnet eine Karte mit dem Team, ein Mond öffnet direkt den Agenten. Blau pulsierender Ring = arbeitet, gelber Ring = wartet auf deine Freigabe, roter Ring = Fehler, gestrichelt lila = wartet auf sein Team. ▶ in Arbeit, ✋ Freigabe, 🔧 Fehler, ⏳ wartet, 📦 erfüllt. Auf dem Handy siehst du statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden.</li>
+<li><b>🏢 Organigramm:</b> zeigt dasselbe Team als klassisches Organigramm in drei Arten, umschaltbar oben in der Mitte: <b>⬇ Baum</b> (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), <b>➡ Gliederung</b> (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und <b>◎ Kreis</b> (Leitung in der Mitte, jede Ebene ein Ring). Der farbige Streifen bzw. Ring zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Die gewählte Art merkt sich das Gerät.</li>
 <li><b>Mehr Sterne:</b> Mit jeder Stufe wird der Himmel voller. Ab Sternhaufen leuchten Nebel, als Galaxie dreht sich eine Spirale im Hintergrund.</li>
 <li><b>🌓</b> wechselt Hell/Dunkel. Unter ⓘ lassen sich Bewegung und Feier-Effekte abschalten.</li></ul>`},
  {id:'agenten',t:'🤖 Agenten, KI und Rechte',h:`<p>Agent antippen öffnet das Seitenfenster mit den Reitern Einstellungen, 💬 Chat, Aufgaben und Verlauf.</p>
@@ -1753,13 +1792,14 @@ const MAP = {teams:[], box:null, down:null, movers:[], kids:{}, sig:'', raf:0, l
 let VIEW = 'world';
 try{ VIEW = localStorage.getItem('hs-view') || 'world'; }catch(e){}
 function setView(v){
+  if(!['world','org','plan'].includes(v)) v='world';
   VIEW = v; try{ localStorage.setItem('hs-view', v); }catch(e){}
   $('#app').classList.toggle('view-world', v==='world');
-  $('#gView').textContent = v==='world' ? '📐 Bauplan' : '🌌 Weltall';
-  $('#gView').title = v==='world' ? 'Zum Bauplan (Knoten-Editor) wechseln' : 'Zum Weltall (Sonnensystem) wechseln';
-  hideBcard(); MAP.sig=''; render(); fit(); startOrbit();
+  $('#app').classList.toggle('view-org', v==='org');
+  document.querySelectorAll('#gViews [data-view]').forEach(b=>{ b.classList.toggle('on', b.dataset.view===v); b.setAttribute('aria-pressed', b.dataset.view===v); });
+  hideBcard(); MAP.sig=''; ORG.sig=''; render(); fit(); startOrbit();
 }
-$('#gView').onclick = ()=>setView(VIEW==='world'?'plan':'world');
+$('#gViews').addEventListener('click', e=>{ const b=e.target.closest('[data-view]'); if(b) setView(b.dataset.view); });
 function narrowCheck(){ $('#app').classList.toggle('narrow', innerWidth<=820); startOrbit(); }
 addEventListener('resize', narrowCheck);
 
@@ -1947,6 +1987,107 @@ $('#map').addEventListener('pointerleave', ()=>{ MAP.hold=false; });
 $('#wlist').addEventListener('click', mapPick);
 $('#map').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const b=e.target.closest('.body'); if(!b) return; e.preventDefault();
   if(b.dataset.team){ const r=b.getBoundingClientRect(); showBcard(+b.dataset.team, r.left+r.width/2, r.top+r.height/2); } else selectAgent(+b.dataset.agent); });
+
+/* ---------- Organigramm: drei Arten (Baum, Gliederung, Kreis) ---------- */
+const ORG = {box:null, sig:'', style:'baum'};
+try{ ORG.style = localStorage.getItem('hs-org') || 'baum'; }catch(e){}
+const ORG_STYLES = {baum:'⬇ Baum', gliederung:'➡ Gliederung', kreis:'◎ Kreis'};
+function setOrgStyle(s){ ORG.style=s; try{ localStorage.setItem('hs-org', s); }catch(e){} ORG.sig=''; drawOrg(); fit(); }
+function orgTree(g){
+  const kids={}; g.agents.forEach(a=>{ if(a.parent_id && agentById(a.parent_id)) (kids[a.parent_id]=kids[a.parent_id]||[]).push(a); });
+  const mk=(a,d)=>({a, d, kids:(kids[a.id]||[]).map(k=>mk(k,d+1))});
+  return g.agents.filter(a=>!a.parent_id || !agentById(a.parent_id)).map(r=>mk(r,0));
+}
+const ORG_COL = {run:'#3b82f6', appr:'#eab308', fail:'#ef4444', wait:'#a855f7', paused:'#6b7280', idle:'#22c55e'};
+function orgCard(n, x, y, w, h){  // Karte mit Name, Rolle, Zustand und Rang
+  const a=n.a, st=agentState(a), r=WORLD.g&&WORLD.g.ranks&&WORLD.g.ranks[a.id], c=a.counts||{};
+  const sub=[a.role||'', n.kids.length?`${n.kids.length} im Team`:''].filter(Boolean).join(' · ');
+  return `<g class="ocard${S.sel===a.id?' sel':''}" data-agent="${a.id}" tabindex="0" role="button" aria-label="${esc(a.name)}: ${STATE_TEXT[st]}" transform="translate(${x},${y})">
+    <title>${esc(a.name)} – ${esc(a.role||'')} · ${STATE_TEXT[st]}${r?' · '+r.icon+' '+r.name:''} · ✓ ${c.done||0}</title>
+    <rect width="${w}" height="${h}" rx="10" class="obox"/><rect width="5" height="${h}" rx="2" fill="${ORG_COL[st]}"/>
+    <text x="14" y="${h/2-4}" class="oname">${esc(a.name.length>20?a.name.slice(0,19)+'…':a.name)}${r&&r.rank>0?' '+r.icon:''}</text>
+    <text x="14" y="${h/2+12}" class="orole">${esc(sub.length>28?sub.slice(0,27)+'…':sub)}</text>
+    <circle cx="${w-12}" cy="12" r="5" fill="${ORG_COL[st]}" class="${st==='run'?'opulse':''}"/></g>`;
+}
+function orgBaum(roots){  // klassisch von oben nach unten; Mitarbeiter ohne eigenes Team stehen untereinander, Teams nebeneinander
+  const W=170, H=54, GX=22, GY=56, out=[], lines=[];
+  const split=n=>{ const lv=n.kids.filter(k=>!k.kids.length), tm=n.kids.filter(k=>k.kids.length);
+    return lv.length>2 ? {stack:lv, row:tm} : {stack:[], row:n.kids}; };
+  const width=n=>{ const sp=split(n); const w=(sp.stack.length?W+GX:0)+sp.row.reduce((s,k)=>s+width(k),0); return Math.max(W+GX, w); };
+  let maxY=0;
+  const place=(n,x0,y)=>{
+    const wd=width(n), cx=x0+wd/2; out.push(orgCard(n,cx-W/2,y,W,H)); maxY=Math.max(maxY,y+H);
+    if(!n.kids.length) return;
+    const sp=split(n), inner=(sp.stack.length?W+GX:0)+sp.row.reduce((s,k)=>s+width(k),0);
+    let x=x0+(wd-inner)/2; const my=y+H+GY/2;
+    if(sp.stack.length){
+      const sx=x+GX/2, lx=sx+8;
+      lines.push(`M${cx},${y+H} V${my} H${lx}`);
+      sp.stack.forEach((k,i)=>{ const ky=y+H+GY+i*(H+12); out.push(orgCard(k,sx+18,ky,W-18,H)); maxY=Math.max(maxY,ky+H);
+        lines.push(`M${lx},${my} V${ky+H/2} H${sx+18}`); });
+      x+=W+GX;
+    }
+    sp.row.forEach(k=>{ const kw=width(k), kx=x+kw/2; lines.push(`M${cx},${y+H} V${my} H${kx} V${y+H+GY}`); place(k,x,y+H+GY); x+=kw; });
+  };
+  let x=0; roots.forEach(r=>{ place(r,x,0); x+=width(r)+40; });
+  return {svg:`<g>${lines.map(d=>`<path class="oline" d="${d}"/>`).join('')}</g>${out.join('')}`, box:{x0:-20,y0:-20,x1:x,y1:maxY+20}};
+}
+function orgGliederung(roots){  // von links nach rechts eingerueckt, eine Zeile je Agent (schmal, gut fuers Handy)
+  const W=200, H=48, IN=34, GAP=12, out=[], lines=[]; let row=0, maxX=0;
+  const walk=(n,par)=>{
+    const x=n.d*IN, y=row*(H+GAP); row++; out.push(orgCard(n,x,y,W,H)); maxX=Math.max(maxX,x+W);
+    if(par) lines.push(`M${par.x+12},${par.y+H} V${y+H/2} H${x}`);
+    n.kids.forEach(k=>walk(k,{x,y}));
+  };
+  roots.forEach(r=>walk(r,null));
+  return {svg:`<g>${lines.map(d=>`<path class="oline" d="${d}"/>`).join('')}</g>${out.join('')}`, box:{x0:-16,y0:-16,x1:maxX+16,y1:row*(H+GAP)+8}};
+}
+function orgKreis(roots){  // Leitung in der Mitte, jede Ebene ein Ring; Winkel nach Groesse der Teams
+  const RING=150, out=[], lines=[], rings=[];
+  const leaves=n=>n.kids.length ? n.kids.reduce((s,k)=>s+leaves(k),0) : 1;
+  const hub = roots.length>1;  // mehrere Leitungen: Projektname in der Mitte
+  const base = hub ? 1 : 0;
+  const pos=(d,ang)=>({x:Math.cos(ang)*d*RING, y:Math.sin(ang)*d*RING});
+  let maxD=0; const B={x0:-40,y0:-40,x1:40,y1:40};
+  const place=(n,a0,a1,par)=>{
+    const d=n.d+base, ang=(a0+a1)/2, p= d===0 ? {x:0,y:0} : pos(d,ang); maxD=Math.max(maxD,d);
+    B.x0=Math.min(B.x0,p.x-60); B.x1=Math.max(B.x1,p.x+60); B.y0=Math.min(B.y0,p.y-36); B.y1=Math.max(B.y1,p.y+52);
+    if(par) lines.push(`M${par.x},${par.y} L${p.x},${p.y}`);
+    const st=agentState(n.a), r=WORLD.g&&WORLD.g.ranks&&WORLD.g.ranks[n.a.id], rad= d===0?34:Math.max(16,26-d*3);
+    out.push(`<g class="ocard round${S.sel===n.a.id?' sel':''}" data-agent="${n.a.id}" tabindex="0" role="button" aria-label="${esc(n.a.name)}: ${STATE_TEXT[st]}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})">
+      <title>${esc(n.a.name)} – ${esc(n.a.role||'')} · ${STATE_TEXT[st]}${r?' · '+r.icon+' '+r.name:''}</title>
+      <circle r="${rad}" class="obox"/><circle r="${rad}" fill="none" stroke="${ORG_COL[st]}" stroke-width="3" class="${st==='run'?'opulse':''}"/>
+      <text class="oini" y="5">${esc(initials(n.a.name))}</text>
+      <text class="oname c" y="${rad+15}">${esc(n.a.name.length>16?n.a.name.slice(0,15)+'…':n.a.name)}</text>
+      ${n.a.role?`<text class="orole c" y="${rad+28}">${esc(n.a.role.length>18?n.a.role.slice(0,17)+'…':n.a.role)}</text>`:''}</g>`);
+    let a=a0; const tot=leaves(n);
+    n.kids.forEach(k=>{ const span=(a1-a0)*leaves(k)/tot; place(k,a,a+span,p); a+=span; });
+  };
+  const total=roots.reduce((s,r)=>s+leaves(r),0); let a=-Math.PI/2;
+  roots.forEach(r=>{ const span=2*Math.PI*leaves(r)/total; place(r, roots.length>1?a:-Math.PI/2, roots.length>1?a+span:3*Math.PI/2, hub?{x:0,y:0}:null); a+=span; });
+  for(let d=1; d<=maxD; d++) rings.push(`<circle class="oring" r="${d*RING}"/>`);
+  const center = hub ? `<g><circle r="30" class="ohub"/><text class="oini" y="5">${esc(initials((S.graph&&S.graph.project.name)||'P'))}</text></g>` : '';
+  return {svg:`<g>${rings.join('')}</g><g>${lines.map(d=>`<path class="oline" d="${d}"/>`).join('')}</g>${center}${out.join('')}`, box:B};
+}
+function initials(s){ const p=String(s).trim().split(/\s+/); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'')[1]||'')).toUpperCase(); }
+function drawOrg(){
+  const g=S.graph, svg=$('#orgsvg'), bar=$('#orgbar');
+  if(!g || VIEW!=='org'){ svg.innerHTML=''; ORG.box=null; ORG.sig=''; return; }
+  bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.org===ORG.style));
+  const sig=JSON.stringify([S.pid,S.sel,ORG.style,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts]),WORLD.g&&WORLD.g.ranks]);
+  if(sig===ORG.sig && svg.firstChild) return; ORG.sig=sig;
+  const roots=orgTree(g);
+  if(!roots.length){ svg.innerHTML=''; ORG.box=null; return; }
+  const r = ORG.style==='kreis' ? orgKreis(roots) : ORG.style==='gliederung' ? orgGliederung(roots) : orgBaum(roots);
+  svg.innerHTML=r.svg; ORG.box=r.box;
+}
+$('#orgbar').addEventListener('click', e=>{ const b=e.target.closest('[data-org]'); if(b) setOrgStyle(b.dataset.org); });
+function orgPick(e){
+  if(MAP.down && Math.hypot(e.clientX-MAP.down.x, e.clientY-MAP.down.y)>6) return;
+  const c=e.target.closest('.ocard'); if(c) selectAgent(+c.dataset.agent);
+}
+$('#orgsvg').addEventListener('click', orgPick);
+$('#orgsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const c=e.target.closest('.ocard'); if(c){ e.preventDefault(); selectAgent(+c.dataset.agent); } });
 
 /* ---------- Start ---------- */
 (async function init(){

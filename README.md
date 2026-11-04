@@ -246,7 +246,7 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | `growth.py` (Programmdatei) | Hyperstead startet nicht (Fehler beim Import). | `git pull` erneut ausführen, die Datei gehört zum Programm. |
 | Frühere Welt (Gilde, Tycoon, Gizmo-Stadt) in einem Projekt gespeichert | Das Projekt zeigt automatisch das Weltall. Punkte, Stufe und Ränge bleiben gleich, nur Namen und Symbole ändern sich. | Nichts zu tun. |
 | Keine KI-Aufrufe heute (Betriebszentrale, 💶 in der Leiste) | Zeigt 0 $ bzw. „keine Aufrufe“. | Nichts zu tun. Kosten sind Schätzungen, eigene Preise per `PCL_PRICES` in `.env`. |
-| Browser speichert nichts (privates Fenster) | Hell/Dunkel, Weltall/Bauplan, Bewegung und Hilfe-Modus fallen bei jedem Laden auf den Standard zurück. | Normales Fenster verwenden; die Daten der Projekte sind davon nicht betroffen. |
+| Browser speichert nichts (privates Fenster) | Hell/Dunkel, Ansicht (Weltall/Organigramm/Bauplan), Art des Organigramms, Bewegung und Hilfe-Modus fallen bei jedem Laden auf den Standard zurück. | Normales Fenster verwenden; die Daten der Projekte sind davon nicht betroffen. |
 
 ## Zugriff aus dem Internet
 
@@ -318,6 +318,8 @@ Punkte heißen Sternenstaub, Aufträge heißen Missionen. Die früheren Welten G
 **Bedienung:** Die Leiste über der Fläche zeigt Stufe, Fortschritt zur nächsten Stufe und die wichtigsten Zahlen. Rechts schaltest du zwischen Hell und Dunkel um (🌓) und öffnest mit ⓘ die Übersicht über Stufen, Punkte und Ränge. Der Rang jedes Agenten steht als Symbol auf seiner Karte.
 
 **Sonnensystem:** Mit 🌌 / 📐 in der Leiste wechselst du zwischen dem Weltall und dem Bauplan (Knoten-Editor). Planeten und Monde kreisen langsam; zeigst du mit der Maus auf einen, bleibt alles stehen, damit du ihn gut triffst. Ein blau pulsierender Ring heißt „arbeitet“, ein gelber Ring „wartet auf deine Freigabe“, ein roter Ring „Fehler“, ein lila gestrichelter Ring „wartet auf sein Team“. Ein Tipp auf Sonne oder Planet zeigt das Team und Aktionen, ein Tipp auf einen Mond öffnet den Agenten. Mit jeder Stufe wird der Himmel voller, ab Sternhaufen leuchten Nebel, als Galaxie erscheint eine Spirale. Das Weltall bleibt auch im hellen Aussehen dunkel. Auf dem Handy erscheint statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden. Bewegung wird abgeschaltet, wenn das Gerät „Bewegung reduzieren“ verlangt.
+
+**Organigramm:** 🏢 in der Leiste zeigt das Team als Organigramm in drei Arten, oben in der Mitte umschaltbar: ⬇ Baum (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), ➡ Gliederung (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und ◎ Kreis (Leitung in der Mitte, jede Ebene ein Ring). Farbe zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten, die gewählte Art merkt sich das Gerät.
 
 **Betriebszentrale:** 🛰 in der Seitenleiste (oder ein Tipp auf die Zahlen in der Wachstumsleiste) zeigt auf einen Blick, was gerade läuft und wartet, welche Freigaben offen sind, was in den letzten 7 Tagen fehlgeschlagen ist (mit ↻ Neu), die Zeitpläne (mit ▶ Jetzt), Fehlermeldungen und die letzten Ereignisse. Dazu die geschätzten KI-Kosten von heute und den letzten 7 Tagen; heute steht auch als 💶 in der Leiste. Alle Zahlen kommen aus den vorhandenen Aufgaben, Freigaben, Zeitplänen und dem Verlauf, nichts wird erfunden.
 
