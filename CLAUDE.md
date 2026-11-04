@@ -192,6 +192,10 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   EG = Leitung, `data-dep` -1 = Leitung, sonst Index in `hubTeams().deps`) bzw. `hubInsideCosmos` (statisch, damit man trifft). `#hubdeps` Liste,
   `hubDep` -> `#hubcard` zeigt Team (`hubAgRow`). `HUB.cardOff` = Infofenster zu (Handy beim Hineingehen). `hubLeave`/Esc/`#hubOut`. Suche `#hubSearch`
   -> `#hubResults` (Firmen + Agenten nach Name/Rolle). `fit` laesst im Innern links 226 px und bei offenem Infofenster rechts 346 px frei.
+- Zusammenarbeit (Phase 3): nur `links` erzeugen Verbindungen. `hubTraffic` (Anzahl/Tempo aus `busy` beider Firmen, ruhend = 1 langsames
+  Fahrzeug), Stadt `hubCityRoads` (Strasse durch die Luecken zwischen den Grundstuecken, Fahrzeuge vor den Gebaeuden gezeichnet), Kosmos
+  `hubCosmosRoutes` (Bogen zwischen den Sonnen, keine Linie, nur Raumschiffe). `HUB.tr` + `.veh`, `hubAlong` hin und zurueck, `hubPlaceTraffic`
+  (Schiffe drehen in Flugrichtung). Dialog `showFirmLinks(pid)` (🤝 `#hubLink` oben, `#hubCardLink` im Infofenster).
 
 ## Verbindungen (Webhooks)
 - Tabelle `connections` (Besitzer legt URL/Methode/Kopfzeilen fest, `${ENV}` in Kopfzeilen aus .env, `confirm`, `on_post`). Recht `connect`
