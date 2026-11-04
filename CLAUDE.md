@@ -156,7 +156,7 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
 - Grafik-Auswahl: aufklappbares Menue `#gViewBtn`/`#gViewMenu` (world, org+baum/gliederung/kreis, atom, plan; `markView`, `viewMenu`).
   Dunkle Farbvariablen in `:root` NIE auf sich selbst zeigen lassen (`--edge:var(--edge)` machte die Bauplan-Linien unsichtbar). `untangle`: liegen
   Agenten im Bauplan aufeinander, einmal je Projekt `autoLayout`. Verbinden (Port ziehen, Agent/Karte auf anderen ziehen) immer ueber `connectAsk` (confirm, Zyklus-Pruefung).
-- Atom (`VIEW='atom'`, `#atomsvg`, `drawAtom`/`atomPlace`): Kern = Wurzel(n), je direkt Unterstellter eine gedrehte Ellipsenbahn, Team als Elektronen auf festen Plaetzen. Steht still (Wunsch ABI 2026-11-04), keine Animation, keine Pulsringe.
+- Atom (`VIEW='atom'`, `#atomsvg`, `drawAtom`/`atomPlace`): Molekuel-Netzwerk (Wunsch ABI 2026-11-04): `atomLayout` = Faecher um den Vorgesetzten + Abstossen/Federn, Saat = Projekt-ID; Kugelgroesse nach Ebene (Wurzel cyan, Ebene 1 `ATOM_MID`, tiefer `ATOM_SMALL`), Staebe `.abond` = parent-Beziehung, mehrere Wurzeln lose verbunden. Steht still, keine Animation, keine Pulsringe; `atomPlace` ist leer.
 - Logo: `static/logo/hyperstead-{32,180,192,512,1024}.png` (Favicon, Seitenleiste `.brand img.logo`, Login-Seite), `/static/logo/` ohne Anmeldung (guard).
   Gerendert mit `docs/logo/logo_blender.py` (bpy/Cycles, Molekuelnetz), Prompt und Anleitung `docs/logo-prompt.md`.
 - Organigramm (Ansicht `VIEW='org'`): `#orgsvg` im `#world`-Transform, drei Arten
@@ -186,7 +186,7 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   entfernt seine Links. Agenten sehen davon nichts. Tests `tests/test_firmen.py`.
 - UI moderne Ebene (`VIEW='hub'`, `#hubsvg`, `#hubbar` Umschalter 📐 Klassisch = zurueck zu `HUB.back` / `data-hubworld` stadt|kosmos,
   localStorage `hs-hubworld`/`hs-hubback`): `loadFirms` (alle 4,5 s), `drawHub` -> `HUB_DRAW[welt]()` (neue Welt = neuer Eintrag), `hubTeams`
-  (Leitung + Abteilungen wie im Weltall). Stadt `hubCity`/`hubBuilding` (isometrisch, Baustil je Firma `hubStyle` turm|buero|zwilling|campus aus `isoBox`, Hoehe nach Stufe, Box nach `HUB.zmax`, Beschriftungen in eigener Ebene obenauf),
+  (Leitung + Abteilungen wie im Weltall). Stadt `hubCity`/`hubBuilding` (isometrisch, Fenster nur bei `busy` hell (sonst 7 %), Fensterfarbe per `style` weil CSS `.win` das fill-Attribut ueberdeckt, Baustil je Firma `hubStyle` turm|buero|zwilling|campus aus `isoBox`, Hoehe nach Stufe, Box nach `HUB.zmax`, Beschriftungen in eigener Ebene obenauf),
   Kosmos `hubCosmos`/`hubSystem` (Planeten kreisen per rAF nur mit Bewegung, seit 2026-11-04 auch auf dem Handy mit ~15 fps und im Innern; `HUB.hold` haelt unter Maus/Finger an; Sonne `hubSunR` waechst mit Stufe+Team; keine Firmensymbole (Wunsch ABI); Beschriftungen per CSS-Variable `--lz` aus `applyView` gegen Herauszoomen vergroessert, zweite Zeile per `dy` in em). Klick -> `hubSelect` -> `#hubcard`
   (Leitung/Abteilungen, Name -> `hubOpenFirm` = klassische Ansicht + `selectAgent`). JS steht VOR dem Atom-Abschnitt (Atom-Test verbietet rAF dort).
 - Innen (Phase 2): Klick auf Firma -> `hubEnter(pid, dep, agent)` (`hubZoomTo` faehrt 380 ms hin, dann `HUB.inside`). `hubInsideCity` (Etagen,

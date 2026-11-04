@@ -166,11 +166,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* Organigramm (drei Arten) */
 #orgsvg{position:absolute;left:0;top:0;overflow:visible;display:none}
 #app.view-org #orgsvg{display:block}
-/* Atom (Kern = Leitung, Elektronen = Abteilungen und ihre Teams) */
+/* Atom (Molekül: Kugelgröße = Ebene, Stäbe = Vorgesetzte) */
 #atomsvg{position:absolute;left:0;top:0;overflow:visible;display:none}
 #app.view-atom #atomsvg{display:block}
 #app.view-atom #edges,#app.view-atom #nodes,#app.view-atom #palette{display:none}
 #atomsvg .aorbit{fill:none;stroke:#7dd3fc;stroke-opacity:.28;stroke-width:1.4}
+#atomsvg .abond{stroke:#cbd5e1;stroke-width:7;stroke-linecap:round;opacity:.75}
+#atomsvg .abond2{stroke:#fff;stroke-width:2;stroke-linecap:round;opacity:.55}
+#atomsvg .el.back{opacity:.85}
 #atomsvg .el{cursor:pointer}
 #atomsvg .el:focus{outline:none}
 #atomsvg .el:focus-visible circle.core,#atomsvg .el.sel circle.core{stroke:#fff;stroke-width:2}
@@ -620,7 +623,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
             <button role="menuitemradio" data-view="org" data-org="baum" class="vsub" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
             <button role="menuitemradio" data-view="org" data-org="gliederung" class="vsub" title="Organigramm als Gliederung, eine Zeile je Agent (gut fürs Handy)">➡ Organigramm: Gliederung</button>
             <button role="menuitemradio" data-view="org" data-org="kreis" class="vsub" title="Organigramm als Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Organigramm: Kreis</button>
-            <button role="menuitemradio" data-view="atom" class="vsub" title="Welt Atom: die Leitung ist der Kern, jede Abteilung sitzt als Elektron auf ihrer Bahn (steht still), Stufen von Quark bis Zelle">⚛️ Atom</button>
+            <button role="menuitemradio" data-view="atom" class="vsub" title="Welt Atom: das Team als Molekül, große Kugel = Leitung, Stäbe zeigen, wer wem unterstellt ist (steht still), Stufen von Quark bis Zelle">⚛️ Atom</button>
             <button role="menuitemradio" data-view="plan" class="vsub" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
           </div>
         </div>
@@ -1839,7 +1842,7 @@ const HELP=[
 <li><b>Grafik wählen:</b> Der aufklappbare Knopf oben rechts in der Leiste (z. B. „🌌 Weltall ▾“) bietet sechs Grafiken: 🌌 Weltall, drei Organigramme (Baum, Gliederung, Kreis), ⚛️ Atom und 📐 Bauplan zum genauen Bearbeiten. Das Gerät merkt sich die Wahl.</li>
 <li><b>Weltall:</b> Sonne oder Planet antippen öffnet eine Karte mit dem Team, ein Mond öffnet direkt den Agenten. Blau pulsierender Ring = arbeitet, gelber Ring = wartet auf deine Freigabe, roter Ring = Fehler, gestrichelt lila = wartet auf sein Team. Zwischen den Bahnen liegt ein Asteroidengürtel, Monde haben Krater, Planeten Wolken oder Bänder: das ist nur Schmuck. Auf dem Handy siehst du statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden, mit Zeichen ▶ in Arbeit, ✋ Freigabe, ❗ Fehler, ⏳ wartet, 📦 erfüllt.</li>
 <li><b>🏢 Organigramm:</b> zeigt dasselbe Team als klassisches Organigramm in drei Arten, auswählbar im Grafik-Knopf: <b>⬇ Baum</b> (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), <b>➡ Gliederung</b> (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und <b>◎ Kreis</b> (Leitung in der Mitte, jede Ebene ein Ring). Der farbige Streifen bzw. Ring zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Die gewählte Art merkt sich das Gerät. Karten lassen sich mit der Maus oder dem Finger verschieben, die Linien gehen mit. Das merkt sich das Gerät je Projekt und Art; „↺ Anordnung zurücksetzen“ oben in der Mitte stellt die Ordnung wieder her.</li>
-<li><b>⚛️ Atom:</b> wie ein Atom aus dem Film: Im <b>Kern</b> aus roten und grauen Kugeln sitzt die oberste Leitung. Jede Abteilung bekommt eine eigene <b>Elektronenbahn</b>, die großen Elektronen sind die Abteilungsleitungen, die kleinen ihre Mitarbeiter. Ein farbiger Ring zeigt den Zustand wie überall. Die Grafik steht still, damit man in Ruhe lesen kann. Antippen öffnet den Agenten.</li>
+<li><b>⚛️ Atom:</b> das Team als <b>Molekül</b>: Die große blaue Kugel ist die oberste Leitung, mittlere bunte Kugeln sind die Teamleitungen, kleine Kugeln die Mitarbeiter. Jede Kugel hängt per <b>Stab</b> an ihrem Vorgesetzten, so erkennt man die Hierarchie an Größe und Verbindungen, locker und räumlich angeordnet. Ein farbiger Ring zeigt den Zustand wie überall. Die Grafik steht still, damit man in Ruhe lesen kann. Antippen öffnet den Agenten.</li>
 <li><b>Zwei Welten:</b> 🌌 Weltall und ⚛️ Atom sind eigene Welten mit eigenen Stufen, Rängen und Begriffen. Wählst du eine davon in der Grafik-Auswahl, gilt sie für das Projekt (auch in der Wachstumsleiste, bei der Feier und in Telegram). Punkte und Stufengrenzen sind in beiden Welten gleich. Atom: Stufen ✴️ Quark, ⚛️ Atom, 🧪 Molekül, 💎 Kristall, 🧬 Zelle; Ränge Neutrino, Elektron, Proton, Nukleon; Punkte heißen Energie. Mit jeder Stufe wächst das Bild: Nachbaratome mit Bindungen, ein Kristallgitter, zuletzt Zellwand und Erbgut. Organigramm und Bauplan behalten die zuletzt gewählte Welt.</li>
 <li><b>Mehr Sterne:</b> Mit jeder Stufe wird der Himmel voller. Ab Sternhaufen leuchten Nebel, als Galaxie dreht sich eine Spirale im Hintergrund.</li>
 <li><b>🌓</b> wechselt Hell/Dunkel. Unter ⓘ lassen sich Bewegung und Feier-Effekte abschalten.</li></ul>`},
@@ -1888,7 +1891,7 @@ const HELP=[
  {id:'firmen',t:'🏙 Alle Firmen: klassisch und modern',h:`<p>Hyperstead hat zwei Ebenen. Beide zeigen dieselben echten Firmen, Abteilungen und Agenten, nur anders gezeichnet.</p>
 <ul><li><b>📐 Klassisch:</b> die sachlichen Ansichten einer Firma (Organigramm, Bauplan, Weltall, Atom). Hier verwaltest und stellst du ein.</li>
 <li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie links unter „Projekte“ mit 🏙 Stadt oder 🌌 Kosmos, oder in der Grafik-Auswahl oben unter „Alle Projekte · modern“. Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt und 🌌 Kosmos um.</li>
-<li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Leuchtende Fenster heißen: dort wird gerade gearbeitet.</li>
+<li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Arbeitet eine Firma gerade, gehen bei ihr die Lichter an; ruhige Firmen sind fast dunkel.</li>
 <li><b>🌌 Kosmos:</b> Jede Firma ist ein Sonnensystem. Die Sonne ist die Leitung, die Planeten sind die Abteilungen (größer = mehr Agenten). Ein leuchtender Ring heißt: diese Abteilung arbeitet gerade. Zwischen den Systemen gibt es keine Linien.</li>
 <li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: eine Etage je Hierarchie-Ebene, so tief wie die Firma ist: ganz oben in der Chefetage die Leitung, darunter die Abteilungsleitungen, dann jede weitere Ebene. Jede Person sitzt in ihrem eigenen Raum in der Farbe ihrer Abteilung; hat eine Abteilung auf einer Ebene 4 Leute, gibt es dort 4 Räume. Mit Erfolg wächst das Gebäude: ab Stufe 2 Anbau und Dachgarten, ab Stufe 3 Antenne, ab Stufe 4 Hubschrauberlandeplatz. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
 <li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
@@ -2617,7 +2620,7 @@ function isoBox(u0,v0,u1,v1,z,h,col,lit,RND,o={}){  // Quader mit zwei sichtbare
     for(let r=0;r<fl;r++) for(let k=0;k<cols;k++){
       const s0=(k+(o.glass?.1:.2))/cols, s1=(k+(o.glass?.9:.8))/cols, y0=3+r*(h/fl), y1=y0+h/fl-(o.glass?3:6), on=RND()<lit;
       const P=(t,y)=>[A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t-y];
-      s+=`<polygon class="win${on?' on':''}" points="${pts([P(s0,y0),P(s1,y0),P(s1,y1),P(s0,y1)])}"${on?` fill="${RND()<.65?(RND()<.5?'#fde68a':'#fbbf24'):shade(col,.55)}"`:''}/>`; }
+      s+=`<polygon class="win${on?' on':''}" points="${pts([P(s0,y0),P(s1,y0),P(s1,y1),P(s0,y1)])}"${on?` style="fill:${RND()<.65?(RND()<.5?'#fde68a':'#fbbf24'):shade(col,.55)}"`:''}/>`; }  /* style statt fill: CSS .win würde das Attribut überdecken */
     return s; };
   const lenL=u1-u0, lenR=v1-v0, top=iso(u1,v1,z+h), bot=iso(u1,v1,z);
   return `<polygon class="bl" points="${pts(L)}" fill="${shade(col,o.dark?-.85:-.74)}"/><polygon class="br" points="${pts(R)}" fill="${shade(col,o.dark?-.9:-.84)}"/>
@@ -2631,7 +2634,7 @@ function hubTree(x,y,s=1){
 }
 function hubBuilding(f,u0,v0){
   const u1=u0+1, v1=v0+1, st=Math.max(0,Math.min(4,f.stage|0)), col=hubColor(f), busy=f.busy>0, RND=rnd(f.id*97+3), sty=hubStyle(f);
-  const lit=Math.min(.95,.28+(f.busy||0)/Math.max(1,f.agents.length)*1.3+(busy?.2:0)), FH=HUB_FH;
+  const lit=busy?Math.min(.95,.62+(f.busy||0)/Math.max(1,f.agents.length)*.9):.07, FH=HUB_FH;  // Lichter an, wenn die Firma arbeitet; ruhig = fast dunkel
   let body='', topZ=0, crown=null, bu=.5, bv=.5;
   const B=(a,b,c,d,z,h,o)=>{ body+=isoBox(u0+a,v0+b,u0+c,v0+d,z,h,col,lit,RND,o); return z+h; };
   const deep=Math.max(0,hubLevels(f).max-2);  // tiefe Hierarchie = ein paar Stockwerke mehr
@@ -2646,7 +2649,7 @@ function hubBuilding(f,u0,v0){
   const [tx,ty]=iso(u0+bu,v0+bv,topZ), [cx,cy]=iso(u0+.5,v0+.5), bx=tx, by=ty-(crown?24:6);
   const trees=[[u0+.08,v0+.1],[u1-.08,v0+.08],[u0+.08,v1-.1],[u1-.1,v1-.3]].map(([u,v])=>hubTree(...iso(u,v),.85)).join('');
   const lamps=[[u0+.04,v1-.04],[u1-.04,v1-.04],[u1-.04,v0+.04],[u0+.5,v1-.03]].map(([u,v])=>{ const [x,y]=iso(u,v); return `<line x1="${x}" y1="${y}" x2="${x}" y2="${y-9}" stroke="#475569" stroke-width="1.2"/><circle cx="${x}" cy="${y-10}" r="2.4" class="lamp"/>`; }).join('');
-  return `<g class="firm${HUB.sel===f.id?' sel':''}" data-firm="${f.id}" tabindex="0" role="button" style="--hc:${col}" aria-label="${esc(f.name)}: ${esc(f.stage_name||'')}, ${f.agents.length} Agenten${busy?', arbeitet gerade':''}">
+  return `<g class="firm${busy?' work':''}${HUB.sel===f.id?' sel':''}" data-firm="${f.id}" tabindex="0" role="button" style="--hc:${col}" aria-label="${esc(f.name)}: ${esc(f.stage_name||'')}, ${f.agents.length} Agenten${busy?', arbeitet gerade':''}">
     <title>${esc(f.name)} – ${esc(f.icon||'')} ${esc(f.stage_name||'')} · ${f.agents.length} Agenten · ${busy?f.busy+' Aufgaben laufen':'gerade ruhig'}\nAntippen: hineingehen</title>
     <polygon points="${isoRect(u0,v0,u1,v1)}" transform="translate(0,12)" fill="#01030a" opacity=".75"/>
     <polygon class="plotside" points="${pts([iso(u0,v1),iso(u1,v1),[iso(u1,v1)[0],iso(u1,v1)[1]+10],[iso(u0,v1)[0],iso(u0,v1)[1]+10]])}"/>
@@ -3055,14 +3058,39 @@ $('#hubResults').addEventListener('click', e=>{ const b=e.target.closest('.hr');
   HUB.inside=null; HUB.sig=''; drawHub(); hubEnter(h.f.id, h.a?h.dep:null, h.a?h.a.id:null); });
 document.addEventListener('click', e=>{ if(!e.target.closest('#hubFind')) hubSearchClose(); });
 
-/* ---------- Atom: Kern = oberste Leitung, je Abteilung eine Elektronenbahn, Teammitglieder kreisen mit ---------- */
+/* ---------- Atom: Molekül-Netzwerk. Große Kugel = Leitung, mittlere = Teamleiter, kleine = Agenten; jede Kugel hängt per Stab an ihrem
+   Vorgesetzten (Organigramm), angeordnet locker und räumlich wie ein Molekülmodell (Wunsch ABI 2026-11-04). Steht still, keine Animation. ---------- */
 const ATOM = {box:null, sig:'', mv:[]};
-function atomNucleus(n, R){  // Protonen (rot) und Neutronen (grau) dicht gepackt, Anzahl nach Teamgroesse
-  const out=[], k=Math.max(8, Math.min(40, n*2)), r=Math.max(7, R/Math.sqrt(k)*1.05), RND=rnd((S.pid||1)*31);
-  const pts=[]; for(let i=0;i<k;i++){ const rr=R*.82*Math.sqrt((i+.5)/k), a=i*2.39996; pts.push([rr*Math.cos(a), rr*Math.sin(a), RND()]); }
-  pts.sort((p,q)=>Math.hypot(q[0],q[1])-Math.hypot(p[0],p[1]));  // aussen zuerst, innen oben drauf
-  pts.forEach((p,i)=>out.push(`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r.toFixed(1)}" fill="url(#${i%2?'aN':'aP'})"/>`));
-  return out.join('');
+const ATOM_MID=['#fb923c','#2dd4bf','#a78bfa','#4ade80','#f472b6','#facc15'];      // Teamleiter: orange, türkis, violett, grün, ...
+const ATOM_SMALL=['#f43f5e','#fde047','#38bdf8','#c084fc','#34d399','#fb7185','#a3e635','#f59e0b'];  // Agenten: kräftige Ergänzungsfarben
+function atomLayout(roots){  // Startplätze im Fächer um den Vorgesetzten, dann Abstoßen/Federn (deterministisch, Saat = Projekt)
+  const RND=rnd((S.pid||1)*613+7), N=[], E=[];
+  const rad=d=>d===0?44:d===1?27:d===2?18:13;
+  const add=(n,x,y,z,dir,spread,par,bi,ci)=>{
+    const me={n, x, y, z, r:rad(n.d), d:n.d, branch:bi, col: n.d===0?'#22d3ee':n.d===1?ATOM_MID[bi%ATOM_MID.length]:ATOM_SMALL[(bi*3+ci)%ATOM_SMALL.length]};
+    N.push(me); if(par) E.push([par,me]);
+    const k=n.kids.length; n.kids.forEach((c,j)=>{
+      const t=k===1?0:(j/(k-1)-.5), ang=dir+t*spread+(RND()-.5)*.5, L=me.r+rad(c.d)+58+RND()*46, zz=(RND()-.5)*1.6;
+      add(c, x+Math.cos(ang)*L, y+Math.sin(ang)*L*.86, zz, ang, Math.min(2.4, 1.1+k*.22), me, n.d===0?j:bi, j);
+    });
+  };
+  const k=roots.length;
+  roots.forEach((r,i)=>{
+    const a0=k===1?0:i*2*Math.PI/k-Math.PI/2, D=k===1?0:150+k*20, cx=Math.cos(a0)*D, cy=Math.sin(a0)*D;
+    if(k===1){  // einzelne Leitung: Teams rundherum, leicht unregelmäßig
+      const me={n:r, x:0, y:0, z:0, r:rad(0), d:0, branch:0, col:'#22d3ee'}; N.push(me);
+      const m=r.kids.length, off=RND()*6.28;
+      r.kids.forEach((c,j)=>{ const ang=off+j*2*Math.PI/Math.max(1,m)+(RND()-.5)*.6, L=me.r+rad(1)+70+RND()*50;
+        add(c, Math.cos(ang)*L, Math.sin(ang)*L*.86, (RND()-.5)*1.6, ang, Math.min(2.2, 1+c.kids.length*.25), me, j, 0); });
+    } else add(r, cx, cy, 0, a0, 2.6, null, i, 0);
+  });
+  if(k>1) for(let i=0;i<k;i++) E.push([N.find(m=>m.n===roots[i]), N.find(m=>m.n===roots[(i+1)%k]), true]);  // mehrere Leitungen: lockere Querbindung
+  for(let it=0; it<160; it++){  // entzerren: Kugeln stoßen sich ab, Stäbe halten ihre Länge
+    for(let i=0;i<N.length;i++) for(let j=i+1;j<N.length;j++){ const A=N[i], B=N[j]; let dx=B.x-A.x, dy=B.y-A.y, d=Math.hypot(dx,dy)||.01;
+      const want=A.r+B.r+34; if(d<want){ const f=(want-d)/d*.5; dx*=f; dy*=f; if(A.d) { A.x-=dx; A.y-=dy; } if(B.d) { B.x+=dx; B.y+=dy; } } }
+    E.forEach(([A,B,x])=>{ if(x) return; let dx=B.x-A.x, dy=B.y-A.y, d=Math.hypot(dx,dy)||.01, L=A.r+B.r+72, f=(d-L)/d*.15; B.x-=dx*f; B.y-=dy*f; if(A.d){ A.x+=dx*f*.3; A.y+=dy*f*.3; } });
+  }
+  return {N, E};
 }
 function drawAtom(){
   const g=S.graph, svg=$('#atomsvg');
@@ -3070,43 +3098,30 @@ function drawAtom(){
   const sig=JSON.stringify([S.pid,S.sel,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts]),WORLD.g&&WORLD.g.stage]);
   if(sig===ATOM.sig && svg.firstChild) return; ATOM.sig=sig;
   const roots=orgTree(g); if(!roots.length){ svg.innerHTML=''; ATOM.box=null; ATOM.mv=[]; return; }
-  const shells=[]; roots.forEach(r=>r.kids.forEach(k=>shells.push(k)));
-  const all=n=>[n,...n.kids.flatMap(all)];
-  const NR=34+Math.min(26, g.agents.length*1.4), R=230+shells.length*18, RY=R*.34;
-  const orbits=[], els=[]; ATOM.mv=[];
-  shells.forEach((sh,i)=>{
-    const rot=shells.length===1?0:i*180/shells.length, rx=R-(i%2)*24, ry=RY-(i%2)*8;
-    orbits.push(`<ellipse class="aorbit" rx="${rx}" ry="${ry.toFixed(1)}" transform="rotate(${rot})"/>`);
-    const team=all(sh);
-    team.forEach((n,j)=>{
-      const lead=j===0, u=(60+j*240/team.length)%240, a0=(u<120?u-60:u+60)*Math.PI/180,  // nur an den Bahnenden, nie vor dem Kern
-        st=agentState(n.a), er=lead?13:Math.max(6,9-n.d);
-      ATOM.mv.push({rx, ry, rot:rot*Math.PI/180, a0});
-      els.push(`<g class="amv"><g class="el${S.sel===n.a.id?' sel':''}" data-agent="${n.a.id}" tabindex="0" role="button" aria-label="${esc(n.a.name)}: ${STATE_TEXT[st]}">
-        <title>${esc(n.a.name)} – ${esc(n.a.role||'')} · ${STATE_TEXT[st]}</title>
-        <circle r="${er*2.6}" fill="url(#aGlow)"/><circle class="core" r="${er}" fill="url(#aE)"/>
-        ${st!=='idle'?`<circle r="${er+3.5}" fill="none" stroke="${ORG_COL[st]}" stroke-width="2.5"/>`:''}
-        ${lead||team.length<=6?`<text class="albl" y="${er+15}">${esc(n.a.name.length>16?n.a.name.slice(0,15)+'…':n.a.name)}</text>`:''}
-        ${lead&&n.a.role?`<text class="albl2" y="${er+28}">${esc(n.a.role.length>20?n.a.role.slice(0,19)+'…':n.a.role)}</text>`:''}</g></g>`);
-    });
+  const {N, E}=atomLayout(roots), few=N.length<=16, grads={}, bonds=[], balls=[];
+  const grad=c=>{ const id='aG'+c.slice(1); grads[id]=`<radialGradient id="${id}" cx="34%" cy="30%" r="72%"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="${shade(c,.45)}"/><stop offset=".6" stop-color="${c}"/><stop offset="1" stop-color="${shade(c,-.62)}"/></radialGradient>`; return id; };
+  E.forEach(([A,B,x])=>{ const s=x?'.35':'1';
+    bonds.push(`<g opacity="${s}"><line x1="${A.x.toFixed(1)}" y1="${A.y.toFixed(1)}" x2="${B.x.toFixed(1)}" y2="${B.y.toFixed(1)}" class="abond"/><line x1="${A.x.toFixed(1)}" y1="${A.y.toFixed(1)}" x2="${B.x.toFixed(1)}" y2="${B.y.toFixed(1)}" class="abond2"/></g>`); });
+  [...N].sort((p,q)=>p.z-q.z).forEach(m=>{
+    const a=m.n.a, st=agentState(a), r=m.r*(1+m.z*.1), root=m.d===0, dim=m.z<-.4?' back':'';
+    const name=a.name.length>16?a.name.slice(0,15)+'…':a.name;
+    balls.push(`<g class="el${root?' nuc':''}${dim}${S.sel===a.id?' sel':''}" data-agent="${a.id}" tabindex="0" role="button" transform="translate(${m.x.toFixed(1)},${m.y.toFixed(1)})" aria-label="${esc(a.name)}: ${STATE_TEXT[st]}">
+      <title>${esc(a.name)}${a.role?' – '+esc(a.role):''} · ${root?'Leitung':m.d===1?'Teamleitung':'Ebene '+(m.d+1)} · ${STATE_TEXT[st]}</title>
+      <circle r="${(r*1.9).toFixed(1)}" fill="${m.col}" opacity="${root?.22:.13}" filter="url(#aBlur)"/>
+      <ellipse cx="${(r*.18).toFixed(1)}" cy="${(r*.9).toFixed(1)}" rx="${(r*.8).toFixed(1)}" ry="${(r*.22).toFixed(1)}" fill="#000" opacity=".28"/>
+      <circle class="core" r="${r.toFixed(1)}" fill="url(#${grad(m.col)})"/>
+      <ellipse cx="${(-r*.32).toFixed(1)}" cy="${(-r*.4).toFixed(1)}" rx="${(r*.3).toFixed(1)}" ry="${(r*.17).toFixed(1)}" fill="#fff" opacity=".55" transform="rotate(-30 ${(-r*.32).toFixed(1)} ${(-r*.4).toFixed(1)})"/>
+      ${st!=='idle'?`<circle r="${(r+4).toFixed(1)}" fill="none" stroke="${ORG_COL[st]}" stroke-width="${root?3:2.5}"/>`:''}
+      ${root||m.d===1||few?`<text class="${root?'nlbl':'albl'}" y="${(r+(root?22:15)).toFixed(1)}">${esc(name)}</text>`:''}
+      ${(root||m.d===1)&&a.role?`<text class="albl2" y="${(r+(root?37:28)).toFixed(1)}">${esc(a.role.length>20?a.role.slice(0,19)+'…':a.role)}</text>`:''}</g>`);
   });
-  const st0=agentState(roots[0].a), names=roots.map(r=>r.a.name).join(' · ');
-  const nuc=`<g class="nuc el${S.sel===roots[0].a.id?' sel':''}" data-agent="${roots[0].a.id}" tabindex="0" role="button" aria-label="${esc(names)}: ${STATE_TEXT[st0]}">
-    <title>${esc(names)} – Kern · ${STATE_TEXT[st0]}</title>
-    <circle r="${(NR*2.4).toFixed(1)}" fill="url(#aNucGlow)"/>${atomNucleus(g.agents.length, NR)}
-    ${st0!=='idle'?`<circle r="${NR+6}" fill="none" stroke="${ORG_COL[st0]}" stroke-width="3"/>`:''}
-    <text class="nlbl" y="${NR+24}">${esc(names.length>30?names.slice(0,29)+'…':names)}</text>
-    ${roots.length===1&&roots[0].a.role?`<text class="albl2" y="${NR+39}">${esc(roots[0].a.role)}</text>`:''}</g>`;
+  const xs=N.map(m=>m.x), ys=N.map(m=>m.y), X0=Math.min(...xs)-80, X1=Math.max(...xs)+80, Y0=Math.min(...ys)-80, Y1=Math.max(...ys)+90;
+  const R=Math.max(X1-X0, Y1-Y0)/2, cx=(X0+X1)/2, cy=(Y0+Y1)/2;
   const defs=`<defs><radialGradient id="aP" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#ffb4a8"/><stop offset=".45" stop-color="#e2463a"/><stop offset="1" stop-color="#5c0d0a"/></radialGradient>
-    <radialGradient id="aN" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#e5edf5"/><stop offset=".45" stop-color="#8495a8"/><stop offset="1" stop-color="#232c38"/></radialGradient>
-    <radialGradient id="aE" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#f0fbff"/><stop offset=".4" stop-color="#38bdf8"/><stop offset="1" stop-color="#075985"/></radialGradient>
-    <radialGradient id="aGlow"><stop offset="0" stop-color="#7dd3fc" stop-opacity=".55"/><stop offset="1" stop-color="#7dd3fc" stop-opacity="0"/></radialGradient>
-    <radialGradient id="aHalo"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".25" stop-color="#dbe6ff" stop-opacity=".25"/><stop offset="1" stop-color="#dbe6ff" stop-opacity="0"/></radialGradient>
-    <radialGradient id="aNucGlow"><stop offset=".25" stop-color="#fca5a5" stop-opacity=".22"/><stop offset="1" stop-color="#fca5a5" stop-opacity="0"/></radialGradient></defs>`;
-  const back=`<g>${atomSky({x0:-R-320,x1:R+320,y0:-R-220,y1:R+220}, (WORLD.g&&WORLD.g.stage)||0, R)}</g>`;
-  svg.innerHTML=defs+back+`<g>${orbits.join('')}</g>`+nuc+els.join('');
-  ATOM.box={x0:-R-50, x1:R+50, y0:-R-40, y1:R+40};
-  ATOM.els=[...svg.querySelectorAll('.amv')];
+    <filter id="aBlur" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="8"/></filter>${Object.values(grads).join('')}</defs>`;
+  const back=`<g transform="translate(${cx.toFixed(0)},${cy.toFixed(0)})">${atomSky({x0:-R-320,x1:R+320,y0:-R-220,y1:R+220}, (WORLD.g&&WORLD.g.stage)||0, R*.8)}</g>`;
+  svg.innerHTML=defs+back+`<g>${bonds.join('')}</g>`+balls.join('');
+  ATOM.box={x0:X0, x1:X1, y0:Y0, y1:Y1}; ATOM.mv=[]; ATOM.els=[];
   atomPlace();
 }
 function atomSky(b, stage, R0){  // Welt Atom: ruhiger Hintergrund, der mit der Stufe waechst (Quark, Atom, Molekuel, Kristall, Zelle)
@@ -3139,10 +3154,7 @@ function atomSky(b, stage, R0){  // Welt Atom: ruhiger Hintergrund, der mit der 
   }
   return out.join('');
 }
-function atomPlace(){  // feste Plaetze auf den Bahnen, die Grafik bewegt sich nicht (Wunsch ABI)
-  ATOM.mv.forEach((m,i)=>{ const el=ATOM.els[i]; if(!el) return; const a=m.a0, x=m.rx*Math.cos(a), y=m.ry*Math.sin(a), c=Math.cos(m.rot), s=Math.sin(m.rot);
-    el.setAttribute('transform',`translate(${(x*c-y*s).toFixed(1)},${(x*s+y*c).toFixed(1)})`); });
-}
+function atomPlace(){}  // Plätze stehen fest (atomLayout), die Grafik bewegt sich nicht (Wunsch ABI)
 $('#atomsvg').addEventListener('click', e=>{ if(MAP.down && Math.hypot(e.clientX-MAP.down.x, e.clientY-MAP.down.y)>6) return; const c=e.target.closest('[data-agent]'); if(c) selectAgent(+c.dataset.agent); });
 $('#atomsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const c=e.target.closest('[data-agent]'); if(c){ e.preventDefault(); selectAgent(+c.dataset.agent); } });
 

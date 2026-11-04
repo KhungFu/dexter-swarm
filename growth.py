@@ -44,7 +44,7 @@ WORLDS = {
                   "done": "gelungen", "project": "Element", "world": "Atommodell", "points": "Energie"},
         "planets": ["Alpha", "Beta", "Gamma", "Delta", "Sigma", "Omega", "Lambda", "Theta"],
         "colors": {"accent": "#22d3ee", "accent2": "#a855f7", "ground": "#061a24", "ground_dark": "#03101a"},
-        "explain": "Kern = oberste Leitung, jede Abteilung = eine Elektronenschale, Mitarbeiter = Elektronen.",
+        "explain": "Große Kugel = oberste Leitung, mittlere Kugeln = Teamleitungen, kleine Kugeln = Mitarbeiter, Stäbe = wer wem unterstellt ist.",
     },
 }
 
