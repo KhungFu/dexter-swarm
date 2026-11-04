@@ -164,6 +164,53 @@ const L=hubLevels(f); console.log(JSON.stringify([L.max,L.lvl[6],L.dep[6],L.dep[
     assert out == "[4,4,0,1,0,-1]"
 
 
+def test_etagen_raeume_gleichmaessig(tmp_path):
+    """Wunsch ABI 2026-11-04: je Etage stehen die Raeume zentriert und gleichmaessig, Breite nach Anzahl, Abteilungen beieinander."""
+    import json
+    import os
+    import shutil
+    import subprocess
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    inner = html[html.index("function hubInsideCity("):html.index("function hubInsideCosmos(")]
+    assert "hubFloorPlan(L, f.agents, RW, GAP, LX)" in inner and "x0[c]" not in inner
+    if not shutil.which("node"):
+        return
+    def fn(name):
+        i = html.index("function " + name + "(")
+        j = html.index("\nfunction ", i + 10)
+        return html[i:j]
+    # Firmen mit 1, 2, 4 und 9 Raeumen auf einer Etage, dazu die Firma vom Screenshot (Mara 1+4, Elena 1)
+    js = fn("hubTeams") + "\n" + fn("hubLevels") + "\n" + fn("hubFloorPlan") + """
+function firm(n){ const a=[{id:1,parent_id:null}]; for(let i=0;i<n;i++) a.push({id:10+i,parent_id:1}); return {agents:a}; }
+const res={};
+for(const n of [1,2,4,9]){ const L=hubLevels(firm(n)), P=hubFloorPlan(L, firm(n).agents, 128, 16, 200); res[n]={Wd:P.Wd, mid:P.mid, rows:P.fl.map(r=>r.map(a=>P.x[a.id]))}; }
+const shot={agents:[{id:1,parent_id:null},{id:2,parent_id:1},{id:3,parent_id:1},{id:4,parent_id:2},{id:5,parent_id:2},{id:6,parent_id:2},{id:7,parent_id:2}]};
+const L=hubLevels(shot), P=hubFloorPlan(L, shot.agents, 128, 16, 200);
+res.shot={Wd:P.Wd, mid:P.mid, rows:P.fl.map(r=>r.map(a=>P.x[a.id])), deps:P.fl.map(r=>r.map(a=>L.dep[a.id]))};
+console.log(JSON.stringify(res));"""
+    p = tmp_path / "t.js"
+    p.write_text(js, encoding="utf-8")
+    out = json.loads(subprocess.run(["node", str(p)], capture_output=True, text=True, encoding="utf-8").stdout)
+    RW = 128
+    widths = []
+    for n in ("1", "2", "4", "9"):
+        r = out[n]
+        assert [len(x) for x in r["rows"]] == [1, int(n)]
+        for row in r["rows"]:  # jede Etage zentriert, Raeume einer Abteilung lueckenlos nebeneinander
+            assert abs((row[0] + row[-1] + RW) / 2 - r["mid"]) < 1e-6
+            gaps = [b - a for a, b in zip(row, row[1:])]
+            assert all(abs(g - (RW + 16)) < 1e-6 for g in gaps)  # n Abteilungsleitungen: gleiche Abstaende
+            assert row[0] >= 200 and row[-1] + RW <= r["Wd"] - 24 + 1e-6
+        widths.append(r["Wd"])
+    assert widths == [max(560, 200 + n * RW + (n - 1) * 16 + 24) for n in (1, 2, 4, 9)]  # Breite nach Anzahl Raeume
+    s = out["shot"]
+    assert s["deps"] == [[-1], [0, 1], [0, 0, 0, 0]]  # Abteilungen bleiben beieinander
+    for row in s["rows"]:
+        assert abs((row[0] + row[-1] + RW) / 2 - s["mid"]) < 1e-6
+    assert [b - a for a, b in zip(s["rows"][2], s["rows"][2][1:])] == [RW] * 3  # eine Abteilung: Raum an Raum
+    assert s["rows"][1][1] - s["rows"][1][0] == RW + 16  # Mara und Elena direkt nebeneinander, nur ein schmaler Gang
+
+
 def test_stadt_lichter_und_atom_molekuel():
     """Wunsch ABI 2026-11-04: Lichter nur bei arbeitenden Firmen, Atom als Molekül-Netzwerk mit Organigramm-Stäben."""
     html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()

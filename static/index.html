@@ -1922,7 +1922,7 @@ const HELP=[
 <li><b>🧬 Molekül:</b> Jede Firma ist ihr eigenes Molekül, Form und Farben sind je Firma anders. Partner-Firmen sind über einen leuchtenden Stab zwischen ihren Leitungen verbunden, darauf wandern Funken (mehr, wenn beide arbeiten). Antippen zoomt hinein, jede Kugel öffnet Abteilung und Agent.</li>
 <li><b>🖼 Logo:</b> Im Infofenster einer Firma kannst du unter „Logo“ ein eigenes Logo hochladen (PNG, JPEG oder WebP, höchstens 2 MB). In der Stadt steht es als Schild auf dem Dach, im Kosmos mitten in der Sonne. ✕ entfernt es wieder.</li>
 <li><b>🌌 Kosmos:</b> Jede Firma ist ein Sonnensystem. Die Sonne ist die Leitung, die Planeten sind die Abteilungen (größer = mehr Agenten). Ein leuchtender Ring heißt: diese Abteilung arbeitet gerade. Zwischen den Systemen gibt es keine Linien.</li>
-<li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: eine Etage je Hierarchie-Ebene, so tief wie die Firma ist: ganz oben in der Chefetage die Leitung, darunter die Abteilungsleitungen, dann jede weitere Ebene. Jede Person sitzt in ihrem eigenen Raum in der Farbe ihrer Abteilung; hat eine Abteilung auf einer Ebene 4 Leute, gibt es dort 4 Räume. Mit Erfolg wächst das Gebäude: ab Stufe 2 Anbau und Dachgarten, ab Stufe 3 Antenne, ab Stufe 4 Hubschrauberlandeplatz. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
+<li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: eine Etage je Hierarchie-Ebene, so tief wie die Firma ist: ganz oben in der Chefetage die Leitung, darunter die Abteilungsleitungen, dann jede weitere Ebene. Jede Person sitzt in ihrem eigenen Raum in der Farbe ihrer Abteilung; hat eine Abteilung auf einer Ebene 4 Leute, gibt es dort 4 Räume. Jede Etage stellt ihre Räume mittig und in gleichen Abständen auf, Abteilungen bleiben beieinander, das Gebäude ist so breit wie die vollste Etage. Mit Erfolg wächst das Gebäude: ab Stufe 2 Anbau und Dachgarten, ab Stufe 3 Antenne, ab Stufe 4 Hubschrauberlandeplatz. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
 <li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
 <li><b>← Alle Firmen</b> oder Esc führt wieder hinaus.</li>
 <li><b>Drehen und Neigen:</b> Rechts unten drehen ⟲ ⟳ die Welt, ⤵ ⤴ neigen sie nach hinten, ⌂ oder „🗂 Ordnen“ oben stellt sie wieder gerade und passt alles ein, falls man sich verloren hat. Mit der Maus geht es auch: rechte Maustaste (oder Umschalttaste) gedrückt halten und ziehen, seitlich = drehen, hoch/runter = neigen. Auf dem Handy mit zwei Fingern drehen bzw. beide Finger gemeinsam hoch- oder runterschieben. Die Namen bleiben dabei lesbar, das Gerät merkt sich die Stellung je Welt.</li>
@@ -2867,17 +2867,22 @@ function hubLevels(f){  // Hierarchie-Ebene je Agent (0 = Leitung, beliebig tief
   f.agents.forEach(a=>{ if(!(a.id in lvl)){ lvl[a.id]=0; dep[a.id]=-1; } });  // Sicherheitsnetz (z. B. Zyklen)
   return {T, lvl, dep, max:Math.max(0,...Object.values(lvl))};
 }
+function hubFloorPlan(L, agents, RW, GAP, LX){  // je Etage: Räume nach Abteilung gruppiert, zentriert, gleiche Abstände; die Breite richtet sich nach der vollsten Etage
+  const fl=[]; for(let l=0;l<=L.max;l++) fl.push(agents.filter(a=>L.lvl[a.id]===l).sort((a,b)=>L.dep[a.id]-L.dep[b.id]));
+  const cut=(list,k)=>k>0 && L.dep[list[k].id]!==L.dep[list[k-1].id];  // zwischen zwei Abteilungen ein kleiner Gang
+  const rowW=list=>list.length*RW+list.reduce((s,a,k)=>s+(cut(list,k)?GAP:0),0);
+  const inner=Math.max(0,...fl.map(rowW)), Wd=Math.max(560, LX+inner+24), mid=LX+(Wd-24-LX)/2, x={};
+  fl.forEach(list=>{ let p=mid-rowW(list)/2; list.forEach((a,k)=>{ if(cut(list,k)) p+=GAP; x[a.id]=p; p+=RW; }); });
+  return {x, Wd, mid, inner, fl};
+}
 /* Innen: Klick auf eine Firma zoomt hinein. Stadt = aufgeschnittenes Gebäude: eine Etage je Hierarchie-Ebene (je höher der Rang,
-   desto höher die Etage, beliebig viele Ebenen), jede Person in ihrem eigenen Raum, Abteilungen als Spalten mit eigener Farbe.
+   desto höher die Etage, beliebig viele Ebenen), jede Person in ihrem eigenen Raum. Auf jeder Etage stehen die Räume zentriert und
+   gleichmäßig nebeneinander, nach Abteilung gruppiert (Farbe der Abteilung); das Gebäude ist so breit wie die vollste Etage.
    Das Dach wächst mit der Stufe. Rechts das Organigramm. Kosmos = das Sonnensystem groß (Planet je Abteilung, Monde = Agenten). */
 function hubInsideCity(f){
   const L=hubLevels(f), T=L.T, col=hubColor(f), st=Math.max(0,Math.min(4,f.stage|0)), RW=128, RH=124, GAP=16, LX=200, DX=70, DY=-40;
-  const cols=[-1,...T.deps.map((d,i)=>i)];  // Spalten: Leitung, dann Abteilungen
-  const at={}; f.agents.forEach(a=>{ const k=L.dep[a.id]+'|'+L.lvl[a.id]; (at[k]=at[k]||[]).push(a); });
-  const width={}; cols.forEach(c=>{ let m=0; for(let l=0;l<=L.max;l++) m=Math.max(m,(at[c+'|'+l]||[]).length); width[c]=m; });
-  const used=cols.filter(c=>width[c]>0), x0={}; let x=LX;
-  used.forEach(c=>{ x0[c]=x; x+=width[c]*RW+GAP; });
-  const Wd=Math.max(560, x-GAP+24), N=L.max+1, H=N*RH, out=[], side=[];
+  const P=hubFloorPlan(L, f.agents, RW, GAP, LX), used=[...new Set(f.agents.map(a=>L.dep[a.id]))].sort((a,b)=>a-b);
+  const Wd=P.Wd, N=L.max+1, H=N*RH, out=[], side=[];
   out.push(`<linearGradient id="hubRoom" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1226"/><stop offset=".55" stop-color="#2a1f12"/><stop offset="1" stop-color="#5b3b12"/></linearGradient>
     <linearGradient id="hubGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd" stop-opacity=".10"/><stop offset=".5" stop-color="#93c5fd" stop-opacity="0"/><stop offset="1" stop-color="#93c5fd" stop-opacity=".06"/></linearGradient>`);
   out.push(`<polygon points="${pts([[-150,0],[Wd+150,0],[Wd+150+DX,DY],[-150+DX,DY]])}" fill="#0b1328" stroke="${col}" stroke-opacity=".35"/>
@@ -2894,10 +2899,9 @@ function hubInsideCity(f){
       <rect x="0" y="${top+RH-5}" width="${Wd}" height="5" fill="${shade(col,-.5)}"/><line x1="0" y1="${top+RH-5}" x2="${Wd}" y2="${top+RH-5}" stroke="${col}" stroke-opacity=".8" stroke-width="1.5" filter="url(#hubGlow)"/>
       <text class="flbl" x="16" y="${top+28}">${l===0?'👑 ':''}${lbl}</text><text class="flbl2" x="16" y="${top+28}" dy="1.6em">${rank}</text>
       <text class="flbl2" x="16" y="${top+28}" dy="3em">${people.length} 👤${work?' · ⚙ '+work:''}</text>`);
-    used.forEach(c=>{
-      const list=at[c+'|'+l]||[], dc=hubDepColor(c), on=HUB.dep===c;
-      list.forEach((a,k)=>{
-        const rx=x0[c]+k*RW, busy=a.busy>0, me=HUB.agent===a.id, cx=rx+RW/2, base=top+RH-30;
+    P.fl[l].forEach(a=>{
+      { const c=L.dep[a.id], dc=hubDepColor(c), on=HUB.dep===c;
+        const rx=P.x[a.id], busy=a.busy>0, me=HUB.agent===a.id, cx=rx+RW/2, base=top+RH-30;
         out.push(`<g class="pers room${me?' sel':''}${on?' dsel':''}" data-agent="${a.id}" data-dep="${c}" style="--dc:${dc}"><title>${esc(a.name)} – ${esc(a.role||'')}${busy?' · arbeitet gerade ('+a.busy+')':' · bereit'}\nAntippen: Abteilung und Agent öffnen</title>
           <rect class="rbg" x="${rx+3}" y="${top+6}" width="${RW-6}" height="${RH-16}" rx="3"/>
           <rect x="${rx+3}" y="${top+6}" width="${RW-6}" height="${RH-16}" rx="3" fill="url(#hubRoom)" opacity="${busy?.9:.4}"/>
@@ -2911,14 +2915,15 @@ function hubInsideCity(f){
           <circle cx="${cx+20}" cy="${base-64}" r="3.5" fill="${busy?'#38bdf8':'#22c55e'}"${busy?' filter="url(#hubGlow)"':''}/>
           <text class="plbl" x="${cx}" y="${base+15}">${esc(short(a.name,12))}</text>
           <line x1="${rx+RW-3}" y1="${top+6}" x2="${rx+RW-3}" y2="${top+RH-10}" class="rwall"/></g>`);
-      });
+      }
     });
     out.push('</g>');
   }
   // Schilder der Abteilungen unten vor dem Gebäude (anklickbar), Glasfront, Säulen, Seitenfenster
-  used.filter(c=>c>=0).forEach(c=>{ const d=T.deps[c], w=width[c]*RW, on=HUB.dep===c;
+  const sd=used.filter(c=>c>=0), sw=Math.max(120,Math.min(220,(P.inner+GAP)/Math.max(1,sd.length)-8)), s0=P.mid-(sd.length*(sw+8)-8)/2;
+  sd.forEach((c,i)=>{ const d=T.deps[c], sx=s0+i*(sw+8), on=HUB.dep===c;  // Schilder als gleichmäßige Reihe, zentriert unter dem Gebäude
     out.push(`<g class="dsign${on?' sel':''}" data-dep="${c}" tabindex="0" role="button" style="--dc:${hubDepColor(c)}" aria-label="Abteilung ${esc(d.lead.name)}"><title>Abteilung ${esc(d.lead.name)} · ${d.members.length} Agenten\nAntippen: öffnen</title>
-      <rect x="${x0[c]+4}" y="6" width="${w-8}" height="24" rx="6"/><text class="plbl" x="${x0[c]+w/2}" y="23">${hubDepIcon(d.lead)} ${esc(short(d.lead.name,Math.max(8,Math.floor(w/9))))}</text></g>`); });
+      <rect x="${sx}" y="6" width="${sw}" height="24" rx="6"/><text class="plbl" x="${sx+sw/2}" y="23">${hubDepIcon(d.lead)} ${esc(short(d.lead.name,Math.max(8,Math.floor(sw/9))))}</text></g>`); });
   out.push(`<rect x="0" y="${-H}" width="${Wd}" height="${H}" fill="url(#hubGlass)" pointer-events="none"/>
     <rect x="-3" y="${-H}" width="${Wd+6}" height="${H}" fill="none" stroke="${col}" stroke-width="2.5" filter="url(#hubGlow)" pointer-events="none"/>${side.join('')}`);
   // Dach wächst mit der Stufe: Aufbau, ab Stufe 2 Dachgarten, ab 3 Antenne, ab 4 Hubschrauberlandeplatz
@@ -2933,7 +2938,7 @@ function hubInsideCity(f){
   const OC=hubOrgChart(T, Wd+DX+120, -H+DY);
   out.push(OC.svg);
   if(!f.agents.length) out.push(`<text class="flbl" x="${Wd/2}" y="-50" text-anchor="middle">Noch niemand eingestellt. „📐 Firma öffnen“ führt zum Bauplan.</text>`);
-  HUB.box={x0:-170, x1:Wd+DX+120+OC.w+60, y0:-H+DY-(st>=3?130:90), y1:44}; HUB.mv=[];
+  HUB.box={x0:Math.min(-170, s0-30), x1:Wd+DX+120+OC.w+60, y0:-H+DY-(st>=3?130:90), y1:44}; HUB.mv=[];
   return HUB_DEFS+out.join('');
 }
 function hubInsideCosmos(f){
