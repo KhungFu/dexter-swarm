@@ -313,8 +313,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubsvg .ship:not(.live){opacity:.6}
 #app.view-hub #hubsvg{display:block}
 #app.view-hub #hubbar{display:block}
-#app.view-hub #edges,#app.view-hub #nodes,#app.view-hub #palette,#app.view-hub #growth,#app.view-hub #empty,#app.view-hub #map,#app.view-hub #orgsvg,#app.view-hub #atomsvg,#app.view-hub #wlist,#app.view-hub #bcard{display:none !important}
-#app.view-hub #pname,#app.view-hub #pgoal,#app.view-hub #btnDelProj{visibility:hidden}
+#app.view-hub #edges,#app.view-hub #nodes,#app.view-hub #palette,#app.view-hub #empty,#app.view-hub #map,#app.view-hub #orgsvg,#app.view-hub #atomsvg,#app.view-hub #wlist,#app.view-hub #bcard{display:none !important}
 #app.view-hub #vp{background:radial-gradient(ellipse at 50% 35%,#101a3a,#060a1a 60%,#02040b) !important;background-size:100% 100% !important;background-position:0 0 !important}
 #app.view-hub .zoom{top:auto;bottom:12px}
 #hubsvg .hstar{fill:#dbe6ff}
@@ -619,7 +618,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="g-stats" id="gStats"></div>
       <div class="g-tools">
         <div class="vpick" id="gViews">
-          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Grafik wählen: Klassik (drei Organigramme, Bauplan) oder Modern (Weltall, Molekül, Stadt, Kosmos, alle Firmen als Moleküle)"><span id="gViewLbl">🌌 Weltall</span> ▾</button>
+          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Grafik wählen: Klassik (drei Organigramme, Bauplan) oder Modern (alle Firmen als Stadt, Kosmos oder Moleküle)"><span id="gViewLbl">🏢 Organigramm: Baum</span> ▾</button>
           <div class="vmenu" id="gViewMenu" role="menu" aria-label="Grafik" hidden>
             <span class="vgrp">Klassik</span>
             <button role="menuitemradio" class="vsub" data-view="org" data-org="baum" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
@@ -628,8 +627,6 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
             <button role="menuitemradio" class="vsub" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
             <hr>
             <span class="vgrp">Modern</span>
-            <button role="menuitemradio" class="vsub" data-view="world" title="Welt Weltall: Sonnensystem mit Sonne, Planeten und Monden, Stufen von Asteroid bis Galaxie">🌌 Weltall</button>
-            <button role="menuitemradio" class="vsub" data-view="atom" title="Welt Atom: das Team als Molekül, große Kugel = Leitung, Stäbe zeigen, wer wem unterstellt ist (steht still), Stufen von Quark bis Zelle">⚛️ Molekül (dieses Projekt)</button>
             <button role="menuitemradio" class="vsub" data-view="hub" data-hubworld="stadt" title="Alle Firmen als Stadt: jede Firma ein Gebäude, Straßen nur bei Zusammenarbeit">🏙 Stadt (alle Firmen)</button>
             <button role="menuitemradio" class="vsub" data-view="hub" data-hubworld="kosmos" title="Alle Firmen als Kosmos: jede Firma ein Sonnensystem, Raumschiffe nur bei Zusammenarbeit">🌌 Kosmos (alle Firmen)</button>
             <button role="menuitemradio" class="vsub" data-view="hub" data-hubworld="molekuel" title="Alle Firmen als Moleküle: jede Firma ein eigenes Molekül, Partner über Bindungen vernetzt">🧬 Molekül (alle Firmen)</button>
@@ -646,7 +643,6 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="zoom"><button id="zin" title="Hineinzoomen" aria-label="Hineinzoomen">+</button><button id="zout" title="Herauszoomen" aria-label="Herauszoomen">−</button><button id="zfit">Fit</button></div>
       <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="atomsvg" width="1" height="1"></svg><svg id="hubsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
       <div id="hubbar" role="toolbar" aria-label="Ansicht wählen">
-        <span class="seg"><button id="hubClassic" title="Klassisch: zurück zur sachlichen Ansicht der aktuellen Firma (Organigramm, Bauplan …)">📐 Klassisch</button><button data-hubworld="stadt" title="Stadt: jede Firma ist ein Gebäude. Je weiter die Firma gewachsen ist, desto höher das Haus">🏙 Stadt</button><button data-hubworld="kosmos" title="Kosmos: jede Firma ist ein Sonnensystem, die Planeten sind ihre Abteilungen">🌌 Kosmos</button><button data-hubworld="molekuel" title="Molekül: jede Firma ist ein eigenes Molekül; Partner-Firmen sind über einen leuchtenden Stab verbunden">🧬 Molekül</button></span>
         <span class="hubrow"><button class="btn sm" id="hubLink" title="Zusammenarbeit: zwei Firmen als Partner verbinden oder trennen. Zwischen Partnern fahren Lieferwagen bzw. fliegen Raumschiffe">🤝 Zusammenarbeit</button><button class="btn sm" id="hubOut" title="Aus der Firma heraus, zurück zu allen Firmen (Esc)">← Alle Firmen</button>
         <span id="hubFind"><input id="hubSearch" type="search" placeholder="🔍 Firma oder Agent suchen" aria-label="Firma oder Agent suchen" autocomplete="off"><span id="hubResults" hidden></span></span></span>
       </div>
@@ -1842,17 +1838,12 @@ const HELP=[
 <li><b>Auftrag geben:</b> Agent antippen → Reiter „Aufgaben“ → Auftrag beschreiben → „Aufgabe zuweisen“. Der Chef verteilt die Arbeit an sein Team, prüft die Berichte und liefert das Ergebnis in die 📬 Post.</li>
 <li><b>Ergebnis abholen:</b> 📬 Post öffnen. „✅ Erledigt“ schließt den Auftrag, „🔁 Überarbeiten…“ schickt ihn mit deinem Hinweis zurück.</li></ul>
 <p>Auf dem Handy öffnet ☰ oben links die Seitenleiste. Die Seitenleiste ist in Kategorien geordnet (📬 Tagesgeschäft, 🤖 Team &amp; KI, 📁 Dateien &amp; Verbindungen, 📊 Auswertung): Antippen klappt eine Kategorie auf oder zu, das Gerät merkt sich das. Ein farbiger Punkt an einer zugeklappten Kategorie heißt: darin wartet etwas (z. B. neue Post).</p>`},
- {id:'welt',t:'🌌 Weltall und Wachstum',h:`<p>Jedes Projekt ist ein kleines Universum, das mit seinen Erfolgen wächst: vom ☄️ Asteroiden über 🪐 Planet, ☀️ Sonnensystem und ✨ Sternhaufen bis zur 🌌 Galaxie. Oben in der Leiste siehst du Stufe, Sternenstaub (Punkte) und den Fortschritt bis zur nächsten Stufe.</p>
-<ul><li><b>Sonnensystem:</b> Die <b>Sonne</b> ist die oberste Leitung (z. B. der CEO); sie dreht sich langsam um die eigene Achse, ihr Strahlenkranz kreist mit. Die <b>Planeten</b> kreisen um sie und drehen sich dabei um die eigene Achse: das sind die Abteilungen bzw. Vorarbeiter. Um jeden Planeten kreisen seine <b>Monde</b>, die Mitarbeiter. Wer noch tiefer steht, ist ein kleiner Mond am Mond. Das Weltall ändert nur das Aussehen, nie die Arbeit der Agenten.</li>
-<li><b>Punkte:</b> Lieferung beim ersten Mal abgenommen +10, nach Überarbeitung +5, Auftrag in der Post erledigt +20, fehlgeschlagen −3, Nacharbeit angefordert −5.</li>
+ {id:'welt',t:'🌱 Wachstum und Grafik',h:`<p>Jedes Projekt wächst mit seinen Erfolgen von Stufe zu Stufe. Oben in der Leiste siehst du Stufe, Punkte und den Fortschritt bis zur nächsten Stufe. Das ändert nur das Aussehen, nie die Arbeit der Agenten.</p>
+<ul><li><b>Punkte:</b> Lieferung beim ersten Mal abgenommen +10, nach Überarbeitung +5, Auftrag in der Post erledigt +20, fehlgeschlagen −3, Nacharbeit angefordert −5.</li>
 <li><b>Stufen:</b> ab 0, 100, 300, 700 und 1500 Punkten. Die Stufe begrenzt nur, wie viele Agenten die Führung <i>selbst</i> anwirbt. Du kannst immer alles von Hand anlegen. Abschalten unter ⓘ in der Leiste.</li>
 <li><b>Ränge:</b> Agenten steigen nach ihren eigenen abgenommenen Lieferungen auf (ab 5, 20, 60).</li>
-<li><b>Grafik wählen:</b> Der aufklappbare Knopf oben rechts in der Leiste (z. B. „🌌 Weltall ▾“) bietet sechs Grafiken: 🌌 Weltall, drei Organigramme (Baum, Gliederung, Kreis), ⚛️ Atom und 📐 Bauplan zum genauen Bearbeiten. Das Gerät merkt sich die Wahl.</li>
-<li><b>Weltall:</b> Sonne oder Planet antippen öffnet eine Karte mit dem Team, ein Mond öffnet direkt den Agenten. Blau pulsierender Ring = arbeitet, gelber Ring = wartet auf deine Freigabe, roter Ring = Fehler, gestrichelt lila = wartet auf sein Team. Zwischen den Bahnen liegt ein Asteroidengürtel, Monde haben Krater, Planeten Wolken oder Bänder: das ist nur Schmuck. Auf dem Handy siehst du statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden, mit Zeichen ▶ in Arbeit, ✋ Freigabe, ❗ Fehler, ⏳ wartet, 📦 erfüllt.</li>
+<li><b>Grafik wählen:</b> Der aufklappbare Knopf oben rechts in der Leiste (z. B. „🏢 Organigramm: Baum ▾“) hat zwei Gruppen: <b>Klassik</b> mit drei Organigrammen (Baum, Gliederung, Kreis) und 📐 Bauplan zum genauen Bearbeiten, <b>Modern</b> mit allen Firmen als 🏙 Stadt, 🌌 Kosmos oder 🧬 Molekül. Das Gerät merkt sich die Wahl.</li>
 <li><b>🏢 Organigramm:</b> zeigt dasselbe Team als klassisches Organigramm in drei Arten, auswählbar im Grafik-Knopf: <b>⬇ Baum</b> (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), <b>➡ Gliederung</b> (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und <b>◎ Kreis</b> (Leitung in der Mitte, jede Ebene ein Ring). Der farbige Streifen bzw. Ring zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Die gewählte Art merkt sich das Gerät. Karten lassen sich mit der Maus oder dem Finger verschieben, die Linien gehen mit. Das merkt sich das Gerät je Projekt und Art; „↺ Anordnung zurücksetzen“ oben in der Mitte stellt die Ordnung wieder her.</li>
-<li><b>⚛️ Atom:</b> das Team als <b>Molekül</b>: Die große blaue Kugel ist die oberste Leitung, mittlere bunte Kugeln sind die Teamleitungen, kleine Kugeln die Mitarbeiter. Jede Kugel hängt per <b>Stab</b> an ihrem Vorgesetzten, so erkennt man die Hierarchie an Größe und Verbindungen, locker und räumlich angeordnet. Ein farbiger Ring zeigt den Zustand wie überall. Die Grafik steht still, damit man in Ruhe lesen kann. Antippen öffnet den Agenten.</li>
-<li><b>Zwei Welten:</b> 🌌 Weltall und ⚛️ Atom sind eigene Welten mit eigenen Stufen, Rängen und Begriffen. Wählst du eine davon in der Grafik-Auswahl, gilt sie für das Projekt (auch in der Wachstumsleiste, bei der Feier und in Telegram). Punkte und Stufengrenzen sind in beiden Welten gleich. Atom: Stufen ✴️ Quark, ⚛️ Atom, 🧪 Molekül, 💎 Kristall, 🧬 Zelle; Ränge Neutrino, Elektron, Proton, Nukleon; Punkte heißen Energie. Mit jeder Stufe wächst das Bild: Nachbaratome mit Bindungen, ein Kristallgitter, zuletzt Zellwand und Erbgut. Organigramm und Bauplan behalten die zuletzt gewählte Welt.</li>
-<li><b>Mehr Sterne:</b> Mit jeder Stufe wird der Himmel voller. Ab Sternhaufen leuchten Nebel, als Galaxie dreht sich eine Spirale im Hintergrund.</li>
 <li><b>🌓</b> wechselt Hell/Dunkel. Unter ⓘ lassen sich Bewegung und Feier-Effekte abschalten.</li></ul>`},
  {id:'agenten',t:'🤖 Agenten, KI und Rechte',h:`<p>Agent antippen öffnet das Seitenfenster mit den Reitern Einstellungen, 💬 Chat, Aufgaben und Verlauf.</p>
 <ul><li><b>KI wählen:</b> Anbieter und Modell. „▶ Testen“ prüft, ob die KI antwortet. Keys stehen in der Datei <code>.env</code>, nie in der Oberfläche.</li>
@@ -1897,10 +1888,10 @@ const HELP=[
 <li><b>… Telegram schweigt:</b> Token und Chat-ID in <code>.env</code> prüfen, Hyperstead neu starten, dem Bot <code>/start</code> schreiben.</li>
 <li><b>… nach einem Update etwas fehlt:</b> Die README hat die Tabelle „Was passiert, wenn etwas fehlt“ mit der Lösung für jede Datei und jeden Schlüssel.</li></ul>`},
  {id:'firmen',t:'🏙 Alle Firmen: klassisch und modern',h:`<p>Hyperstead hat zwei Ebenen. Beide zeigen dieselben echten Firmen, Abteilungen und Agenten, nur anders gezeichnet.</p>
-<ul><li><b>📐 Klassisch:</b> die sachlichen Ansichten einer Firma: die drei Organigramme (Baum, Gliederung, Kreis) und der Bauplan. Hier verwaltest und stellst du ein. In der Grafik-Auswahl stehen sie unter „Klassik“, Weltall und Molekül unter „Modern“.</li>
-<li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie in der Grafik-Auswahl oben in der Gruppe „Modern“ (Stadt, Kosmos oder Molekül, alle Firmen). Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt, 🌌 Kosmos und 🧬 Molekül um.</li>
+<ul><li><b>📐 Klassisch:</b> die sachlichen Ansichten einer Firma: die drei Organigramme (Baum, Gliederung, Kreis) und der Bauplan. Hier verwaltest und stellst du ein. In der Grafik-Auswahl stehen sie unter „Klassik“.</li>
+<li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie in der Grafik-Auswahl oben in der Gruppe „Modern“ (🏙 Stadt, 🌌 Kosmos oder 🧬 Molekül). Die obere Leiste mit Projekt und Wachstum bleibt dabei stehen, dort wechselst du auch zurück zu „Klassik“.</li>
 <li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Arbeitet eine Firma gerade, gehen bei ihr die Lichter an; ruhige Firmen sind fast dunkel.</li>
-<li><b>⚛️ Molekül:</b> Jede Firma ist ihr eigenes Molekül, Form und Farben sind je Firma anders. Partner-Firmen sind über einen leuchtenden Stab zwischen ihren Leitungen verbunden, darauf wandern Funken (mehr, wenn beide arbeiten). Antippen zoomt hinein, jede Kugel öffnet Abteilung und Agent.</li>
+<li><b>🧬 Molekül:</b> Jede Firma ist ihr eigenes Molekül, Form und Farben sind je Firma anders. Partner-Firmen sind über einen leuchtenden Stab zwischen ihren Leitungen verbunden, darauf wandern Funken (mehr, wenn beide arbeiten). Antippen zoomt hinein, jede Kugel öffnet Abteilung und Agent.</li>
 <li><b>🖼 Logo:</b> Im Infofenster einer Firma kannst du unter „Logo“ ein eigenes Logo hochladen (PNG, JPEG oder WebP, höchstens 2 MB). In der Stadt steht es als Schild auf dem Dach, im Kosmos mitten in der Sonne. ✕ entfernt es wieder.</li>
 <li><b>🌌 Kosmos:</b> Jede Firma ist ein Sonnensystem. Die Sonne ist die Leitung, die Planeten sind die Abteilungen (größer = mehr Agenten). Ein leuchtender Ring heißt: diese Abteilung arbeitet gerade. Zwischen den Systemen gibt es keine Linien.</li>
 <li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: eine Etage je Hierarchie-Ebene, so tief wie die Firma ist: ganz oben in der Chefetage die Leitung, darunter die Abteilungsleitungen, dann jede weitere Ebene. Jede Person sitzt in ihrem eigenen Raum in der Farbe ihrer Abteilung; hat eine Abteilung auf einer Ebene 4 Leute, gibt es dort 4 Räume. Mit Erfolg wächst das Gebäude: ab Stufe 2 Anbau und Dachgarten, ab Stufe 3 Antenne, ab Stufe 4 Hubschrauberlandeplatz. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
@@ -2100,7 +2091,7 @@ $('#gInfo').onclick = ()=>{
   const g=WORLD.g, w=wdef(), L=WORLD.list; if(!g||!w) return;
   openOv(`${g.world==='atom'?'⚛️':'🌌'} ${w.name} und Wachstum`);
   const P=L.points;
-  $('#ovbody').innerHTML = `<div style="color:var(--mute);font-size:12px;margin-bottom:10px">${esc(w.tagline)} ${esc(w.explain||'')} Die Welt ändert nur Aussehen und Begriffe; welche gilt, bestimmt die Grafik-Auswahl (🌌 Weltall oder ⚛️ Atom). Die Agenten arbeiten weiter mit klaren Begriffen, ihre Qualität bleibt gleich.</div>
+  $('#ovbody').innerHTML = `<div style="color:var(--mute);font-size:12px;margin-bottom:10px">${esc(w.tagline)} ${esc(w.explain||'')} Die Welt ändert nur Aussehen und Begriffe. Die Agenten arbeiten weiter mit klaren Begriffen, ihre Qualität bleibt gleich.</div>
     <div class="tlabel">Stufen</div>
     ${w.stages.map((st,i)=>`<div class="logrow" style="${i===g.stage?'font-weight:700':''}">${st[0]} ${esc(st[1])} <span class="ts">ab ${L.stage_points[i]} ${esc(w.words.points)} · Führung wirbt selbst bis ${L.stage_team[i]??'beliebig viele'} Agenten an, ${L.stage_depth[i]??'volle'} Ebenen</span>${i===g.stage?' ← jetzt':''}</div>`).join('')}
     <div class="tlabel">Punkte</div>
@@ -2140,10 +2131,11 @@ function celebrate(g){
 
 /* ---------- Welt-Karte: Sonnensystem (Sonne = oberste Leitung, Planeten = Abteilungen/Vorarbeiter, Monde = Mitarbeiter) ---------- */
 const MAP = {teams:[], box:null, down:null, movers:[], kids:{}, sig:'', raf:0, last:0, TILT:.6};  // TILT: Planetenbahnen leicht schraeg (Ellipsen)
-let VIEW = 'world';
-try{ VIEW = localStorage.getItem('hs-view') || 'world'; }catch(e){}
+let VIEW = 'org';  // Weltall und Molekuel je Projekt sind weg (Wunsch ABI 2026-11-04): alte Werte -> Organigramm
+try{ VIEW = localStorage.getItem('hs-view') || 'org'; }catch(e){}
+if(VIEW==='world'||VIEW==='atom') VIEW='org';
 function setView(v){
-  if(!['world','org','atom','plan','hub'].includes(v)) v='world';
+  if(!['org','plan','hub'].includes(v)) v='org';
   if(v==='hub' && VIEW!=='hub'){ HUB.back=VIEW; try{ localStorage.setItem('hs-hubback', VIEW); }catch(e){} }
   VIEW = v; try{ localStorage.setItem('hs-view', v); }catch(e){}
   $('#app').classList.toggle('view-world', v==='world');
@@ -2170,7 +2162,7 @@ function markView(){
     const on = b.dataset.view===VIEW && (VIEW!=='org' || b.dataset.org===ORG.style) && (VIEW!=='hub' || !b.dataset.hubworld || b.dataset.hubworld===HUB.world);
     b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if(on) lbl=b.textContent;
   });
-  $('#gViewLbl').textContent = lbl || '🌌 Weltall';
+  $('#gViewLbl').textContent = lbl || '🏢 Organigramm: Baum';
 }
 function viewMenu(open){
   const m=$('#gViewMenu'); if(open===undefined) open=m.hidden; m.hidden=!open;
@@ -2560,7 +2552,7 @@ $('#orgsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ')
    Beide Welten zeichnen dieselben echten Daten aus /api/firms. Neue Welten = neuer Eintrag in HUB_DRAW. */
 const HUB = {world:'stadt', d:null, box:null, sig:'', sel:null, inside:null, dep:null, agent:null, mv:[], els:[], raf:0, last:0, back:'world', at:0};
 const HUB_DRAW = {stadt:()=>hubCity(), kosmos:()=>hubCosmos(), molekuel:()=>hubMolecules()};
-try{ HUB.world=localStorage.getItem('hs-hubworld')||'stadt'; HUB.back=localStorage.getItem('hs-hubback')||'world'; }catch(e){}
+try{ HUB.world=localStorage.getItem('hs-hubworld')||'stadt'; HUB.back=localStorage.getItem('hs-hubback')||'org'; }catch(e){}
 if(!HUB_DRAW[HUB.world]) HUB.world='stadt';
 const HUB_FH=14, HUB_TW=170, HUB_TH=85, HUB_GAP=.85;
 async function loadFirms(force){
@@ -3072,7 +3064,7 @@ function hubLogoPick(pid){  // Datei wählen und hochladen, danach zeichnen Stad
 }
 async function hubOpenFirm(pid, agent){
   hideHubCard(); HUB.inside=null; HUB.dep=null; HUB.agent=null; $('#app').classList.remove('hub-in');
-  setView(HUB.back==='hub'?'world':HUB.back);
+  setView(HUB.back==='hub'?'org':HUB.back);
   await openProject(pid);
   if(agent) selectAgent(agent);
 }
@@ -3111,7 +3103,6 @@ $('#hubcard').addEventListener('click', e=>{ const a=e.target.closest('.hc-ag');
 $('#hubdeps').addEventListener('click', e=>{ const b=e.target.closest('.hd'); if(b) hubDep(b.dataset.dep===''?null:+b.dataset.dep); });
 $('#hubOut').onclick=hubLeave;
 document.querySelectorAll('#hubbar [data-hubworld]').forEach(b=>b.onclick=()=>hubWorld(b.dataset.hubworld));
-$('#hubClassic').onclick=async ()=>{ hideHubCard(); HUB.inside=null; HUB.dep=null; $('#app').classList.remove('hub-in'); setView(HUB.back==='hub'?'world':HUB.back); if(!S.pid && S.projects.length) await openProject(S.projects[0].id); };
 document.addEventListener('keydown', e=>{ if(e.key!=='Escape' || VIEW!=='hub' || $('#ov').classList.contains('on')) return;
   if(!$('#hubResults').hidden) return hubSearchClose();
   if(HUB.inside) hubLeave(); else if(HUB.sel) hideHubCard(); });

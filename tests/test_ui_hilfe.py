@@ -67,7 +67,7 @@ def test_grafik_auswahl_atom_und_farben():
     html = HTML
     # aufklappbare Auswahl mit allen sechs Grafiken
     assert 'id="gViewMenu"' in html and 'aria-haspopup="true"' in html
-    for v in ('data-view="world"', 'data-view="atom"', 'data-view="plan"'):
+    for v in ('data-view="org"', 'data-view="plan"', 'data-view="hub"'):
         assert v in html
     assert "function drawAtom(" in html and "Atom" in html
     # Organigramm-Karten verschiebbar

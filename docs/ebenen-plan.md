@@ -8,8 +8,8 @@ echten Daten** (Firmen, Abteilungen, Agenten, Aufgaben, Zusammenarbeit), nur and
 | **Klassisch** | die bisherigen Ansichten einer Firma: Organigramm (Baum, Gliederung, Kreis), Bauplan, Weltall, Atom | sachlich verwalten und einstellen, bleibt unverändert |
 | **Modern** | eine Welt mit **allen** Firmen: 🏙 Stadt oder 🌌 Kosmos | erleben, wie die Firmen aufgebaut sind und arbeiten |
 
-Firma = Projekt in Hyperstead. Umschalter oben in der modernen Welt: **📐 Klassisch · 🏙 Stadt · 🌌 Kosmos**.
-Eingang (Stand 2026-11-04, Wunsch ABI): Links unter „Projekte“ der große Knopf „＋ Neues Projekt“ (leer oder Vorlage), kein 🏙 mehr. Die Grafik-Auswahl oben hat zwei Gruppen: Klassik (drei Organigramme, Bauplan) und Modern (Weltall, Molekül, Stadt, Kosmos, Molekül aller Firmen).
+Firma = Projekt in Hyperstead. Umschalten über die Grafik-Auswahl in der oberen Leiste: **Klassik** (Organigramme, Bauplan) · **Modern** (🏙 Stadt · 🌌 Kosmos · 🧬 Molekül).
+Eingang (Stand 2026-11-04, Wunsch ABI): Links unter „Projekte“ der große Knopf „＋ Neues Projekt“ (leer oder Vorlage), kein 🏙 mehr. Die Grafik-Auswahl oben hat zwei Gruppen: Klassik (drei Organigramme, Bauplan) und Modern (Stadt, Kosmos, Molekül, jeweils alle Firmen). Weltall und Molekül je Projekt sind entfallen. Die obere Leiste mit Projekt und Wachstum bleibt in der modernen Ebene stehen, dort wird auch umgeschaltet.
 
 ## Stadt (wie SimCity, isometrisch)
 
