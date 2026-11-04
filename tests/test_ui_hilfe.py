@@ -88,3 +88,9 @@ def test_atom_steht_still_und_logo():
     assert 'rel="icon"' in HTML and "/static/logo/hyperstead-192.png" in HTML
     app = open(os.path.join(root, "app.py"), encoding="utf-8").read()
     assert '"/static/logo/"' in app
+
+
+def test_planeten_drehen_sich_um_die_eigene_achse():
+    assert "function spinWrap(" in HTML and 'class="spin"' in HTML
+    place = HTML[HTML.index("function placeMovers("):HTML.index("function orbitTick(")]
+    assert "m.spin" in place
