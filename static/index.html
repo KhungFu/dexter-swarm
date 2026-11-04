@@ -166,6 +166,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 #atomsvg .abond{stroke:#cbd5e1;stroke-width:7;stroke-linecap:round;opacity:.75}
 #atomsvg .abond2{stroke:#fff;stroke-width:2;stroke-linecap:round;opacity:.55}
 #atomsvg .el.back{opacity:.85}
+#hubsvg .abond{stroke:#cbd5e1;stroke-width:7;stroke-linecap:round;opacity:.75}
+#hubsvg .abond2{stroke:#fff;stroke-width:2;stroke-linecap:round;opacity:.55}
+#hubsvg .el.back{opacity:.85}
+#hubsvg .el{cursor:pointer}#hubsvg .el.sel circle.core{stroke:#fff;stroke-width:2.5}
+#hubsvg .albl{font:600 calc(12px * var(--lz,1)) system-ui,sans-serif;fill:#e0f2fe;text-anchor:middle;paint-order:stroke;stroke:#020617;stroke-width:3.5px;pointer-events:none}
+#hubsvg .albl2{font:calc(10px * var(--lz,1)) system-ui,sans-serif;fill:#94a3b8;text-anchor:middle;paint-order:stroke;stroke:#020617;stroke-width:3px;pointer-events:none}
+#hubsvg .nlbl{font:700 calc(15px * var(--lz,1)) system-ui,sans-serif;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:#020617;stroke-width:4px;pointer-events:none}
+#hubsvg .mbond{stroke:var(--hc,#7dd3fc);stroke-width:5;stroke-linecap:round;stroke-dasharray:2 9;opacity:.55}#hubsvg .mbond.live{opacity:.95;filter:url(#hubGlow)}
+#hubsvg .veh.spark circle{fill:#fde68a;filter:url(#hubGlow)}
 #atomsvg .el{cursor:pointer}
 #atomsvg .el:focus{outline:none}
 #atomsvg .el:focus-visible circle.core,#atomsvg .el.sel circle.core{stroke:#fff;stroke-width:2}
@@ -217,7 +226,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubbar .seg button.on{background:linear-gradient(180deg,#2563eb,#1d4ed8);color:#fff;box-shadow:inset 0 0 12px rgba(147,197,253,.45)}
 #hubcard{position:absolute;z-index:6;display:none;right:12px;top:64px;width:min(320px,calc(100% - 24px));max-height:calc(100% - 80px);overflow:auto;
   background:rgba(10,16,34,.92);color:#e2e8f0;border:1px solid #2b3a5c;border-radius:14px;padding:14px;box-shadow:0 12px 36px rgba(0,0,0,.5);backdrop-filter:blur(10px)}
-#hubcard.on{display:block}
+#hubcard.on{display:block}#app:not(.view-hub) #hubcard{display:none}
 #hubcard h4{margin:0 26px 4px 0;font-size:16px}
 #hubcard .hc-x{position:absolute;right:8px;top:8px;color:#94a3b8}
 #hubcard .hc-sub{color:#94a3b8;font-size:12.5px}
@@ -626,7 +635,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="zoom"><button id="zin" title="Hineinzoomen" aria-label="Hineinzoomen">+</button><button id="zout" title="Herauszoomen" aria-label="Herauszoomen">−</button><button id="zfit">Fit</button></div>
       <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="atomsvg" width="1" height="1"></svg><svg id="hubsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
       <div id="hubbar" role="toolbar" aria-label="Ansicht wählen">
-        <span class="seg"><button id="hubClassic" title="Klassisch: zurück zur sachlichen Ansicht der aktuellen Firma (Organigramm, Bauplan …)">📐 Klassisch</button><button data-hubworld="stadt" title="Stadt: jede Firma ist ein Gebäude. Je weiter die Firma gewachsen ist, desto höher das Haus">🏙 Stadt</button><button data-hubworld="kosmos" title="Kosmos: jede Firma ist ein Sonnensystem, die Planeten sind ihre Abteilungen">🌌 Kosmos</button></span>
+        <span class="seg"><button id="hubClassic" title="Klassisch: zurück zur sachlichen Ansicht der aktuellen Firma (Organigramm, Bauplan …)">📐 Klassisch</button><button data-hubworld="stadt" title="Stadt: jede Firma ist ein Gebäude. Je weiter die Firma gewachsen ist, desto höher das Haus">🏙 Stadt</button><button data-hubworld="kosmos" title="Kosmos: jede Firma ist ein Sonnensystem, die Planeten sind ihre Abteilungen">🌌 Kosmos</button><button data-hubworld="molekuel" title="Molekül: jede Firma ist ein eigenes Molekül; Partner-Firmen sind über einen leuchtenden Stab verbunden">⚛️ Molekül</button></span>
         <span class="hubrow"><button class="btn sm" id="hubLink" title="Zusammenarbeit: zwei Firmen als Partner verbinden oder trennen. Zwischen Partnern fahren Lieferwagen bzw. fliegen Raumschiffe">🤝 Zusammenarbeit</button><button class="btn sm" id="hubOut" title="Aus der Firma heraus, zurück zu allen Firmen (Esc)">← Alle Firmen</button>
         <span id="hubFind"><input id="hubSearch" type="search" placeholder="🔍 Firma oder Agent suchen" aria-label="Firma oder Agent suchen" autocomplete="off"><span id="hubResults" hidden></span></span></span>
       </div>
@@ -1881,6 +1890,7 @@ const HELP=[
 <ul><li><b>📐 Klassisch:</b> die sachlichen Ansichten einer Firma (Organigramm, Bauplan, Weltall, Atom). Hier verwaltest und stellst du ein.</li>
 <li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie links bei „Projekte“ mit 🏙 oder in der Grafik-Auswahl oben mit „🏙 Alle Firmen (modern)“. Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt und 🌌 Kosmos um.</li>
 <li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Arbeitet eine Firma gerade, gehen bei ihr die Lichter an; ruhige Firmen sind fast dunkel.</li>
+<li><b>⚛️ Molekül:</b> Jede Firma ist ihr eigenes Molekül, Form und Farben sind je Firma anders. Partner-Firmen sind über einen leuchtenden Stab zwischen ihren Leitungen verbunden, darauf wandern Funken (mehr, wenn beide arbeiten). Antippen zoomt hinein, jede Kugel öffnet Abteilung und Agent.</li>
 <li><b>🖼 Logo:</b> Im Infofenster einer Firma kannst du unter „Logo“ ein eigenes Logo hochladen (PNG, JPEG oder WebP, höchstens 2 MB). In der Stadt steht es als Schild auf dem Dach, im Kosmos mitten in der Sonne. ✕ entfernt es wieder.</li>
 <li><b>🌌 Kosmos:</b> Jede Firma ist ein Sonnensystem. Die Sonne ist die Leitung, die Planeten sind die Abteilungen (größer = mehr Agenten). Ein leuchtender Ring heißt: diese Abteilung arbeitet gerade. Zwischen den Systemen gibt es keine Linien.</li>
 <li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: eine Etage je Hierarchie-Ebene, so tief wie die Firma ist: ganz oben in der Chefetage die Leitung, darunter die Abteilungsleitungen, dann jede weitere Ebene. Jede Person sitzt in ihrem eigenen Raum in der Farbe ihrer Abteilung; hat eine Abteilung auf einer Ebene 4 Leute, gibt es dort 4 Räume. Mit Erfolg wächst das Gebäude: ab Stufe 2 Anbau und Dachgarten, ab Stufe 3 Antenne, ab Stufe 4 Hubschrauberlandeplatz. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
@@ -2539,7 +2549,7 @@ $('#orgsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ')
 /* ---------- Moderne Ebene: alle Firmen als Stadt oder Kosmos (Plan docs/ebenen-plan.md). Firma = Projekt ----------
    Beide Welten zeichnen dieselben echten Daten aus /api/firms. Neue Welten = neuer Eintrag in HUB_DRAW. */
 const HUB = {world:'stadt', d:null, box:null, sig:'', sel:null, inside:null, dep:null, agent:null, mv:[], els:[], raf:0, last:0, back:'world', at:0};
-const HUB_DRAW = {stadt:()=>hubCity(), kosmos:()=>hubCosmos()};
+const HUB_DRAW = {stadt:()=>hubCity(), kosmos:()=>hubCosmos(), molekuel:()=>hubMolecules()};
 try{ HUB.world=localStorage.getItem('hs-hubworld')||'stadt'; HUB.back=localStorage.getItem('hs-hubback')||'world'; }catch(e){}
 if(!HUB_DRAW[HUB.world]) HUB.world='stadt';
 const HUB_FH=14, HUB_TW=170, HUB_TH=85, HUB_GAP=.85;
@@ -2707,6 +2717,61 @@ function hubCosmos(){
   HUB.box=b;
   return HUB_DEFS+`<g>${hubStars({x0:b.x0-600,x1:b.x1+600,y0:b.y0-400,y1:b.y1+400}, 99)}</g>`+out.join('');
 }
+/* Molekül-Welt: jede Firma ein eigenes Molekül (Form und Farben aus der Projekt-ID, große Kugel in Firmenfarbe). Partner-Firmen sind über
+   einen leuchtenden Stab zwischen ihren Leitungen verbunden, auf dem Energie-Funken wandern (mehr, wenn beide arbeiten). Moleküle stehen still. */
+function firmTree(f){
+  const ids=new Set(f.agents.map(a=>a.id)), kids={};
+  f.agents.forEach(a=>{ if(a.parent_id && ids.has(a.parent_id)) (kids[a.parent_id]=kids[a.parent_id]||[]).push(a); });
+  const mk=(a,d,seen)=>{ seen.add(a.id); return {a, d, kids:(kids[a.id]||[]).filter(k=>!seen.has(k.id)).map(k=>mk(k,d+1,seen))}; };
+  return f.agents.filter(a=>!a.parent_id || !ids.has(a.parent_id)).map(r=>mk(r,0,new Set()));
+}
+const hubAgState=a=>a.busy?'run':'idle';
+function hubMolecules(){
+  const F=HUB.d.firms; HUB.mv=[];
+  const mols=F.map(f=>{ const roots=firmTree(f), col=hubColor(f);
+    if(!roots.length) return {f, col, svg:`<circle r="22" fill="${col}" opacity=".35"/><circle r="12" fill="${col}"/>`, defs:'', box:{x0:-60,x1:60,y0:-60,y1:60}, root:[0,0]};
+    const M=molSvg(roots, molStyle(f.id, col), {gp:'mG'+f.id+'_', blur:'hubBlur', state:hubAgState, labels:'none'});
+    const r0=M.N.find(m=>m.d===0); return {f, col, svg:M.svg, defs:M.defs, box:M.box, root:[r0.x, r0.y]}; });
+  const cell=Math.max(320, ...mols.map(m=>Math.max(m.box.x1-m.box.x0, m.box.y1-m.box.y0)*.62+80)), vr=$('#vp').getBoundingClientRect();
+  const C=Math.max(1,Math.min(F.length,Math.ceil(Math.sqrt(F.length*Math.max(.4,vr.width/Math.max(1,vr.height)))))), RND=rnd(777), out=[], defs=[], pos={};
+  mols.forEach((m,k)=>{ const i=k%C, j=Math.floor(k/C), x=i*cell+(j%2?cell/2:0)+(RND()-.5)*cell*.2, y=j*cell*.9+(RND()-.5)*cell*.12;
+    const sc=.55, cx=(m.box.x0+m.box.x1)/2, cy=(m.box.y0+m.box.y1)/2, f=m.f, busy=f.busy>0;
+    m.x=x; m.y=y; pos[f.id]=[x+(m.root[0]-cx)*sc, y+(m.root[1]-cy)*sc]; defs.push(m.defs);
+    out.push(`<g class="firm mol${busy?' work':''}${HUB.sel===f.id?' sel':''}" data-firm="${f.id}" tabindex="0" role="button" style="--hc:${m.col}" aria-label="${esc(f.name)}: ${esc(f.stage_name||'')}, ${f.agents.length} Agenten${busy?', arbeitet gerade':''}">
+      <title>${esc(f.name)} – ${esc(f.stage_name||'')} · ${f.agents.length} Agenten · ${busy?f.busy+' Aufgaben laufen':'gerade ruhig'}\nAntippen: hineinzoomen</title>
+      <circle cx="${x}" cy="${y}" r="${(cell*.42).toFixed(0)}" class="hhit"/>
+      <g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${sc}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})">${m.svg}</g>
+      ${f.logo?hubLogo(f, pos[f.id][0], pos[f.id][1], 30, true):''}
+      <text class="hlbl" x="${x}" y="${(y+(m.box.y1-cy)*sc+18).toFixed(0)}">${esc(short(f.name,26))}</text>
+      <text class="hlbl2" x="${x}" y="${(y+(m.box.y1-cy)*sc+18).toFixed(0)}" dy="1.45em">${esc(f.stage_name||'')} · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`);
+  });
+  const xs=mols.map(m=>m.x), ys=mols.map(m=>m.y), b={x0:Math.min(...xs)-cell/2, x1:Math.max(...xs)+cell/2, y0:Math.min(...ys)-cell*.45, y1:Math.max(...ys)+cell*.5};
+  HUB.box=b;
+  return HUB_DEFS+`<defs>${defs.join('')}</defs><g>${hubStars({x0:b.x0-600,x1:b.x1+600,y0:b.y0-400,y1:b.y1+400}, 55)}</g>`+hubMolBonds(pos)+out.join('')+hubMolSparks();
+}
+function hubMolBonds(pos){  // Bindung zwischen den Leitungen zweier Partner-Firmen, Funken wandern darauf hin und her
+  const out=[]; HUB.tr=[]; HUB._sparks=[];
+  HUB.d.links.forEach((l,n)=>{ const T=hubTraffic(l), A=pos[l.a], B=pos[l.b]; if(!T||!A||!B) return;
+    const P=[A,B];
+    out.push(`<g style="--hc:${hubColor(T.fa)}"><title>Zusammenarbeit: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}${l.note?' – '+esc(l.note):''}${T.live?' · aktiv':' · gerade ruhig'}</title>
+      <line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" class="abond" opacity=".35"/>
+      <line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" class="mbond${T.live?' live':''}"/></g>`);
+    for(let k=0;k<T.n;k++){ HUB.tr.push({p:P, len:hubPolyLen(P), sp:T.sp*1.4*(1+.15*(k%3)), o:k/T.n+n*.17});
+      HUB._sparks.push(`<g class="veh spark"><title>Austausch: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}</title><circle r="${T.live?6:4.5}"/></g>`); }
+  });
+  return `<g>${out.join('')}</g>`;
+}
+function hubMolSparks(){ return (HUB._sparks||[]).join(''); }
+function hubInsideMol(f){  // eine Firma groß: ihr Molekül, jede Kugel anklickbar (Abteilung und Agent)
+  HUB.mv=[]; HUB.tr=[];
+  const L=hubLevels(f), roots=firmTree(f);
+  if(!roots.length){ HUB.box={x0:-300,x1:300,y0:-80,y1:80}; return HUB_DEFS+`<text class="hlbl" x="0" y="0">Noch niemand eingestellt. „📐 Firma öffnen“ führt zum Bauplan.</text>`; }
+  const M=molSvg(roots, molStyle(f.id, hubColor(f)), {gp:'mI', blur:'hubBlur', sel:HUB.agent, state:hubAgState, labels:'all',
+    attrs:m=>`data-agent="${m.n.a.id}" data-dep="${L.dep[m.n.a.id]}" tabindex="0" role="button"`});
+  const b=M.box, r0=M.N.find(m=>m.d===0); HUB.box={x0:b.x0, x1:b.x1, y0:b.y0-60, y1:b.y1};
+  return HUB_DEFS+`<defs>${M.defs}</defs><g>${hubStars({x0:b.x0-500,x1:b.x1+500,y0:b.y0-300,y1:b.y1+300}, f.id*11)}</g>
+    <text class="sign" x="${((b.x0+b.x1)/2).toFixed(0)}" y="${(b.y0-20).toFixed(0)}">${esc(short(f.name,30))}</text>`+M.svg+(f.logo?hubLogo(f, r0.x, r0.y, 40, true):'');
+}
 function hubPlace(t){
   hubPlaceTraffic(t);
   HUB.mv.forEach((m,i)=>{ const el=HUB.els[i]; if(!el) return; const a=m.a0+t*m.w;
@@ -2862,7 +2927,7 @@ function drawHub(){
   if(sig===HUB.sig && svg.firstChild) return; HUB.sig=sig;
   $('#app').classList.toggle('hub-in', !!f);
   if(!HUB.d.firms.length){ svg.innerHTML=`<text class="hlbl" x="0" y="0">Noch keine Firma. Lege links bei „Projekte“ mit ＋ eine an.</text>`; HUB.box={x0:-320,x1:320,y0:-60,y1:60}; return; }
-  svg.innerHTML = f ? (HUB.world==='kosmos' ? hubInsideCosmos(f) : hubInsideCity(f)) : HUB_DRAW[HUB.world]();
+  svg.innerHTML = f ? (HUB.world==='kosmos' ? hubInsideCosmos(f) : HUB.world==='molekuel' ? hubInsideMol(f) : hubInsideCity(f)) : HUB_DRAW[HUB.world]();
   if(f) HUB.tr=[];
   HUB.els=[...svg.querySelectorAll('.hpl')]; HUB.trEls=[...svg.querySelectorAll('.veh')];
   hubPlace(hubMoving() ? performance.now()/1000 : 0);
@@ -3066,34 +3131,65 @@ document.addEventListener('click', e=>{ if(!e.target.closest('#hubFind')) hubSea
 const ATOM = {box:null, sig:'', mv:[]};
 const ATOM_MID=['#fb923c','#2dd4bf','#a78bfa','#4ade80','#f472b6','#facc15'];      // Teamleiter: orange, türkis, violett, grün, ...
 const ATOM_SMALL=['#f43f5e','#fde047','#38bdf8','#c084fc','#34d399','#fb7185','#a3e635','#f59e0b'];  // Agenten: kräftige Ergänzungsfarben
-function atomLayout(roots){  // Startplätze im Fächer um den Vorgesetzten, dann Abstoßen/Federn (deterministisch, Saat = Projekt)
-  const RND=rnd((S.pid||1)*613+7), N=[], E=[];
+/* Jede Firma bekommt ihr eigenes Molekül (Wunsch ABI 2026-11-04): Saat = Projekt-ID bestimmt Form (Spreizung, Stablänge, Streckung,
+   Drehung) und die Farbreihe; die große Kugel hat die Farbe der Firma. Gleiche Firma = immer gleiches Molekül. */
+function molStyle(seed, col){
+  const R=rnd(seed*7919+13), k=Math.floor(R()*ATOM_MID.length), j=Math.floor(R()*ATOM_SMALL.length);
+  return {col:col||'#22d3ee', mid:[...ATOM_MID.slice(k),...ATOM_MID.slice(0,k)], small:[...ATOM_SMALL.slice(j),...ATOM_SMALL.slice(0,j)],
+    spread:.75+R()*.8, bond:.75+R()*.65, squash:.62+R()*.4, turn:R()*6.28, seed};
+}
+function molLayout(roots, st){  // Startplätze im Fächer um den Vorgesetzten, dann Abstoßen/Federn (deterministisch)
+  const RND=rnd(st.seed*613+7), N=[], E=[], sq=st.squash, BL=st.bond;
   const rad=d=>d===0?44:d===1?27:d===2?18:13;
   const add=(n,x,y,z,dir,spread,par,bi,ci)=>{
-    const me={n, x, y, z, r:rad(n.d), d:n.d, branch:bi, col: n.d===0?'#22d3ee':n.d===1?ATOM_MID[bi%ATOM_MID.length]:ATOM_SMALL[(bi*3+ci)%ATOM_SMALL.length]};
+    const me={n, x, y, z, r:rad(n.d), d:n.d, branch:bi, col: n.d===0?st.col:n.d===1?st.mid[bi%st.mid.length]:st.small[(bi*3+ci)%st.small.length]};
     N.push(me); if(par) E.push([par,me]);
     const k=n.kids.length; n.kids.forEach((c,j)=>{
-      const t=k===1?0:(j/(k-1)-.5), ang=dir+t*spread+(RND()-.5)*.5, L=me.r+rad(c.d)+58+RND()*46, zz=(RND()-.5)*1.6;
-      add(c, x+Math.cos(ang)*L, y+Math.sin(ang)*L*.86, zz, ang, Math.min(2.4, 1.1+k*.22), me, n.d===0?j:bi, j);
+      const t=k===1?0:(j/(k-1)-.5), ang=dir+t*spread+(RND()-.5)*.5, L=me.r+rad(c.d)+(58+RND()*46)*BL, zz=(RND()-.5)*1.6;
+      add(c, x+Math.cos(ang)*L, y+Math.sin(ang)*L*sq, zz, ang, Math.min(2.6, (1.1+k*.22)*st.spread), me, n.d===0?j:bi, j);
     });
   };
   const k=roots.length;
   roots.forEach((r,i)=>{
-    const a0=k===1?0:i*2*Math.PI/k-Math.PI/2, D=k===1?0:150+k*20, cx=Math.cos(a0)*D, cy=Math.sin(a0)*D;
+    const a0=k===1?0:i*2*Math.PI/k-Math.PI/2+st.turn, D=k===1?0:150+k*20, cx=Math.cos(a0)*D, cy=Math.sin(a0)*D*sq;
     if(k===1){  // einzelne Leitung: Teams rundherum, leicht unregelmäßig
-      const me={n:r, x:0, y:0, z:0, r:rad(0), d:0, branch:0, col:'#22d3ee'}; N.push(me);
-      const m=r.kids.length, off=RND()*6.28;
-      r.kids.forEach((c,j)=>{ const ang=off+j*2*Math.PI/Math.max(1,m)+(RND()-.5)*.6, L=me.r+rad(1)+70+RND()*50;
-        add(c, Math.cos(ang)*L, Math.sin(ang)*L*.86, (RND()-.5)*1.6, ang, Math.min(2.2, 1+c.kids.length*.25), me, j, 0); });
+      const me={n:r, x:0, y:0, z:0, r:rad(0), d:0, branch:0, col:st.col}; N.push(me);
+      const m=r.kids.length, off=st.turn, arc=m<=2?Math.PI*(.7+st.spread*.5):2*Math.PI;  // wenige Teams: mal gestreckt, mal geknickt
+      r.kids.forEach((c,j)=>{ const ang=off+j*arc/Math.max(1,m)+(RND()-.5)*.6, L=me.r+rad(1)+(70+RND()*50)*BL;
+        add(c, Math.cos(ang)*L, Math.sin(ang)*L*sq, (RND()-.5)*1.6, ang, Math.min(2.4, (1+c.kids.length*.25)*st.spread), me, j, 0); });
     } else add(r, cx, cy, 0, a0, 2.6, null, i, 0);
   });
   if(k>1) for(let i=0;i<k;i++) E.push([N.find(m=>m.n===roots[i]), N.find(m=>m.n===roots[(i+1)%k]), true]);  // mehrere Leitungen: lockere Querbindung
   for(let it=0; it<160; it++){  // entzerren: Kugeln stoßen sich ab, Stäbe halten ihre Länge
     for(let i=0;i<N.length;i++) for(let j=i+1;j<N.length;j++){ const A=N[i], B=N[j]; let dx=B.x-A.x, dy=B.y-A.y, d=Math.hypot(dx,dy)||.01;
       const want=A.r+B.r+34; if(d<want){ const f=(want-d)/d*.5; dx*=f; dy*=f; if(A.d) { A.x-=dx; A.y-=dy; } if(B.d) { B.x+=dx; B.y+=dy; } } }
-    E.forEach(([A,B,x])=>{ if(x) return; let dx=B.x-A.x, dy=B.y-A.y, d=Math.hypot(dx,dy)||.01, L=A.r+B.r+72, f=(d-L)/d*.15; B.x-=dx*f; B.y-=dy*f; if(A.d){ A.x+=dx*f*.3; A.y+=dy*f*.3; } });
+    E.forEach(([A,B,x])=>{ if(x) return; let dx=B.x-A.x, dy=B.y-A.y, d=Math.hypot(dx,dy)||.01, L=A.r+B.r+72*BL, f=(d-L)/d*.15; B.x-=dx*f; B.y-=dy*f; if(A.d){ A.x+=dx*f*.3; A.y+=dy*f*.3; } });
   }
   return {N, E};
+}
+/* Molekül als SVG. o: gp = Präfix der Farbverläufe, blur = Filter-ID, sel = gewählter Agent, state(a) = Zustand,
+   attrs(m) = Zusatzattribute je Kugel (Klick-Ziele), labels: 'all' | 'auto' | 'none'. */
+function molSvg(roots, st, o){
+  const {N, E}=molLayout(roots, st), few=N.length<=16, grads={}, bonds=[], balls=[];
+  const grad=c=>{ const id=o.gp+c.slice(1); grads[id]=`<radialGradient id="${id}" cx="34%" cy="30%" r="72%"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="${shade(c,.45)}"/><stop offset=".6" stop-color="${c}"/><stop offset="1" stop-color="${shade(c,-.62)}"/></radialGradient>`; return id; };
+  E.forEach(([A,B,x])=>{ const s=x?'.35':'1';
+    bonds.push(`<g opacity="${s}"><line x1="${A.x.toFixed(1)}" y1="${A.y.toFixed(1)}" x2="${B.x.toFixed(1)}" y2="${B.y.toFixed(1)}" class="abond"/><line x1="${A.x.toFixed(1)}" y1="${A.y.toFixed(1)}" x2="${B.x.toFixed(1)}" y2="${B.y.toFixed(1)}" class="abond2"/></g>`); });
+  [...N].sort((p,q)=>p.z-q.z).forEach(m=>{
+    const a=m.n.a, stt=o.state?o.state(a):'idle', r=m.r*(1+m.z*.1), root=m.d===0, dim=m.z<-.4?' back':'';
+    const name=a.name.length>16?a.name.slice(0,15)+'…':a.name, lab=o.labels==='all'||(o.labels==='auto'&&(root||m.d===1||few));
+    balls.push(`<g class="el${root?' nuc':''}${dim}${o.sel===a.id?' sel':''}" ${o.attrs?o.attrs(m):''} transform="translate(${m.x.toFixed(1)},${m.y.toFixed(1)})" aria-label="${esc(a.name)}: ${STATE_TEXT[stt]}">
+      <title>${esc(a.name)}${a.role?' – '+esc(a.role):''} · ${root?'Leitung':m.d===1?'Teamleitung':'Ebene '+(m.d+1)} · ${STATE_TEXT[stt]}</title>
+      <circle r="${(r*1.9).toFixed(1)}" fill="${m.col}" opacity="${root?.22:.13}" filter="url(#${o.blur})"/>
+      <ellipse cx="${(r*.18).toFixed(1)}" cy="${(r*.9).toFixed(1)}" rx="${(r*.8).toFixed(1)}" ry="${(r*.22).toFixed(1)}" fill="#000" opacity=".28"/>
+      <circle class="core" r="${r.toFixed(1)}" fill="url(#${grad(m.col)})"/>
+      <ellipse cx="${(-r*.32).toFixed(1)}" cy="${(-r*.4).toFixed(1)}" rx="${(r*.3).toFixed(1)}" ry="${(r*.17).toFixed(1)}" fill="#fff" opacity=".55" transform="rotate(-30 ${(-r*.32).toFixed(1)} ${(-r*.4).toFixed(1)})"/>
+      ${stt!=='idle'?`<circle r="${(r+4).toFixed(1)}" fill="none" stroke="${ORG_COL[stt]}" stroke-width="${root?3:2.5}"/>`:''}
+      ${lab?`<text class="${root?'nlbl':'albl'}" y="${(r+(root?22:15)).toFixed(1)}">${esc(name)}</text>`:''}
+      ${lab&&(root||m.d===1)&&a.role?`<text class="albl2" y="${(r+(root?37:28)).toFixed(1)}">${esc(a.role.length>20?a.role.slice(0,19)+'…':a.role)}</text>`:''}</g>`);
+  });
+  const xs=N.map(m=>m.x), ys=N.map(m=>m.y);
+  return {N, defs:Object.values(grads).join(''), svg:`<g>${bonds.join('')}</g>`+balls.join(''),
+    box:{x0:Math.min(...xs)-80, x1:Math.max(...xs)+80, y0:Math.min(...ys)-80, y1:Math.max(...ys)+90}};
 }
 function drawAtom(){
   const g=S.graph, svg=$('#atomsvg');
@@ -3101,30 +3197,15 @@ function drawAtom(){
   const sig=JSON.stringify([S.pid,S.sel,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts]),WORLD.g&&WORLD.g.stage]);
   if(sig===ATOM.sig && svg.firstChild) return; ATOM.sig=sig;
   const roots=orgTree(g); if(!roots.length){ svg.innerHTML=''; ATOM.box=null; ATOM.mv=[]; return; }
-  const {N, E}=atomLayout(roots), few=N.length<=16, grads={}, bonds=[], balls=[];
-  const grad=c=>{ const id='aG'+c.slice(1); grads[id]=`<radialGradient id="${id}" cx="34%" cy="30%" r="72%"><stop offset="0" stop-color="#ffffff"/><stop offset=".18" stop-color="${shade(c,.45)}"/><stop offset=".6" stop-color="${c}"/><stop offset="1" stop-color="${shade(c,-.62)}"/></radialGradient>`; return id; };
-  E.forEach(([A,B,x])=>{ const s=x?'.35':'1';
-    bonds.push(`<g opacity="${s}"><line x1="${A.x.toFixed(1)}" y1="${A.y.toFixed(1)}" x2="${B.x.toFixed(1)}" y2="${B.y.toFixed(1)}" class="abond"/><line x1="${A.x.toFixed(1)}" y1="${A.y.toFixed(1)}" x2="${B.x.toFixed(1)}" y2="${B.y.toFixed(1)}" class="abond2"/></g>`); });
-  [...N].sort((p,q)=>p.z-q.z).forEach(m=>{
-    const a=m.n.a, st=agentState(a), r=m.r*(1+m.z*.1), root=m.d===0, dim=m.z<-.4?' back':'';
-    const name=a.name.length>16?a.name.slice(0,15)+'…':a.name;
-    balls.push(`<g class="el${root?' nuc':''}${dim}${S.sel===a.id?' sel':''}" data-agent="${a.id}" tabindex="0" role="button" transform="translate(${m.x.toFixed(1)},${m.y.toFixed(1)})" aria-label="${esc(a.name)}: ${STATE_TEXT[st]}">
-      <title>${esc(a.name)}${a.role?' – '+esc(a.role):''} · ${root?'Leitung':m.d===1?'Teamleitung':'Ebene '+(m.d+1)} · ${STATE_TEXT[st]}</title>
-      <circle r="${(r*1.9).toFixed(1)}" fill="${m.col}" opacity="${root?.22:.13}" filter="url(#aBlur)"/>
-      <ellipse cx="${(r*.18).toFixed(1)}" cy="${(r*.9).toFixed(1)}" rx="${(r*.8).toFixed(1)}" ry="${(r*.22).toFixed(1)}" fill="#000" opacity=".28"/>
-      <circle class="core" r="${r.toFixed(1)}" fill="url(#${grad(m.col)})"/>
-      <ellipse cx="${(-r*.32).toFixed(1)}" cy="${(-r*.4).toFixed(1)}" rx="${(r*.3).toFixed(1)}" ry="${(r*.17).toFixed(1)}" fill="#fff" opacity=".55" transform="rotate(-30 ${(-r*.32).toFixed(1)} ${(-r*.4).toFixed(1)})"/>
-      ${st!=='idle'?`<circle r="${(r+4).toFixed(1)}" fill="none" stroke="${ORG_COL[st]}" stroke-width="${root?3:2.5}"/>`:''}
-      ${root||m.d===1||few?`<text class="${root?'nlbl':'albl'}" y="${(r+(root?22:15)).toFixed(1)}">${esc(name)}</text>`:''}
-      ${(root||m.d===1)&&a.role?`<text class="albl2" y="${(r+(root?37:28)).toFixed(1)}">${esc(a.role.length>20?a.role.slice(0,19)+'…':a.role)}</text>`:''}</g>`);
-  });
-  const xs=N.map(m=>m.x), ys=N.map(m=>m.y), X0=Math.min(...xs)-80, X1=Math.max(...xs)+80, Y0=Math.min(...ys)-80, Y1=Math.max(...ys)+90;
-  const R=Math.max(X1-X0, Y1-Y0)/2, cx=(X0+X1)/2, cy=(Y0+Y1)/2;
+  const pi=Math.max(0,(S.projects||[]).findIndex(p=>p.id===S.pid));  // gleiche Farbe wie der Punkt in der Projektliste
+  const M=molSvg(roots, molStyle(S.pid||1, COLORS[pi%COLORS.length]), {gp:'aG', blur:'aBlur', sel:S.sel, state:agentState, labels:'auto',
+    attrs:m=>`data-agent="${m.n.a.id}" tabindex="0" role="button"`});
+  const {x0:X0,x1:X1,y0:Y0,y1:Y1}=M.box, R=Math.max(X1-X0, Y1-Y0)/2, cx=(X0+X1)/2, cy=(Y0+Y1)/2;
   const defs=`<defs><radialGradient id="aP" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#ffb4a8"/><stop offset=".45" stop-color="#e2463a"/><stop offset="1" stop-color="#5c0d0a"/></radialGradient>
-    <filter id="aBlur" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="8"/></filter>${Object.values(grads).join('')}</defs>`;
+    <filter id="aBlur" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="8"/></filter>${M.defs}</defs>`;
   const back=`<g transform="translate(${cx.toFixed(0)},${cy.toFixed(0)})">${atomSky({x0:-R-320,x1:R+320,y0:-R-220,y1:R+220}, (WORLD.g&&WORLD.g.stage)||0, R*.8)}</g>`;
-  svg.innerHTML=defs+back+`<g>${bonds.join('')}</g>`+balls.join('');
-  ATOM.box={x0:X0, x1:X1, y0:Y0, y1:Y1}; ATOM.mv=[]; ATOM.els=[];
+  svg.innerHTML=defs+back+M.svg;
+  ATOM.box=M.box; ATOM.mv=[]; ATOM.els=[];
   atomPlace();
 }
 function atomSky(b, stage, R0){  // Welt Atom: ruhiger Hintergrund, der mit der Stufe waechst (Quark, Atom, Molekuel, Kristall, Zelle)
