@@ -189,6 +189,10 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   (Leitung + Abteilungen wie im Weltall). Stadt `hubCity`/`hubBuilding` (isometrisch, Hoehe nach Stufe, Beschriftungen in eigener Ebene obenauf),
   Kosmos `hubCosmos`/`hubSystem` (Planeten kreisen per rAF nur mit Bewegung und nicht auf dem Handy). Klick -> `hubSelect` -> `#hubcard`
   (Leitung/Abteilungen, Name -> `hubOpenFirm` = klassische Ansicht + `selectAgent`). JS steht VOR dem Atom-Abschnitt (Atom-Test verbietet rAF dort).
+- Innen (Phase 2): Klick auf Firma -> `hubEnter(pid, dep, agent)` (`hubZoomTo` faehrt 380 ms hin, dann `HUB.inside`). `hubInsideCity` (Etagen,
+  EG = Leitung, `data-dep` -1 = Leitung, sonst Index in `hubTeams().deps`) bzw. `hubInsideCosmos` (statisch, damit man trifft). `#hubdeps` Liste,
+  `hubDep` -> `#hubcard` zeigt Team (`hubAgRow`). `HUB.cardOff` = Infofenster zu (Handy beim Hineingehen). `hubLeave`/Esc/`#hubOut`. Suche `#hubSearch`
+  -> `#hubResults` (Firmen + Agenten nach Name/Rolle). `fit` laesst im Innern links 226 px und bei offenem Infofenster rechts 346 px frei.
 
 ## Verbindungen (Webhooks)
 - Tabelle `connections` (Besitzer legt URL/Methode/Kopfzeilen fest, `${ENV}` in Kopfzeilen aus .env, `confirm`, `on_post`). Recht `connect`

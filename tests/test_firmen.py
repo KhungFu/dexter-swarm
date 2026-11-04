@@ -63,3 +63,17 @@ def test_oberflaeche_stadt_und_kosmos():
     assert 'id="btnHub"' in html and 'data-view="hub"' in html
     assert "stadt:()=>hubCity()" in html and "kosmos:()=>hubCosmos()" in html
     assert "{id:'firmen'" in html and "'/firms'" in html
+
+
+def test_oberflaeche_hineinzoomen_und_suche():
+    """Phase 2: Firma betreten (Etagen bzw. Planeten), Abteilungsliste, Suche, alles mit Hilfetext."""
+    import os
+    import re
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    for fn in ("function hubInsideCity(", "function hubInsideCosmos(", "function hubEnter(", "function hubDep(", "function hubLeave("):
+        assert fn in html
+    assert 'id="hubOut"' in html and 'id="hubSearch"' in html and 'aria-label="Firma oder Agent suchen"' in html
+    assert 'id="hubdeps"' in html
+    hub = html[html.index("function hubDepsList("):html.index("/* ---------- Atom: Kern")]
+    assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", hub))
+    assert "Abteilung öffnen" in html and "Hineingehen" in html

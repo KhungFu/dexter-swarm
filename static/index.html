@@ -223,11 +223,59 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubcard .hc-ag:hover{background:#16223f}
 #hubcard .hc-ag small{margin-left:auto;color:#94a3b8}
 #hubcard .hc-ag .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex:none}
-#hubcard .hc-ag .dot.run{background:#38bdf8;box-shadow:0 0 8px #38bdf8}
+#hubcard .hc-ag .dot.run{background:#38bdf8 !important;background:#38bdf8;box-shadow:0 0 8px #38bdf8}
 #hubcard .hc-btns{margin-top:12px;display:flex;gap:8px}
 #hubcard .hc-btns .btn{background:#1d4ed8;border-color:#3b82f6;color:#fff}
 #hubsvg .lbls{pointer-events:none}
 #hubcard i{color:#64748b;font-size:13px;padding:0 8px}
+#hubbar .hubrow{display:flex;gap:6px;justify-content:center;margin-top:6px}
+#hubOut{display:none;white-space:nowrap;background:rgba(10,16,34,.9);border-color:#2b3a5c;color:#e2e8f0}
+#app.hub-in #hubOut{display:inline-flex}
+#hubFind{position:relative}
+#hubSearch{width:230px;background:rgba(10,16,34,.9);border:1px solid #2b3a5c;color:#e2e8f0;border-radius:10px;padding:6px 10px;font-size:13px}
+#hubResults{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:rgba(10,16,34,.97);border:1px solid #2b3a5c;border-radius:10px;padding:4px;display:flex;flex-direction:column;z-index:9;max-height:300px;overflow:auto}
+#hubResults[hidden]{display:none}
+#hubResults .hr{background:none;border:0;color:#e2e8f0;text-align:left;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:13px;display:flex;flex-direction:column}
+#hubResults .hr:hover,#hubResults .hr:focus{background:#16223f}
+#hubResults small,.hr-none{color:#94a3b8;font-size:11.5px}
+.hr-none{padding:6px 8px}
+#hubdeps{display:none;position:absolute;left:12px;top:110px;z-index:5;flex-direction:column;gap:4px;width:200px;max-height:calc(100% - 130px);overflow:auto;
+  background:rgba(10,16,34,.88);border:1px solid #2b3a5c;border-radius:14px;padding:8px;backdrop-filter:blur(8px)}
+#app.view-hub.hub-in #hubdeps{display:flex}
+#hubdeps .hd{display:flex;align-items:center;gap:8px;background:none;border:1px solid transparent;color:#cbd5e1;border-radius:9px;padding:7px 9px;cursor:pointer;font-size:13px;text-align:left}
+#hubdeps .hd small{margin-left:auto;color:#64748b}
+#hubdeps .hd:hover{background:#16223f}
+#hubdeps .hd.on{background:linear-gradient(180deg,#2563eb,#1d4ed8);color:#fff;border-color:#60a5fa}
+#hubdeps .hd.on small{color:#dbeafe}
+.hdd{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 6px currentColor}
+#hubcard .hc-n{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2}
+#hubcard .hc-n small{margin:0;color:#64748b;font-size:11px}
+#hubcard .hc-ag.me{background:#1e3a8a;outline:1px solid #60a5fa}
+#hubsvg.zooming{transition:opacity .38s;opacity:.55}
+#hubsvg .floor{cursor:pointer}
+#hubsvg .floor:focus{outline:none}
+#hubsvg .fbg{fill:#0b1428}
+#hubsvg .floor:nth-of-type(even) .fbg{fill:#0d1830}
+#hubsvg .floor:hover .fbg,#hubsvg .floor:focus-visible .fbg{fill:#132245}
+#hubsvg .floor.sel .fbg{fill:#15275a;stroke:var(--dc);stroke-width:2}
+#hubsvg .flbl{font:700 15px system-ui,sans-serif;fill:#e2e8f0}
+#hubsvg .flbl2{font:12px system-ui,sans-serif;fill:#94a3b8}
+#hubsvg .plbl{font:11.5px system-ui,sans-serif;fill:#cbd5e1;text-anchor:middle}
+#hubsvg .sign{font:800 20px system-ui,sans-serif;fill:#f8fafc;text-anchor:middle;letter-spacing:.04em;paint-order:stroke;stroke:#050914;stroke-width:5px}
+#hubsvg .pers{cursor:pointer}
+#hubsvg .pers.sel .screen{stroke:#fff;stroke-width:2.5}
+#hubsvg .screen.on{animation:hubPulse 1.6s ease-in-out infinite}
+#hubsvg .planet,#hubsvg .sunbody,#hubsvg .moon{cursor:pointer}
+#hubsvg .planet:focus,#hubsvg .sunbody:focus{outline:none}
+#hubsvg .pring{fill:none;stroke:var(--dc);stroke-opacity:.5;stroke-width:1.5}
+#hubsvg .planet.sel .pring,#hubsvg .planet:hover .pring,#hubsvg .planet:focus-visible .pring{stroke:#fff;stroke-opacity:1;stroke-width:2.5}
+#hubsvg .horb.on{stroke-opacity:.8;stroke-width:2}
+#hubsvg .sunbody.sel .hsun,#hubsvg .sunbody:focus-visible .hsun{stroke:#fff;stroke-width:3}
+#hubsvg .moon.sel circle:first-child{fill:#fff}
+#hubsvg .pico{font:800 15px system-ui,sans-serif;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:rgba(0,0,0,.35);stroke-width:3px;pointer-events:none}
+@media (prefers-reduced-motion: reduce){#hubsvg .screen.on{animation:none}}
+:root[data-motion="off"] #hubsvg .screen.on{animation:none}
+@media (max-width:820px){#hubSearch{width:170px}#hubdeps{left:6px;right:6px;top:auto;bottom:8px;width:auto;flex-direction:row;overflow-x:auto;max-height:none;padding:6px}#hubdeps .hd{white-space:nowrap}#hubdeps .hd small{margin-left:6px}#app.hub-in #hubcard.on~*{}#app.hub-in #hubcard{bottom:62px}}
 #app.view-hub #hubsvg{display:block}
 #app.view-hub #hubbar{display:block}
 #app.view-hub #edges,#app.view-hub #nodes,#app.view-hub #palette,#app.view-hub #growth,#app.view-hub #empty,#app.view-hub #map,#app.view-hub #orgsvg,#app.view-hub #atomsvg,#app.view-hub #wlist,#app.view-hub #bcard{display:none !important}
@@ -532,7 +580,10 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="atomsvg" width="1" height="1"></svg><svg id="hubsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
       <div id="hubbar" role="toolbar" aria-label="Ansicht wählen">
         <span class="seg"><button id="hubClassic" title="Klassisch: zurück zur sachlichen Ansicht der aktuellen Firma (Organigramm, Bauplan …)">📐 Klassisch</button><button data-hubworld="stadt" title="Stadt: jede Firma ist ein Gebäude. Je weiter die Firma gewachsen ist, desto höher das Haus">🏙 Stadt</button><button data-hubworld="kosmos" title="Kosmos: jede Firma ist ein Sonnensystem, die Planeten sind ihre Abteilungen">🌌 Kosmos</button></span>
+        <span class="hubrow"><button class="btn sm" id="hubOut" title="Aus der Firma heraus, zurück zu allen Firmen (Esc)">← Alle Firmen</button>
+        <span id="hubFind"><input id="hubSearch" type="search" placeholder="🔍 Firma oder Agent suchen" aria-label="Firma oder Agent suchen" autocomplete="off"><span id="hubResults" hidden></span></span></span>
       </div>
+      <nav id="hubdeps" aria-label="Abteilungen"></nav>
       <div id="hubcard" role="dialog" aria-label="Firma"></div>
       <div id="bcard" role="dialog" aria-label="Himmelskörper"></div>
       <div id="wlist"></div>
@@ -759,8 +810,9 @@ function zoomAt(f,cx,cy){
 }
 function fit(){
   if(VIEW==='hub'){ const vp=$('#vp').getBoundingClientRect(), b=HUB.box, top=$('#hubbar').offsetHeight+16; if(!b) return;
-    const s=Math.min(1.2,Math.max(.2,Math.min((vp.width-30)/(b.x1-b.x0),(vp.height-top-20)/(b.y1-b.y0))));
-    V.s=s; V.x=(vp.width-(b.x1-b.x0)*s)/2-b.x0*s; V.y=top+(vp.height-top-(b.y1-b.y0)*s)/2-b.y0*s; return applyView(); }
+    const wide=vp.width>820, L=wide&&HUB.inside?226:0, Rt=wide&&$('#hubcard').classList.contains('on')?346:0, aw=vp.width-L-Rt;
+    const s=Math.min(1.2,Math.max(.2,Math.min((aw-30)/(b.x1-b.x0),(vp.height-top-20)/(b.y1-b.y0))));
+    V.s=s; V.x=L+(aw-(b.x1-b.x0)*s)/2-b.x0*s; V.y=top+(vp.height-top-(b.y1-b.y0)*s)/2-b.y0*s; return applyView(); }
   if(VIEW==='org' && ORG.box){ const vp=$('#vp').getBoundingClientRect(), b=ORG.box, top=50;
     const fw=(vp.width-30)/(b.x1-b.x0), fh=(vp.height-top-20)/(b.y1-b.y0);  // Gliederung: nur nach Breite, nach unten wird geblaettert
     const s=Math.min(1.1,Math.max(.3, ORG.style==='gliederung' ? fw : Math.min(fw,fh)));
@@ -1772,7 +1824,10 @@ const HELP=[
 <li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie mit 🏙 bei „Projekte“ oder in der Grafik-Auswahl mit „🏙 Alle Firmen (modern)“. Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt und 🌌 Kosmos um.</li>
 <li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Leuchtende Fenster heißen: dort wird gerade gearbeitet.</li>
 <li><b>🌌 Kosmos:</b> Jede Firma ist ein Sonnensystem. Die Sonne ist die Leitung, die Planeten sind die Abteilungen (größer = mehr Agenten). Ein leuchtender Ring heißt: diese Abteilung arbeitet gerade. Zwischen den Systemen gibt es keine Linien.</li>
-<li><b>Antippen</b> einer Firma öffnet ihr Infofenster mit Leitung und Abteilungen. Ein Name darin oder „📐 Firma öffnen“ führt in die klassische Ansicht, dort änderst du wie gewohnt. Die Änderung siehst du danach auch in Stadt und Kosmos.</li></ul>`},
+<li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude von innen: unten (EG) die Leitung, darüber eine Etage je Abteilung, die Agenten an ihren Tischen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
+<li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
+<li><b>← Alle Firmen</b> oder Esc führt wieder hinaus.</li>
+<li><b>🔍 Suche:</b> oben Firma oder Agent eintippen (Name oder Rolle). Ein Treffer zoomt in die Firma und zeigt den Agenten in seiner Abteilung.</li></ul>`},
  {id:'hilfe',t:'❓ Hilfe-Modus und Hinweise',h:`<p>Fast jeder Knopf hat eine kurze Erklärung. Am PC erscheint sie, wenn du mit der Maus darauf zeigst.</p>
 <p>Auf dem Handy gibt es kein Draufzeigen. Schalte dafür hier den <b>Hilfe-Modus</b> ein: Dann zeigt das erste Tippen auf einen Knopf die Erklärung, erst das zweite Tippen führt ihn aus. Unten erscheint eine Leiste, mit „Aus“ beendest du ihn.</p>
 <p>ⓘ oben in einem Fenster springt direkt zum passenden Kapitel dieser Anleitung.</p>`},
@@ -2422,7 +2477,7 @@ $('#orgsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ')
 
 /* ---------- Moderne Ebene: alle Firmen als Stadt oder Kosmos (Plan docs/ebenen-plan.md). Firma = Projekt ----------
    Beide Welten zeichnen dieselben echten Daten aus /api/firms. Neue Welten = neuer Eintrag in HUB_DRAW. */
-const HUB = {world:'stadt', d:null, box:null, sig:'', sel:null, mv:[], els:[], raf:0, last:0, back:'world', at:0};
+const HUB = {world:'stadt', d:null, box:null, sig:'', sel:null, inside:null, dep:null, agent:null, mv:[], els:[], raf:0, last:0, back:'world', at:0};
 const HUB_DRAW = {stadt:()=>hubCity(), kosmos:()=>hubCosmos()};
 try{ HUB.world=localStorage.getItem('hs-hubworld')||'stadt'; HUB.back=localStorage.getItem('hs-hubback')||'world'; }catch(e){}
 if(!HUB_DRAW[HUB.world]) HUB.world='stadt';
@@ -2434,7 +2489,7 @@ async function loadFirms(force){
   try{ HUB.d = await api('/firms'); }catch(e){ return; }
   drawHub();
 }
-function hubWorld(w){ HUB.world=w; try{ localStorage.setItem('hs-hubworld', w); }catch(e){} HUB.sig=''; hideHubCard(); drawHub(); fit(); }
+function hubWorld(w){ HUB.world=w; HUB.agent=null; try{ localStorage.setItem('hs-hubworld', w); }catch(e){} HUB.sig=''; hideHubCard(); drawHub(); fit(); }
 function hubMark(){
   document.querySelectorAll('[data-hubworld]').forEach(b=>{ const on=b.dataset.hubworld===HUB.world; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
   $('#app').dataset.hubworld=HUB.world;
@@ -2559,53 +2614,193 @@ function hubTick(now){
 }
 function startHub(){ if(!HUB.raf && hubMoving()) HUB.raf=requestAnimationFrame(hubTick); }
 document.addEventListener('visibilitychange', startHub);
+/* Innen (Phase 2): Klick auf eine Firma zoomt hinein. Stadt = Querschnitt durchs Gebäude (eine Etage je Abteilung),
+   Kosmos = das Sonnensystem groß (ein Planet je Abteilung, Monde = Agenten). Links die Liste der Abteilungen. */
+function hubDepColor(i){ return i<0 ? '#f59e0b' : COLORS[(i+2)%COLORS.length]; }
+function hubInsideCity(f){
+  const T=hubTeams(f), col=hubColor(f);
+  const floors=[{dep:-1, name:'Leitung', sub:T.roots.map(r=>r.role||r.name).join(', '), people:T.roots}];
+  T.deps.forEach((d,i)=>floors.push({dep:i, name:d.lead.name, sub:d.lead.role||'', people:d.members}));
+  const PW=78, PER=9, maxP=Math.max(1,...floors.map(x=>Math.min(PER,x.people.length)));
+  const Wd=Math.max(620, 210+maxP*PW), fh=fl=>Math.ceil(Math.max(1,fl.people.length)/PER)*100+20, H=floors.reduce((s,fl)=>s+fh(fl),0);
+  const out=[]; let y=0;
+  out.push(`<rect x="-14" y="${-H-14}" width="${Wd+28}" height="${H+14}" rx="6" fill="#050a18" stroke="${col}" stroke-width="2" filter="url(#hubGlow)"/>`);
+  floors.forEach((fl,n)=>{
+    const h=fh(fl), top=-(y+h), dc=hubDepColor(fl.dep), on=HUB.dep===fl.dep;
+    out.push(`<g class="floor${on?' sel':''}" data-dep="${fl.dep}" tabindex="0" role="button" aria-label="${n===0?'Erdgeschoss':n+'. Stock'}: ${esc(fl.name)}, ${fl.people.length} Agenten">
+      <title>${esc(fl.name)}${fl.sub?' – '+esc(fl.sub):''} · ${fl.people.length} Agenten\nAntippen: Abteilung öffnen</title>
+      <rect class="fbg" x="0" y="${top}" width="${Wd}" height="${h}" style="--dc:${dc}"/>
+      <rect x="0" y="${top}" width="5" height="${h}" fill="${dc}"/>
+      <line x1="0" y1="${top+h}" x2="${Wd}" y2="${top+h}" stroke="${col}" stroke-opacity=".6" stroke-width="1.5"/>
+      <text class="flbl" x="18" y="${top+26}">${n===0?'EG':n+'. OG'} · ${esc(short(fl.name,17))}</text>
+      <text class="flbl2" x="18" y="${top+44}">${esc(short(fl.sub,26))}</text>
+      <text class="flbl2" x="18" y="${top+62}">${fl.people.length} 👤${fl.people.some(a=>a.busy)?' · ⚙ '+fl.people.reduce((s,a)=>s+(a.busy||0),0):''}</text>`);
+    fl.people.forEach((a,k)=>{
+      const cx=200+(k%PER)*PW+PW/2, base=top+((k/PER)|0)*100+96, busy=a.busy>0, me=HUB.agent===a.id;
+      out.push(`<g class="pers${me?' sel':''}" data-agent="${a.id}" data-dep="${fl.dep}"><title>${esc(a.name)} – ${esc(a.role||'')}${busy?' · arbeitet gerade ('+a.busy+')':' · bereit'}</title>
+        <ellipse cx="${cx}" cy="${base-1}" rx="26" ry="4" fill="#000" opacity=".35"/>
+        <rect x="${cx-24}" y="${base-28}" width="48" height="5" rx="2" fill="#334155"/><rect x="${cx-2}" y="${base-23}" width="4" height="22" fill="#1e293b"/>
+        <rect x="${cx-17}" y="${base-47}" width="22" height="15" rx="2" class="screen${busy?' on':''}" fill="${busy?'#22d3ee':'#1e293b'}" stroke="#475569"/>
+        <circle cx="${cx+15}" cy="${base-55}" r="6" fill="${me?'#fff':'none'}" stroke="#e2e8f0" stroke-width="2.2"/>
+        <path d="M${cx+15},${base-49} v14 M${cx+15},${base-43} l-9,5 M${cx+15},${base-43} l7,6 M${cx+15},${base-35} l-5,13 M${cx+15},${base-35} l5,13" stroke="#e2e8f0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        ${busy?`<circle cx="${cx+24}" cy="${base-62}" r="4" fill="#38bdf8" filter="url(#hubGlow)"/>`:''}
+        <text class="plbl" x="${cx}" y="${base+14}">${esc(short(a.name,12))}</text></g>`);
+    });
+    out.push('</g>'); y+=h;
+  });
+  out.push(`<rect x="-30" y="${-H-34}" width="${Wd+60}" height="20" rx="4" fill="${col}" opacity=".9"/><text class="sign" x="${Wd/2}" y="${-H-46}">${esc(f.icon||'')} ${esc(f.name)}</text>`);
+  out.push(`<rect x="-120" y="0" width="${Wd+240}" height="12" fill="#0f172a" stroke="#1e293b"/>`);
+  if(!f.agents.length) out.push(`<text class="flbl" x="${Wd/2}" y="-50" text-anchor="middle">Noch niemand eingestellt. „📐 Firma öffnen“ führt zum Bauplan.</text>`);
+  HUB.box={x0:-140, x1:Wd+140, y0:-H-90, y1:40}; HUB.mv=[];
+  return HUB_DEFS+out.join('');
+}
+function hubInsideCosmos(f){
+  const T=hubTeams(f), col=hubColor(f), st=Math.max(0,Math.min(4,f.stage|0)), sr=46+st*6, out=[], pl=[];
+  const busyRoot=T.roots.some(a=>a.busy), RND=rnd(f.id*17+1);
+  T.deps.forEach((d,i)=>{
+    const r=sr+110+i*92, ry=r*.42, a=RND()*.5+i*2.4, x=r*Math.cos(a), y=ry*Math.sin(a), pr=16+Math.min(14,Math.sqrt(d.members.length)*4), dc=hubDepColor(i), on=HUB.dep===i;
+    out.push(`<ellipse class="horb${on?' on':''}" rx="${r}" ry="${ry.toFixed(1)}" style="--hc:${dc}"/>`);
+    const moons=d.members.filter(a=>a.id!==d.lead.id).map((a,k,arr)=>{ const ma=k*2*Math.PI/Math.max(1,arr.length)+.4, mr=pr+16+(k%2)*8, mx=mr*Math.cos(ma), my=mr*.7*Math.sin(ma);
+      return `<g class="moon${HUB.agent===a.id?' sel':''}" data-agent="${a.id}" data-dep="${i}" transform="translate(${mx.toFixed(1)},${my.toFixed(1)})"><title>${esc(a.name)} – ${esc(a.role||'')}${a.busy?' · arbeitet':' · bereit'}</title>
+        <circle r="5.5" fill="${a.busy?'#7dd3fc':'#cbd5e1'}"/><circle r="5.5" fill="url(#hubPl)"/>${a.busy?'<circle r="8.5" class="hrun"/>':''}</g>`; }).join('');
+    pl.push(`<g class="planet${on?' sel':''}" data-dep="${i}" tabindex="0" role="button" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" aria-label="Abteilung ${esc(d.lead.name)}, ${d.members.length} Agenten">
+      <title>${esc(d.lead.name)} – ${esc(d.lead.role||'')} · ${d.members.length} Agenten${d.busy?' · ⚙ '+d.busy:''}\nAntippen: Abteilung öffnen</title>
+      <circle r="${pr*2.2}" fill="${dc}" opacity="${d.busy?.32:.14}" filter="url(#hubBlur)"/>
+      <circle r="${pr}" fill="${dc}"/><circle r="${pr}" fill="url(#hubPl)"/><circle r="${pr+5}" class="pring" style="--dc:${dc}"/>
+      ${d.busy?`<circle r="${pr+9}" class="hrun"/>`:''}
+      <text class="pico" y="5">${esc(initials(d.lead.name))}</text>${moons}
+      <text class="hlbl" y="${pr+44}">${esc(short(d.lead.name,20))}</text>
+      <text class="hlbl2" y="${pr+60}">${d.members.length} 👤${d.busy?' · ⚙ '+d.busy:''}</text></g>`);
+  });
+  const R=sr+110+Math.max(0,T.deps.length-1)*92+60;
+  const sun=`<g class="sunbody${HUB.dep===-1?' sel':''}" data-dep="-1" tabindex="0" role="button" aria-label="Leitung: ${esc(T.roots.map(r=>r.name).join(', '))}">
+    <title>Leitung: ${esc(T.roots.map(r=>r.name).join(', ')||'noch niemand')}\nAntippen: Leitung öffnen</title>
+    <radialGradient id="hubSunIn" cx="40%" cy="38%" r="65%"><stop offset="0" stop-color="#fffbe6"/><stop offset=".4" stop-color="${shade(col,.25)}"/><stop offset="1" stop-color="${shade(col,-.55)}"/></radialGradient>
+    <circle r="${sr*3.2}" fill="${col}" opacity="${busyRoot?.3:.18}" filter="url(#hubBlur)"/><circle r="${sr}" fill="url(#hubSunIn)" class="hsun${busyRoot?' on':''}"/>
+    <text class="hlbl" y="${sr+26}">${esc(short(T.roots.map(r=>r.name).join(' · ')||f.name,30))}</text></g>`;
+  HUB.box={x0:-R, x1:R, y0:-R*.42-90, y1:R*.42+110}; HUB.mv=[];
+  return HUB_DEFS+`<g>${hubStars({x0:-R-500,x1:R+500,y0:-R-300,y1:R+300}, f.id*7)}</g>`+out.join('')+sun+pl.join('')
+    +`<text class="sign" y="${-R*.42-50}">${esc(f.icon||'')} ${esc(f.name)}</text>`;
+}
+function hubDepsList(f){
+  const T=hubTeams(f), item=(dep,label,sub,dc)=>`<button class="hd${HUB.dep===dep?' on':''}" data-dep="${dep===null?'':dep}" title="${dep===null?'Übersicht über die ganze Firma':'Abteilung '+esc(label)+' öffnen'}"><span class="hdd" style="background:${dc}"></span>${esc(short(label,20))}<small>${sub}</small></button>`;
+  $('#hubdeps').innerHTML = item(null,'Übersicht','','#94a3b8') + item(-1,'Leitung',T.roots.length+' 👤',hubDepColor(-1))
+    + T.deps.map((d,i)=>item(i,d.lead.name,d.members.length+' 👤',hubDepColor(i))).join('');
+}
 function drawHub(){
   const svg=$('#hubsvg');
   if(VIEW!=='hub' || !HUB.d){ svg.innerHTML=''; HUB.box=null; HUB.sig=''; HUB.mv=[]; return; }
+  const f = HUB.inside && HUB.d.firms.find(x=>x.id===HUB.inside);
+  if(HUB.inside && !f){ HUB.inside=null; HUB.dep=null; }
   hubMark();
-  const sig=JSON.stringify([HUB.world,HUB.sel,HUB.d,motionOff()]);
+  const sig=JSON.stringify([HUB.world,HUB.sel,HUB.inside,HUB.dep,HUB.agent,HUB.d,motionOff()]);
   if(sig===HUB.sig && svg.firstChild) return; HUB.sig=sig;
+  $('#app').classList.toggle('hub-in', !!f);
   if(!HUB.d.firms.length){ svg.innerHTML=`<text class="hlbl" x="0" y="0">Noch keine Firma. Lege links bei „Projekte“ mit ＋ eine an.</text>`; HUB.box={x0:-320,x1:320,y0:-60,y1:60}; return; }
-  svg.innerHTML = HUB_DRAW[HUB.world]();
+  svg.innerHTML = f ? (HUB.world==='kosmos' ? hubInsideCosmos(f) : hubInsideCity(f)) : HUB_DRAW[HUB.world]();
   HUB.els=[...svg.querySelectorAll('.hpl')];
   hubPlace(hubMoving() ? performance.now()/1000 : 0);
   startHub();
-  if(HUB.sel) hubCardFill();
+  if(f){ hubDepsList(f); if(!HUB.cardOff) hubCardFill(); } else if(HUB.sel) hubCardFill();
 }
-/* Infofenster einer Firma: Stufe, Abteilungen, laufende Arbeit. „Firma öffnen“ führt in die klassische Ansicht. */
+/* Infofenster: Firma (Übersicht) oder eine Abteilung mit ihren Agenten, Status und laufenden Aufgaben. */
 function hideHubCard(){ HUB.sel=null; $('#hubcard').classList.remove('on'); $('#hubsvg').querySelectorAll('.firm.sel').forEach(e=>e.classList.remove('sel')); }
+function hubAgRow(f,a,sub){
+  return `<button class="hc-ag${HUB.agent===a.id?' me':''}" data-firm="${f.id}" data-agent="${a.id}" title="${esc(a.name)} in der klassischen Ansicht öffnen: Aufgaben, Rechte, Chat"><span class="dot ${a.busy?'run':''}"></span><span class="hc-n">${esc(a.name)}<small>${esc(a.role||'')}</small></span><small>${sub!==undefined?sub:(a.busy?'⚙ '+a.busy+' laufen':'bereit')}</small></button>`;
+}
 function hubCardFill(){
-  const f=HUB.d && HUB.d.firms.find(x=>x.id===HUB.sel); if(!f) return hideHubCard();
+  const pid=HUB.inside||HUB.sel, f=HUB.d && HUB.d.firms.find(x=>x.id===pid); if(!f) return hideHubCard();
   const T=hubTeams(f), name=id=>(HUB.d.firms.find(x=>x.id===id)||{}).name||'';
-  $('#hubcard').innerHTML=`<button class="icon-btn hc-x" id="hubCardX" title="Infofenster schließen">✕</button>
-    <h4>${esc(f.icon||'')} ${esc(f.name)}</h4>
-    <div class="hc-sub">${esc(f.stage_name||'')} · ${f.points||0} Punkte · ${f.agents.length} Agenten · ${f.busy?'⚙ '+f.busy+' Aufgaben laufen':'gerade ruhig'}</div>
-    ${f.goal?`<div class="hc-goal">${esc(short(f.goal,160))}</div>`:''}
-    <div class="hc-h">Leitung</div><div class="hc-list">${T.roots.map(a=>`<button class="hc-ag" data-firm="${f.id}" data-agent="${a.id}" title="Firma öffnen und ${esc(a.name)} zeigen"><span class="dot ${a.busy?'run':''}"></span>${esc(a.name)}<small>${esc(a.role||'')}</small></button>`).join('')||'<i>noch niemand</i>'}</div>
-    <div class="hc-h">Abteilungen</div><div class="hc-list">${T.deps.map(d=>`<button class="hc-ag" data-firm="${f.id}" data-agent="${d.lead.id}" title="Firma öffnen und die Leitung dieser Abteilung zeigen"><span class="dot ${d.busy?'run':''}"></span>${esc(d.lead.name)}<small>${d.members.length} 👤${d.busy?' · ⚙ '+d.busy:''}</small></button>`).join('')||'<i>keine</i>'}</div>
-    ${f.partners.length?`<div class="hc-h">Arbeitet zusammen mit</div><div class="hc-goal">${f.partners.map(p=>esc(name(p))).join(', ')}</div>`:''}
-    <div class="hc-btns"><button class="btn sm" id="hubOpen" title="Diese Firma in der klassischen Ansicht öffnen (Organigramm, Bauplan …) und dort verwalten">📐 Firma öffnen</button></div>`;
-  $('#hubcard').classList.add('on');
-  $('#hubCardX').onclick=hideHubCard;
+  const close=`<button class="icon-btn hc-x" id="hubCardX" title="Infofenster schließen">✕</button>`;
+  let h;
+  if(HUB.inside && HUB.dep!==null && HUB.dep!==undefined){
+    const d = HUB.dep===-1 ? {lead:null, members:T.roots} : T.deps[HUB.dep];
+    if(!d){ HUB.dep=null; return hubCardFill(); }
+    const busy=d.members.reduce((s,a)=>s+(a.busy||0),0);
+    h=`${close}<h4><span class="hdd" style="background:${hubDepColor(HUB.dep)}"></span> ${HUB.dep===-1?'Leitung':esc(d.lead.name)}</h4>
+      <div class="hc-sub">${esc(f.name)} · ${d.members.length} Agenten · ${busy?'⚙ '+busy+' Aufgaben laufen':'gerade ruhig'}</div>
+      ${d.lead&&d.lead.role?`<div class="hc-goal">Verantwortlich: ${esc(d.lead.role)}</div>`:''}
+      <div class="hc-h">Team</div><div class="hc-list">${d.members.map(a=>hubAgRow(f,a)).join('')||'<i>noch niemand</i>'}</div>`;
+  } else {
+    h=`${close}<h4>${esc(f.icon||'')} ${esc(f.name)}</h4>
+      <div class="hc-sub">${esc(f.stage_name||'')} · ${f.points||0} Punkte · ${f.agents.length} Agenten · ${f.busy?'⚙ '+f.busy+' Aufgaben laufen':'gerade ruhig'}</div>
+      ${f.goal?`<div class="hc-goal">${esc(short(f.goal,160))}</div>`:''}
+      <div class="hc-h">Leitung</div><div class="hc-list">${T.roots.map(a=>hubAgRow(f,a)).join('')||'<i>noch niemand</i>'}</div>
+      <div class="hc-h">Abteilungen</div><div class="hc-list">${T.deps.map((d,i)=>`<button class="hc-ag" data-dep="${i}" data-firm="${f.id}" title="Abteilung ${esc(d.lead.name)} öffnen"><span class="dot ${d.busy?'run':''}"></span><span class="hc-n">${esc(d.lead.name)}<small>${esc(d.lead.role||'')}</small></span><small>${d.members.length} 👤${d.busy?' · ⚙ '+d.busy:''}</small></button>`).join('')||'<i>keine</i>'}</div>
+      ${f.partners.length?`<div class="hc-h">Arbeitet zusammen mit</div><div class="hc-goal">${f.partners.map(p=>esc(name(p))).join(', ')}</div>`:''}`;
+  }
+  h+=`<div class="hc-btns">${HUB.inside?'':`<button class="btn sm" id="hubEnter" title="In die Firma hineinzoomen und die Abteilungen sehen">🔍 Hineingehen</button>`}<button class="btn sm" id="hubOpen" title="Diese Firma in der klassischen Ansicht öffnen (Organigramm, Bauplan …) und dort verwalten">📐 Firma öffnen</button></div>`;
+  $('#hubcard').innerHTML=h; $('#hubcard').classList.add('on');
+  $('#hubCardX').onclick=()=>{ if(HUB.inside){ HUB.cardOff=true; HUB.dep=null; HUB.agent=null; HUB.sig=''; drawHub(); $('#hubcard').classList.remove('on'); } else hideHubCard(); };
   $('#hubOpen').onclick=()=>hubOpenFirm(f.id);
+  if($('#hubEnter')) $('#hubEnter').onclick=()=>hubEnter(f.id);
 }
 async function hubOpenFirm(pid, agent){
-  hideHubCard();
+  hideHubCard(); HUB.inside=null; HUB.dep=null; HUB.agent=null; $('#app').classList.remove('hub-in');
   setView(HUB.back==='hub'?'world':HUB.back);
   await openProject(pid);
   if(agent) selectAgent(agent);
 }
 function hubSelect(pid){ HUB.sel=pid; $('#hubsvg').querySelectorAll('.firm').forEach(e=>e.classList.toggle('sel', +e.dataset.firm===pid)); hubCardFill(); }
+/* Hineinzoomen: kurz auf die Firma zufahren, dann die Innenansicht zeichnen und einpassen */
+function hubZoomTo(el, done){
+  if(!el || motionOff()) return done();
+  const r=el.getBoundingClientRect(), c=toWorld(r.left+r.width/2, r.top+r.height/2), vp=$('#vp').getBoundingClientRect();
+  const s0=V.s, x0=V.x, y0=V.y, s1=Math.min(3, s0*2.6), x1=vp.width/2-c.x*s1, y1=vp.height/2-c.y*s1, t0=performance.now();
+  $('#hubsvg').classList.add('zooming');
+  (function step(now){ const t=Math.min(1,(now-t0)/380), e=t*t*(3-2*t);
+    V.s=s0+(s1-s0)*e; V.x=x0+(x1-x0)*e; V.y=y0+(y1-y0)*e; applyView();
+    if(t<1) requestAnimationFrame(step); else { $('#hubsvg').classList.remove('zooming'); done(); } })(t0);
+}
+function hubEnter(pid, dep, agent){
+  const el=$('#hubsvg').querySelector(`.firm[data-firm="${pid}"]`);
+  hubZoomTo(HUB.inside?null:el, ()=>{ HUB.inside=pid; HUB.sel=null; HUB.dep=dep===undefined?null:dep; HUB.cardOff=innerWidth<=820 && HUB.dep===null; HUB.agent=agent||null; HUB.sig=''; drawHub(); fit(); });
+}
+function hubLeave(){ const pid=HUB.inside; HUB.inside=null; HUB.dep=null; HUB.agent=null; HUB.sig=''; $('#hubcard').classList.remove('on'); drawHub(); fit(); if(pid) hubSelect(pid); }
+function hubDep(dep, agent){ HUB.cardOff=false; HUB.dep=dep; HUB.agent=agent||null; HUB.sig=''; drawHub(); }
 $('#hubsvg').addEventListener('click', e=>{
   if(MAP.down && Math.hypot(e.clientX-MAP.down.x, e.clientY-MAP.down.y)>6) return;
-  const b=e.target.closest('.firm'); if(b) hubSelect(+b.dataset.firm); else hideHubCard();
+  if(HUB.inside){
+    const a=e.target.closest('[data-agent]'); if(a) return hubDep(+a.dataset.dep, +a.dataset.agent);
+    const d=e.target.closest('[data-dep]'); if(d) return hubDep(+d.dataset.dep);
+    return;
+  }
+  const b=e.target.closest('.firm'); if(b) hubEnter(+b.dataset.firm); else hideHubCard();
 });
-$('#hubsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const b=e.target.closest('.firm'); if(b){ e.preventDefault(); hubSelect(+b.dataset.firm); } });
-$('#hubcard').addEventListener('click', e=>{ const a=e.target.closest('.hc-ag'); if(a) hubOpenFirm(+a.dataset.firm, +a.dataset.agent); });
+$('#hubsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return;
+  const d=HUB.inside && e.target.closest('[data-dep]'), b=e.target.closest('.firm');
+  if(d){ e.preventDefault(); hubDep(+d.dataset.dep); } else if(b){ e.preventDefault(); hubEnter(+b.dataset.firm); } });
+$('#hubcard').addEventListener('click', e=>{ const a=e.target.closest('.hc-ag'); if(!a) return;
+  if(a.dataset.dep!==undefined && !a.dataset.agent) return HUB.inside ? hubDep(+a.dataset.dep) : hubEnter(+a.dataset.firm, +a.dataset.dep);
+  hubOpenFirm(+a.dataset.firm, +a.dataset.agent); });
+$('#hubdeps').addEventListener('click', e=>{ const b=e.target.closest('.hd'); if(b) hubDep(b.dataset.dep===''?null:+b.dataset.dep); });
+$('#hubOut').onclick=hubLeave;
 document.querySelectorAll('[data-hubworld]').forEach(b=>b.onclick=()=>hubWorld(b.dataset.hubworld));
-$('#hubClassic').onclick=async ()=>{ hideHubCard(); setView(HUB.back==='hub'?'world':HUB.back); if(!S.pid && S.projects.length) await openProject(S.projects[0].id); };
+$('#hubClassic').onclick=async ()=>{ hideHubCard(); HUB.inside=null; HUB.dep=null; $('#app').classList.remove('hub-in'); setView(HUB.back==='hub'?'world':HUB.back); if(!S.pid && S.projects.length) await openProject(S.projects[0].id); };
 $('#btnHub').onclick=()=>setView('hub');
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && VIEW==='hub' && HUB.sel && !$('#ov').classList.contains('on')) hideHubCard(); });
+document.addEventListener('keydown', e=>{ if(e.key!=='Escape' || VIEW!=='hub' || $('#ov').classList.contains('on')) return;
+  if(!$('#hubResults').hidden) return hubSearchClose();
+  if(HUB.inside) hubLeave(); else if(HUB.sel) hideHubCard(); });
+/* Suche nach Firmen und Agenten (über alle Firmen) */
+function hubSearchClose(){ $('#hubResults').hidden=true; }
+$('#hubSearch').addEventListener('input', e=>{
+  const q=e.target.value.trim().toLowerCase(), box=$('#hubResults');
+  if(!q || !HUB.d){ box.hidden=true; return; }
+  const hits=[];
+  HUB.d.firms.forEach(f=>{
+    if(f.name.toLowerCase().includes(q)) hits.push({f, label:f.name, sub:'Firma · '+(f.stage_name||'')});
+    const T=hubTeams(f);
+    f.agents.forEach(a=>{ if((a.name+' '+(a.role||'')).toLowerCase().includes(q)){
+      const dep=T.roots.includes(a)?-1:T.deps.findIndex(d=>d.members.includes(a));
+      hits.push({f, a, dep, label:a.name, sub:(a.role?a.role+' · ':'')+f.name}); } });
+  });
+  box.innerHTML = hits.slice(0,10).map((h,i)=>`<button class="hr" data-i="${i}" title="${h.a?'Agent in seiner Abteilung zeigen':'In die Firma hineinzoomen'}">${h.a?'👤':'🏢'} ${esc(h.label)}<small>${esc(h.sub)}</small></button>`).join('') || '<div class="hr-none">Nichts gefunden</div>';
+  box._hits=hits; box.hidden=false;
+});
+$('#hubSearch').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const b=$('#hubResults').querySelector('.hr'); if(b) b.click(); } });
+$('#hubResults').addEventListener('click', e=>{ const b=e.target.closest('.hr'); if(!b) return; const h=$('#hubResults')._hits[+b.dataset.i]; hubSearchClose(); $('#hubSearch').value='';
+  HUB.inside=null; HUB.sig=''; drawHub(); hubEnter(h.f.id, h.a?h.dep:null, h.a?h.a.id:null); });
+document.addEventListener('click', e=>{ if(!e.target.closest('#hubFind')) hubSearchClose(); });
 
 /* ---------- Atom: Kern = oberste Leitung, je Abteilung eine Elektronenbahn, Teammitglieder kreisen mit ---------- */
 const ATOM = {box:null, sig:'', mv:[]};
