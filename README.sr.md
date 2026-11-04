@@ -394,6 +394,9 @@ ffmpeg radi sporo (jedan minut 720p videa može trajati nekoliko minuta), vremen
 Čim je **zadatak na vrhu** (onaj koji ste dali agentu, obično CEO-u) gotov, neuspešan ili
 blokiran, pošta je spremna za vas: u bočnoj traci „📬 Post“ i, ako je podešeno, poruka na Telegramu sa
 vrstom, zadatkom, brojevima tima i rezultatom. Lanac prava i izveštaja ispod radi kao i ranije.
+U pošti možete označiti poruke (pojedinačno ili „Alle auswählen“) i ukloniti ih sa „🗑 Ausgewählte löschen“;
+„🧹 Postkorb leeren“ nakon potvrde briše sve. Briše se samo pošta, zadaci, datoteke i istorija ostaju.
+Bočna traka je podijeljena u kategorije koje se otvaraju i zatvaraju (Tagesgeschäft, Team & KI, Dateien & Verbindungen, Auswertung).
 
 **Podešavanje Telegrama (oko 2 minuta):**
 1. U Telegramu `@BotFather` → `/newbot` → kopirajte token → `.env`: `TELEGRAM_BOT_TOKEN=…`

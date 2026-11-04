@@ -395,6 +395,9 @@ rechnet ffmpeg langsam (eine Minute 720p-Video kann mehrere Minuten dauern), Zei
 Sobald ein **oberster Auftrag** (den du einem Agenten, meist dem CEO, gegeben hast) fertig, fehlgeschlagen oder
 blockiert ist, liegt Post für dich bereit: Sidebar „📬 Post“ und, wenn eingerichtet, eine Telegram-Nachricht mit
 Art, Auftrag, Team-Kennzahlen und dem Ergebnis. Die Rechte-/Berichtskette darunter läuft wie gehabt.
+In der Post lassen sich Nachrichten anhaken (einzeln oder „Alle auswählen“) und mit „🗑 Ausgewählte löschen“ entfernen;
+„🧹 Postkorb leeren“ löscht nach einer Rückfrage alle. Gelöscht wird nur die Post, Aufgaben, Dateien und Verlauf bleiben.
+Die Seitenleiste ist in aufklappbare Kategorien geordnet (Tagesgeschäft, Team & KI, Dateien & Verbindungen, Auswertung).
 
 **Telegram einrichten (ca. 2 Minuten):**
 1. In Telegram `@BotFather` → `/newbot` → Token kopieren → `.env`: `TELEGRAM_BOT_TOKEN=…`

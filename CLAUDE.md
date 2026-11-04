@@ -162,6 +162,10 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   (ⓘ `#ovhelp` in `openOv`). `TIPS` (Selektor -> Text oder Funktion) setzt per `applyTips` + MutationObserver `title` auf jeden Knopf/Link ohne
   eigenen Hinweis; Hilfe-Modus (`data-helpmode`, localStorage `hs-helpmode`) faengt den ersten Klick ab und zeigt `#tipbox`. Neue Knoepfe brauchen
   `title` oder einen TIPS-Eintrag, sonst schlaegt `tests/test_ui_hilfe.py` fehl. Neue Funktionen auch in `HELP` beschreiben.
+- Postkorb: `inbox_delete(ids|None)` setzt `tasks.inbox='deleted'` (nur oberste Aufgaben mit new/closed, Audit `inbox_deleted`, Aufgabe bleibt).
+  API `POST /api/inbox/delete` (`ids`), `POST /api/inbox/clear` nur mit `confirm: true` (UI fragt per `confirm()`). UI: Haken `data-sel`, `#in_all`/`#in_del`/`#in_clear`.
+- Seitenleiste `#sidemenu`: Kategorien als `<details class="side-grp" data-grp=…>` (arbeit offen, team/daten/auswertung zu), Zustand localStorage `hs-side`,
+  `sideDots()` (aus `refresh`) zeigt einen Punkt an zugeklappten Kategorien mit sichtbarem Zaehler. Neue Menueknoepfe in eine Kategorie einsortieren.
 
 ## Verbindungen (Webhooks)
 - Tabelle `connections` (Besitzer legt URL/Methode/Kopfzeilen fest, `${ENV}` in Kopfzeilen aus .env, `confirm`, `on_post`). Recht `connect`

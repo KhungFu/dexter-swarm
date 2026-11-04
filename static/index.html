@@ -36,10 +36,21 @@ button,input,select,textarea{font:inherit;color:inherit}
 .side-btn{width:100%;text-align:left;background:none;border:0;padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:center;color:var(--text)}
 .side-btn:hover{background:var(--panel2)}
 .side-btn.active{background:var(--chip)}
+.side-grp{margin:2px 0}
+.side-grp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:600;user-select:none}
+.side-grp>summary::-webkit-details-marker{display:none}
+.side-grp>summary::after{content:'▸';margin-left:auto;transition:transform .15s}
+.side-grp[open]>summary::after{transform:rotate(90deg)}
+.side-grp>summary:hover{background:var(--panel2);color:var(--text)}
+.side-grp>.side-btn{padding-left:18px}
+.grp-dot{display:none;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.side-grp:not([open]).has-badge .grp-dot{display:inline-block}
+:root[data-motion="off"] .side-grp>summary::after{transition:none}
 .badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:10px;padding:0 7px;font-size:11px}
 .icon-btn{background:none;border:0;color:var(--mute);cursor:pointer;font-size:16px;padding:0 4px}
 .icon-btn:hover{color:var(--text)}
-#projlist{overflow:auto;flex:1}
+#projlist{overflow:auto;flex:1;min-height:120px}
+#sidemenu{overflow:auto;flex:0 1 auto;min-height:0}
 .pdot{width:9px;height:9px;border-radius:50%;flex:none}
 /* Hauptbereich */
 #main{display:flex;flex-direction:column;min-width:0;min-height:0}
@@ -340,6 +351,11 @@ a.btn.pri{color:#fff}
 button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #map .body:focus-visible{outline:none;filter:drop-shadow(0 0 3px var(--accent)) drop-shadow(0 0 6px var(--accent))}
 
+/* Postkorb */
+.inbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.inbar label{display:flex;gap:6px;align-items:center;cursor:pointer;margin-right:auto;font-size:13px}
+.insel{display:inline-flex;align-items:center;margin-right:6px;cursor:pointer;vertical-align:middle}
+.insel input,.inbar input{width:18px;height:18px;margin:0}
 /* Anleitung + Hinweise */
 .help-search{width:100%;margin-bottom:10px}
 .help-sec{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--panel2)}
@@ -361,22 +377,34 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
 <div id="app">
   <aside id="side">
     <div class="brand"><div class="logo">H</div><b>Hyperstead</b></div>
-    <div class="side-sec">
+    <div class="side-sec" id="sidemenu">
       <button class="side-btn" id="btnHelp" title="Anleitung: wie Hyperstead funktioniert, Kapitel mit Suche, dazu der Hilfe-Modus fürs Handy">📖 Anleitung</button>
-      <button class="side-btn" id="btnOps" title="Was gerade läuft, wartet, schiefging und was es heute kostet">🛰 Betriebszentrale</button>
-      <button class="side-btn" id="btnInbox">📬 Post <span class="badge" id="inbadge" style="display:none">0</span></button>
-      <button class="side-btn" id="btnApprovals">✋ Freigaben <span class="badge" id="apbadge" style="display:none">0</span></button>
-      <button class="side-btn" id="btnGroupAI" title="Mehrere Agenten auswählen und gemeinsam auf eine KI / ein Modell umstellen">🔀 KI für Gruppe</button>
-      <button class="side-btn" id="btnModels" title="Agenten, deren KI-Modell nicht mehr existiert, auf ein anderes umstellen">⚠ Modelle <span class="badge" id="mdbadge" style="display:none">0</span></button>
-      <button class="side-btn" id="btnSched" title="Öffnungszeiten der Firma und tägliche Aufgaben je Mitarbeiter">🕘 Zeitplan <span class="badge" id="schbadge" style="display:none">zu</span></button>
-      <button class="side-btn" id="btnFiles">📁 Dateien dieses Projekts</button>
-      <button class="side-btn" id="btnGoals" title="Ziele und Unterziele des Projekts mit Fortschritt">🎯 Ziele</button>
-      <button class="side-btn" id="btnUsage" title="Aufrufe, Tokens und geschätzte Kosten je Projekt, Agent und Modell">📊 Nutzung &amp; Kosten</button>
-      <button class="side-btn" id="btnConn" title="Webhooks: Agenten rufen deine Dienste auf, Aufträge kommen von außen">🔌 Verbindungen</button>
-      <button class="side-btn" id="btnCloud" title="GitHub, Google Drive, OneDrive und Telegram: wohin Dateien hochgeladen werden">☁️ Cloud</button>
-      <button class="side-btn" id="btnKnow" title="Was alle Agenten dieses Projekts immer wissen sollen">🧠 Firmenwissen</button>
-      <button class="side-btn" id="btnAudit">📜 Verlauf (Audit-Log)</button>
-      <button class="side-btn" id="btnLogout" style="display:none" onclick="location.href='/logout'">🚪 Abmelden</button>
+      <details class="side-grp" data-grp="arbeit" open>
+        <summary title="Post, Freigaben, laufende Arbeit, Ziele und Zeitplan (antippen zum Auf- und Zuklappen)">📬 Tagesgeschäft<span class="grp-dot" aria-hidden="true"></span></summary>
+        <button class="side-btn" id="btnInbox">📬 Post <span class="badge" id="inbadge" style="display:none">0</span></button>
+        <button class="side-btn" id="btnApprovals">✋ Freigaben <span class="badge" id="apbadge" style="display:none">0</span></button>
+        <button class="side-btn" id="btnOps" title="Was gerade läuft, wartet, schiefging und was es heute kostet">🛰 Betriebszentrale</button>
+        <button class="side-btn" id="btnGoals" title="Ziele und Unterziele des Projekts mit Fortschritt">🎯 Ziele</button>
+        <button class="side-btn" id="btnSched" title="Öffnungszeiten der Firma und tägliche Aufgaben je Mitarbeiter">🕘 Zeitplan <span class="badge" id="schbadge" style="display:none">zu</span></button>
+      </details>
+      <details class="side-grp" data-grp="team">
+        <summary title="KI-Modelle der Agenten und Firmenwissen (antippen zum Auf- und Zuklappen)">🤖 Team &amp; KI<span class="grp-dot" aria-hidden="true"></span></summary>
+        <button class="side-btn" id="btnGroupAI" title="Mehrere Agenten auswählen und gemeinsam auf eine KI / ein Modell umstellen">🔀 KI für Gruppe</button>
+        <button class="side-btn" id="btnModels" title="Agenten, deren KI-Modell nicht mehr existiert, auf ein anderes umstellen">⚠ Modelle <span class="badge" id="mdbadge" style="display:none">0</span></button>
+        <button class="side-btn" id="btnKnow" title="Was alle Agenten dieses Projekts immer wissen sollen">🧠 Firmenwissen</button>
+      </details>
+      <details class="side-grp" data-grp="daten">
+        <summary title="Projektdateien, Cloud-Upload und Webhooks (antippen zum Auf- und Zuklappen)">📁 Dateien &amp; Verbindungen<span class="grp-dot" aria-hidden="true"></span></summary>
+        <button class="side-btn" id="btnFiles">📁 Dateien dieses Projekts</button>
+        <button class="side-btn" id="btnCloud" title="GitHub, Google Drive, OneDrive und Telegram: wohin Dateien hochgeladen werden">☁️ Cloud</button>
+        <button class="side-btn" id="btnConn" title="Webhooks: Agenten rufen deine Dienste auf, Aufträge kommen von außen">🔌 Verbindungen</button>
+      </details>
+      <details class="side-grp" data-grp="auswertung">
+        <summary title="Kosten und Verlauf (antippen zum Auf- und Zuklappen)">📊 Auswertung<span class="grp-dot" aria-hidden="true"></span></summary>
+        <button class="side-btn" id="btnUsage" title="Aufrufe, Tokens und geschätzte Kosten je Projekt, Agent und Modell">📊 Nutzung &amp; Kosten</button>
+        <button class="side-btn" id="btnAudit">📜 Verlauf (Audit-Log)</button>
+      </details>
+        <button class="side-btn" id="btnLogout" style="display:none" onclick="location.href='/logout'">🚪 Abmelden</button>
     </div>
     <div class="side-h"><span>Projekte</span><span><button class="icon-btn" id="btnTplProj" title="Firma aus Vorlage (Webagentur, Buchhaltung, Handel …)">🏢</button><button class="icon-btn" id="btnNewProj" title="Neues Projekt">＋</button></span></div>
     <div id="projlist" class="side-sec"></div>
@@ -516,6 +544,7 @@ async function refresh(force){
   const nm = S.graph.model_problems||0;
   const mb = $('#mdbadge'); mb.textContent = nm; mb.style.display = nm? '' : 'none';
   $('#schbadge').style.display = S.graph.closed ? '' : 'none';
+  sideDots();
   render(); renderGrowth(); loadGrowth(force);
   if(S.sel && S.tab==='tasks') loadTasks();
 }
@@ -586,6 +615,18 @@ $('#edges').addEventListener('click', async e=>{
 /* ---------- Menü auf dem Handy ---------- */
 $('#btnMenu').onclick=()=>$('#app').classList.toggle('side-open');
 $('#sideBack').onclick=()=>$('#app').classList.remove('side-open');
+/* Seitenmenü: Kategorien auf-/zuklappen, Zustand je Gerät merken, Punkt an zugeklappten Kategorien mit offenen Zählern */
+(function(){
+  let st={}; try{ st=JSON.parse(localStorage.getItem('hs-side')||'{}')||{}; }catch(e){}
+  document.querySelectorAll('.side-grp').forEach(d=>{
+    const k=d.dataset.grp; if(k in st) d.open=!!st[k];
+    d.addEventListener('toggle',()=>{ st[k]=d.open; try{ localStorage.setItem('hs-side',JSON.stringify(st)); }catch(e){} });
+  });
+})();
+function sideDots(){
+  document.querySelectorAll('.side-grp').forEach(d=>d.classList.toggle('has-badge',
+    [...d.querySelectorAll('.badge')].some(b=>b.style.display!=='none')));
+}
 $('#side').addEventListener('click',e=>{ if(e.target.closest('.side-btn')) $('#app').classList.remove('side-open'); });
 
 /* ---------- Dateien hochladen (landen in input/) ---------- */
@@ -1164,9 +1205,15 @@ $('#btnInbox').onclick=()=>{
         <textarea id="no_d" style="min-height:60px" placeholder="Beschreibung (optional)"></textarea>
         <div class="row"><button class="btn pri sm" id="no_go">Auftrag erteilen</button></div>
       </div>` : '';
-    body.innerHTML = tg + form + (rows.length?rows.map(r=>`
+    const bar = rows.length ? `
+      <div class="inbar">
+        <label title="Alle Nachrichten im Postkorb auswählen oder die Auswahl aufheben"><input type="checkbox" id="in_all"> Alle auswählen</label>
+        <button class="btn sm" id="in_del" disabled>🗑 Ausgewählte löschen</button>
+        <button class="btn danger sm" id="in_clear">🧹 Postkorb leeren</button>
+      </div>` : '';
+    body.innerHTML = tg + form + bar + (rows.length?rows.map(r=>`
       <div class="task" style="padding:10px;${r.inbox==='closed'?'opacity:.55':''}">
-        <div><b>${esc(r.agent_name||'?')}</b> <span style="color:var(--mute)">(${esc(r.project_name||'')}) · #${r.id}</span></div>
+        <div><label class="insel" title="Diese Nachricht auswählen (zum Löschen)"><input type="checkbox" data-sel="${r.id}" aria-label="Nachricht #${r.id} auswählen"></label><b>${esc(r.agent_name||'?')}</b> <span style="color:var(--mute)">(${esc(r.project_name||'')}) · #${r.id}</span></div>
         <div>${r.inbox==='closed'?'☑ erledigt':(KIND[r.status]||r.status)} – ${esc(r.title)}${r.team?` <span style="color:var(--mute);font-size:12px">· Team: ${r.team} Aufgaben, ${r.revisions} Rückgaben</span>`:''}</div>
         <details><summary style="cursor:pointer;color:var(--mute);font-size:12px">Ergebnis anzeigen</summary>${resHtml(r.result||'(leer)')}</details>
         <div class="row">
@@ -1175,6 +1222,16 @@ $('#btnInbox').onclick=()=>{
         </div>
       </div>`).join(''):'<div style="color:var(--mute)">Keine Post. Wenn ein Chef einen Auftrag abschließt, erscheint er hier.</div>');
     body.querySelectorAll('[data-ok]').forEach(b=>b.onclick=async()=>{ await api('/inbox/'+b.dataset.ok+'/close','POST',{}); await load(); refresh(true); });
+    const sels=[...body.querySelectorAll('[data-sel]')], all=$('#in_all'), del=$('#in_del'), clr=$('#in_clear');
+    const picked=()=>sels.filter(c=>c.checked).map(c=>+c.dataset.sel);
+    const upd=()=>{ const n=picked().length; if(!del) return; del.disabled=!n; del.textContent='🗑 Ausgewählte löschen'+(n?` (${n})`:'');
+      all.checked=n&&n===sels.length; all.indeterminate=n>0&&n<sels.length; };
+    sels.forEach(c=>c.onchange=upd);
+    if(all) all.onchange=()=>{ sels.forEach(c=>c.checked=all.checked); upd(); };
+    if(del) del.onclick=async()=>{ const ids=picked(); if(!ids.length) return;
+      const r=await api('/inbox/delete','POST',{ids}); toast(`${r.deleted} Nachricht${r.deleted===1?'':'en'} gelöscht`); await load(); refresh(true); };
+    if(clr) clr.onclick=async()=>{ if(!confirm(`Wirklich den ganzen Postkorb leeren?\n\nAlle ${rows.length>=40?'(auch ältere, nicht angezeigte) ':''}Nachrichten verschwinden aus der Post. Die Aufgaben, ihre Dateien und der Verlauf bleiben erhalten.`)) return;
+      const r=await api('/inbox/clear','POST',{confirm:true}); toast(`Postkorb geleert (${r.deleted})`); await load(); refresh(true); };
     body.querySelectorAll('[data-rw]').forEach(b=>b.onclick=async()=>{ const fb=prompt('Was soll geändert werden?'); if(!fb||!fb.trim()) return; await api('/inbox/'+b.dataset.rw+'/rework','POST',{feedback:fb}); await load(); refresh(true); });
     const go=$('#no_go'); if(go) go.onclick=async()=>{ const t=$('#no_t').value.trim(); if(!t){ toast('Titel fehlt'); return; }
       await api('/agents/'+$('#no_ag').value+'/tasks','POST',{title:t,description:$('#no_d').value,run:true}); $('#no_t').value=''; $('#no_d').value=''; toast('Auftrag erteilt'); refresh(true); };
@@ -1515,7 +1572,7 @@ const HELP=[
 <li><b>Agent anlegen:</b> In der Bauplan-Ansicht (📐) oben einen Baustein wie „👑 CEO“ oder „</> Entwickler“ antippen oder auf die Fläche ziehen. Jeder Agent braucht eine KI (Anbieter + Modell) in den Einstellungen.</li>
 <li><b>Auftrag geben:</b> Agent antippen → Reiter „Aufgaben“ → Auftrag beschreiben → „Aufgabe zuweisen“. Der Chef verteilt die Arbeit an sein Team, prüft die Berichte und liefert das Ergebnis in die 📬 Post.</li>
 <li><b>Ergebnis abholen:</b> 📬 Post öffnen. „✅ Erledigt“ schließt den Auftrag, „🔁 Überarbeiten…“ schickt ihn mit deinem Hinweis zurück.</li></ul>
-<p>Auf dem Handy öffnet ☰ oben links die Seitenleiste.</p>`},
+<p>Auf dem Handy öffnet ☰ oben links die Seitenleiste. Die Seitenleiste ist in Kategorien geordnet (📬 Tagesgeschäft, 🤖 Team &amp; KI, 📁 Dateien &amp; Verbindungen, 📊 Auswertung): Antippen klappt eine Kategorie auf oder zu, das Gerät merkt sich das. Ein farbiger Punkt an einer zugeklappten Kategorie heißt: darin wartet etwas (z. B. neue Post).</p>`},
  {id:'welt',t:'🌌 Weltall und Wachstum',h:`<p>Jedes Projekt ist ein kleines Universum, das mit seinen Erfolgen wächst: vom ☄️ Asteroiden über 🪐 Planet, ☀️ Sonnensystem und ✨ Sternhaufen bis zur 🌌 Galaxie. Oben in der Leiste siehst du Stufe, Sternenstaub (Punkte) und den Fortschritt bis zur nächsten Stufe.</p>
 <ul><li><b>Sonnensystem:</b> Die <b>Sonne</b> ist die oberste Leitung (z. B. der CEO). Die <b>Planeten</b> kreisen um sie: das sind die Abteilungen bzw. Vorarbeiter. Um jeden Planeten kreisen seine <b>Monde</b>, die Mitarbeiter. Wer noch tiefer steht, ist ein kleiner Mond am Mond. Das Weltall ändert nur das Aussehen, nie die Arbeit der Agenten.</li>
 <li><b>Punkte:</b> Lieferung beim ersten Mal abgenommen +10, nach Überarbeitung +5, Auftrag in der Post erledigt +20, fehlgeschlagen −3, Nacharbeit angefordert −5.</li>
@@ -1535,6 +1592,7 @@ const HELP=[
 <li><b>Gedächtnis:</b> Jeder Agent merkt sich Wichtiges aus seiner Arbeit selbst (unten in den Einstellungen sichtbar und änderbar).</li></ul>`},
  {id:'auftraege',t:'📬 Aufträge, Post und Freigaben',h:`<ul><li><b>Aufgaben:</b> Im Reiter „Aufgaben“ eines Agenten siehst du alle Aufträge mit Status (Wartet, Läuft, Wartet auf Team, Freigabe nötig, Fertig, Fehler). „▶ Starten/Nochmal“ startet neu, „Löschen“ entfernt die Aufgabe samt Teilaufgaben.</li>
 <li><b>📬 Post:</b> Fertige Ergebnisse der obersten Aufträge. Von hier kannst du auch einen neuen Auftrag an den Chef schicken.</li>
+<li><b>Post löschen:</b> Nachrichten anhaken (oder „Alle auswählen“) und „🗑 Ausgewählte löschen“ tippen. „🧹 Postkorb leeren“ entfernt nach einer Rückfrage alle Nachrichten. Gelöscht wird nur die Post: Aufgaben, Dateien und Verlauf bleiben.</li>
 <li><b>✋ Freigaben:</b> Hier warten Dinge auf dein OK: Befehle, Veröffentlichen, Cloud-Uploads, Verbindungen, Werkstatt-Installationen und (wenn eingeschaltet) Pläne und Teamänderungen des Chefs. Ablehnen beendet die Aufgabe.</li>
 <li><b>🎯 Ziele:</b> Ziele und Unterziele des Projekts. Aufgaben können einem Ziel zugeordnet werden, der Fortschritt rechnet sich daraus.</li>
 <li><b>💬 Chat:</b> direkt mit einem Agenten reden, Dateien anhängen (📎). Aus dem Chat lässt sich ein Auftrag machen.</li></ul>`},
@@ -1598,6 +1656,8 @@ $('#btnHelp').onclick=()=>showHelp('start');
 const ovIs=w=>($('#ovtitle').textContent||'').includes(w);
 const TIPS={
  '#btnInbox':'Post: fertige Ergebnisse deiner Aufträge abholen, abnehmen oder zur Überarbeitung zurückgeben',
+ '#in_del':'Löscht nur die angehakten Nachrichten aus der Post. Die Aufgaben und ihre Dateien bleiben',
+ '#in_clear':'Leert den ganzen Postkorb (mit Rückfrage). Die Aufgaben und ihre Dateien bleiben',
  '#btnApprovals':'Freigaben: Dinge, die auf dein OK warten (Befehle, Veröffentlichen, Uploads, Pläne des Chefs)',
  '#btnFiles':'Alle Dateien dieses Projekts ansehen, öffnen, hochladen oder als ZIP herunterladen',
  '#btnAudit':'Verlauf: jedes Ereignis im Projekt mit Uhrzeit (wird nie gelöscht)',
