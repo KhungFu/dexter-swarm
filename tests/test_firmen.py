@@ -1,4 +1,5 @@
 """Uebersicht aller Firmen (Stadt/Weltall/Molekuel) und Partnerschaften zwischen Firmen."""
+import os
 import app as A
 from conftest import make_agent, make_project, make_task
 
@@ -74,7 +75,7 @@ def test_oberflaeche_hineinzoomen_und_suche():
         assert fn in html
     assert 'id="hubOut"' in html and 'id="hubSearch"' in html and 'aria-label="Firma oder Agent suchen"' in html
     assert 'id="hubdeps"' in html
-    hub = html[html.index("function hubDepsList("):html.index("/* ---------- Atom: Kern")]
+    hub = html[html.index("function hubDepsList("):html.index("/* ---------- Atom: Molekül")]
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", hub))
     assert "Abteilung öffnen" in html and "Hineingehen" in html
 
@@ -155,3 +156,16 @@ const L=hubLevels(f); console.log(JSON.stringify([L.max,L.lvl[6],L.dep[6],L.dep[
     p.write_text(js, encoding="utf-8")
     out = subprocess.run(["node", str(p)], capture_output=True, text=True, encoding="utf-8").stdout.strip()
     assert out == "[4,4,0,1,0,-1]"
+
+
+def test_stadt_lichter_und_atom_molekuel():
+    """Wunsch ABI 2026-11-04: Lichter nur bei arbeitenden Firmen, Atom als Molekül-Netzwerk mit Organigramm-Stäben."""
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    bld = html[html.index("function hubBuilding("):html.index("function hubCity(")]
+    assert "busy?" in bld and ":.07" in bld
+    box = html[html.index("function isoBox("):html.index("function hubBuilding(")]
+    assert 'style="fill:' in box  # CSS .win überdeckt sonst das fill-Attribut
+    atom = html[html.index("const ATOM"):html.index("/* ---------- Start")]
+    assert "function atomLayout(" in atom and 'class="abond"' in atom
+    assert "aorbit\" rx" not in atom.split("function atomSky(")[0]  # keine Elektronenbahnen mehr
+    assert "requestAnimationFrame" not in atom
