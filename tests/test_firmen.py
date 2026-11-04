@@ -95,17 +95,20 @@ def test_oberflaeche_zusammenarbeit():
 
 
 def test_projekte_menue_neu_und_ansichten():
-    """Seitenleiste wie früher (Wunsch ABI 2026-11-04): Kopfzeile Projekte mit 🏙 und ＋, ＋ öffnet ein Fenster für leer oder Vorlage."""
+    """Wunsch ABI 2026-11-04 (Bilder): großer Knopf „＋ Neues Projekt“, kein 🏙 links, Grafik-Menü in Klassik und Modern."""
     import re
     html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
     side = html[html.index('<div class="side-h"><span>Projekte'):html.index('id="projlist"')]
-    assert 'id="btnNewProj"' in side and 'id="btnHub"' in side and "＋</button>" in side
-    assert "pviews" not in html and "＋ Neues Projekt" not in side and 'id="btnTplProj"' not in html
+    assert 'id="btnNewProj"' in side and "＋ Neues Projekt</button>" in side and 'id="btnHub"' not in html
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", side))
     dlg = html[html.index("async function newProjectDialog("):html.index("toast('Firma gegründet.')")]
     assert "'/projects','POST'" in dlg and "/templates" in dlg and "/projects/from_template" in dlg
     menu = html[html.index('id="gViewMenu"'):html.index('id="gTheme"')]
-    assert "vgrp" not in menu and menu.index('data-view="world"') < menu.index('data-view="plan"') < menu.index('data-view="hub"')
+    k, m = menu.index(">Klassik<"), menu.index(">Modern<")
+    for org in ("baum", "gliederung", "kreis"):
+        assert k < menu.index(f'data-org="{org}"') < m
+    for v in ('data-view="world"', 'data-view="atom"', 'data-hubworld="stadt"', 'data-hubworld="kosmos"', 'data-hubworld="molekuel"'):
+        assert menu.index(v) > m
 
 
 def test_welten_grafik_nach_referenzbild():

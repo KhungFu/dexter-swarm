@@ -184,7 +184,7 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   `busy` (running+queued), `partners`; dazu `links`. Partnerschaften setzt nur der Besitzer: Tabelle `firm_links` (a<b, UNIQUE),
   `POST /api/firms/links` (a, b, note; doppelt -> `exists`), `DELETE /api/firms/links/<id>`, Audit `firm_link`/`firm_unlink`, Projekt loeschen
   entfernt seine Links. Agenten sehen davon nichts. Tests `tests/test_firmen.py`.
-- Seitenleiste wie frueher (Wunsch ABI 2026-11-04 abends): Kopfzeile „Projekte“ mit 🏙 `#btnHub` und ＋ `#btnNewProj` (-> `newProjectDialog`: leer oder Vorlage), Grafik-Menue flache Liste mit „🏙 Alle Firmen (modern)“ am Ende. Keine Ansichtsknoepfe in der Seitenleiste.
+- Seitenleiste (Wunsch ABI 2026-11-04, mit Bildern): unter „Projekte“ grosser Knopf „＋ Neues Projekt“ `#btnNewProj` (-> `newProjectDialog`: leer oder Vorlage), KEIN 🏙 und keine Ansichtsknoepfe. Grafik-Menue `#gViewMenu` in zwei Gruppen `.vgrp`: Klassik (Organigramm baum/gliederung/kreis, Bauplan) und Modern (Weltall, Atom = Molekuel dieses Projekts, hub stadt/kosmos/molekuel per `data-hubworld`). Wachstumsleiste oben bleibt.
 - UI moderne Ebene (`VIEW='hub'`, `#hubsvg`, `#hubbar` Umschalter 📐 Klassisch = zurueck zu `HUB.back` / `data-hubworld` stadt|kosmos,
   localStorage `hs-hubworld`/`hs-hubback`): `loadFirms` (alle 4,5 s), `drawHub` -> `HUB_DRAW[welt]()` (neue Welt = neuer Eintrag), `hubTeams`
   (Leitung + Abteilungen wie im Weltall). Stadt `hubCity`/`hubBuilding` (isometrisch, Fenster nur bei `busy` hell (sonst 7 %), Fensterfarbe per `style` weil CSS `.win` das fill-Attribut ueberdeckt, Baustil je Firma `hubStyle` turm|buero|zwilling|campus aus `isoBox`, Hoehe nach Stufe, Box nach `HUB.zmax`, Beschriftungen in eigener Ebene obenauf),

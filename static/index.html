@@ -188,6 +188,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* Grafik-Auswahl (aufklappbar) */
 .vpick{position:relative}
 #gViewBtn{white-space:nowrap}
+/* Grafik-Menü in zwei Gruppen (Wunsch ABI 2026-11-04): Klassik und Modern */
+.vmenu .vgrp{display:block;padding:8px 10px 3px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:700}
+.vmenu .vsub{padding-left:18px}
+.pnew{padding-bottom:0}.pnew .side-btn{border:1px dashed var(--line);color:var(--accent);font-weight:600;justify-content:center}
+.pnew .side-btn:hover{border-color:var(--accent)}
 .vmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:230px;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:4px;box-shadow:0 10px 28px rgba(0,0,0,.28);display:flex;flex-direction:column}
 .vmenu[hidden]{display:none}
@@ -595,7 +600,8 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       </details>
         <button class="side-btn" id="btnLogout" style="display:none" onclick="location.href='/logout'">🚪 Abmelden</button>
     </div>
-    <div class="side-h"><span>Projekte</span><span><button class="icon-btn" id="btnHub" title="Moderne Ansicht: alle Firmen auf einen Blick, als Stadt oder als Kosmos">🏙</button><button class="icon-btn" id="btnNewProj" title="Neues Projekt: leer oder als fertige Firma aus einer Vorlage (Webagentur, Buchhaltung, Handel …)">＋</button></span></div>
+    <div class="side-h"><span>Projekte</span></div>
+    <div class="side-sec pnew"><button class="side-btn" id="btnNewProj" title="Neues Projekt anlegen: leer oder als fertige Firma aus einer Vorlage (Webagentur, Buchhaltung, Handel …)">＋ Neues Projekt</button></div>
     <div id="projlist" class="side-sec"></div>
   </aside>
 
@@ -613,15 +619,20 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="g-stats" id="gStats"></div>
       <div class="g-tools">
         <div class="vpick" id="gViews">
-          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Grafik wählen: Weltall, drei Organigramme, Atom, Bauplan oder alle Firmen (modern)"><span id="gViewLbl">🌌 Weltall</span> ▾</button>
+          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Grafik wählen: Klassik (drei Organigramme, Bauplan) oder Modern (Weltall, Molekül, Stadt, Kosmos, alle Firmen als Moleküle)"><span id="gViewLbl">🌌 Weltall</span> ▾</button>
           <div class="vmenu" id="gViewMenu" role="menu" aria-label="Grafik" hidden>
-            <button role="menuitemradio" data-view="world" title="Welt Weltall: Sonnensystem mit Sonne, Planeten und Monden, Stufen von Asteroid bis Galaxie">🌌 Weltall</button>
-            <button role="menuitemradio" data-view="org" data-org="baum" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
-            <button role="menuitemradio" data-view="org" data-org="gliederung" title="Organigramm als Gliederung, eine Zeile je Agent (gut fürs Handy)">➡ Organigramm: Gliederung</button>
-            <button role="menuitemradio" data-view="org" data-org="kreis" title="Organigramm als Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Organigramm: Kreis</button>
-            <button role="menuitemradio" data-view="atom" title="Welt Atom: das Team als Molekül, große Kugel = Leitung, Stäbe zeigen, wer wem unterstellt ist (steht still), Stufen von Quark bis Zelle">⚛️ Atom</button>
-            <button role="menuitemradio" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
-            <button role="menuitemradio" data-view="hub" title="Moderne Ansicht: alle Firmen als Stadt oder Kosmos">🏙 Alle Firmen (modern)</button>
+            <span class="vgrp">Klassik</span>
+            <button role="menuitemradio" class="vsub" data-view="org" data-org="baum" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
+            <button role="menuitemradio" class="vsub" data-view="org" data-org="gliederung" title="Organigramm als Gliederung, eine Zeile je Agent (gut fürs Handy)">➡ Organigramm: Gliederung</button>
+            <button role="menuitemradio" class="vsub" data-view="org" data-org="kreis" title="Organigramm als Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Organigramm: Kreis</button>
+            <button role="menuitemradio" class="vsub" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
+            <hr>
+            <span class="vgrp">Modern</span>
+            <button role="menuitemradio" class="vsub" data-view="world" title="Welt Weltall: Sonnensystem mit Sonne, Planeten und Monden, Stufen von Asteroid bis Galaxie">🌌 Weltall</button>
+            <button role="menuitemradio" class="vsub" data-view="atom" title="Welt Atom: das Team als Molekül, große Kugel = Leitung, Stäbe zeigen, wer wem unterstellt ist (steht still), Stufen von Quark bis Zelle">⚛️ Molekül (dieses Projekt)</button>
+            <button role="menuitemradio" class="vsub" data-view="hub" data-hubworld="stadt" title="Alle Firmen als Stadt: jede Firma ein Gebäude, Straßen nur bei Zusammenarbeit">🏙 Stadt (alle Firmen)</button>
+            <button role="menuitemradio" class="vsub" data-view="hub" data-hubworld="kosmos" title="Alle Firmen als Kosmos: jede Firma ein Sonnensystem, Raumschiffe nur bei Zusammenarbeit">🌌 Kosmos (alle Firmen)</button>
+            <button role="menuitemradio" class="vsub" data-view="hub" data-hubworld="molekuel" title="Alle Firmen als Moleküle: jede Firma ein eigenes Molekül, Partner über Bindungen vernetzt">🧬 Molekül (alle Firmen)</button>
           </div>
         </div>
         <button class="icon-btn" id="gTheme" title="Wechselt zwischen hellem und dunklem Aussehen (gilt für dieses Gerät)">🌓</button>
@@ -635,7 +646,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="zoom"><button id="zin" title="Hineinzoomen" aria-label="Hineinzoomen">+</button><button id="zout" title="Herauszoomen" aria-label="Herauszoomen">−</button><button id="zfit">Fit</button></div>
       <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="atomsvg" width="1" height="1"></svg><svg id="hubsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
       <div id="hubbar" role="toolbar" aria-label="Ansicht wählen">
-        <span class="seg"><button id="hubClassic" title="Klassisch: zurück zur sachlichen Ansicht der aktuellen Firma (Organigramm, Bauplan …)">📐 Klassisch</button><button data-hubworld="stadt" title="Stadt: jede Firma ist ein Gebäude. Je weiter die Firma gewachsen ist, desto höher das Haus">🏙 Stadt</button><button data-hubworld="kosmos" title="Kosmos: jede Firma ist ein Sonnensystem, die Planeten sind ihre Abteilungen">🌌 Kosmos</button><button data-hubworld="molekuel" title="Molekül: jede Firma ist ein eigenes Molekül; Partner-Firmen sind über einen leuchtenden Stab verbunden">⚛️ Molekül</button></span>
+        <span class="seg"><button id="hubClassic" title="Klassisch: zurück zur sachlichen Ansicht der aktuellen Firma (Organigramm, Bauplan …)">📐 Klassisch</button><button data-hubworld="stadt" title="Stadt: jede Firma ist ein Gebäude. Je weiter die Firma gewachsen ist, desto höher das Haus">🏙 Stadt</button><button data-hubworld="kosmos" title="Kosmos: jede Firma ist ein Sonnensystem, die Planeten sind ihre Abteilungen">🌌 Kosmos</button><button data-hubworld="molekuel" title="Molekül: jede Firma ist ein eigenes Molekül; Partner-Firmen sind über einen leuchtenden Stab verbunden">🧬 Molekül</button></span>
         <span class="hubrow"><button class="btn sm" id="hubLink" title="Zusammenarbeit: zwei Firmen als Partner verbinden oder trennen. Zwischen Partnern fahren Lieferwagen bzw. fliegen Raumschiffe">🤝 Zusammenarbeit</button><button class="btn sm" id="hubOut" title="Aus der Firma heraus, zurück zu allen Firmen (Esc)">← Alle Firmen</button>
         <span id="hubFind"><input id="hubSearch" type="search" placeholder="🔍 Firma oder Agent suchen" aria-label="Firma oder Agent suchen" autocomplete="off"><span id="hubResults" hidden></span></span></span>
       </div>
@@ -644,7 +655,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div id="bcard" role="dialog" aria-label="Himmelskörper"></div>
       <div id="wlist"></div>
       <button class="btn sm" id="orgReset" hidden title="Von Hand verschobene Karten in diesem Organigramm wieder ordnen">↺ Anordnung zurücksetzen</button>
-      <div class="empty" id="empty">Wähle links ein Projekt oder lege eins mit ＋ bei „Projekte“ an.</div>
+      <div class="empty" id="empty">Wähle links ein Projekt oder lege eins mit „＋ Neues Projekt“ an.</div>
     </div>
   </section>
 
@@ -723,7 +734,6 @@ async function openProject(id){
   fit();
 }
 $('#btnNewProj').onclick = ()=>newProjectDialog();
-$('#btnHub').onclick = ()=>{ setView('hub'); $('#app').classList.remove('side-open'); };
 $('#btnDelProj').onclick = async ()=>{
   if(!S.pid || !confirm('Projekt mit allen Agenten und Aufgaben löschen? (Audit-Log und die Dateien im Projektordner bleiben erhalten)')) return;
   await api('/projects/'+S.pid,'DELETE'); S.pid=null; S.graph=null; S.sel=null; closePanel();
@@ -1827,7 +1837,7 @@ $('#btnOps').onclick=showOps;
 /* ---------- Anleitung (im Dashboard, offline) ---------- */
 const HELP=[
  {id:'start',t:'🚀 Erste Schritte',h:`<p>Hyperstead ist deine eigene KI-Firma. Du legst ein <b>Projekt</b> an, darin arbeiten <b>Agenten</b> (KI-Mitarbeiter) in einem Team: ein Chef oben, darunter Leitungen und Mitarbeiter.</p>
-<ul><li><b>Projekt anlegen:</b> In der Seitenleiste bei „Projekte“ auf ＋. Im Fenster wählst du ein leeres Projekt oder eine fertige Firmenvorlage (z. B. Webagentur).</li>
+<ul><li><b>Projekt anlegen:</b> In der Seitenleiste auf „＋ Neues Projekt“. Im Fenster wählst du ein leeres Projekt oder eine fertige Firmenvorlage (z. B. Webagentur).</li>
 <li><b>Agent anlegen:</b> In der Bauplan-Ansicht (📐) oben einen Baustein wie „👑 CEO“ oder „</> Entwickler“ antippen oder auf die Fläche ziehen. Jeder Agent braucht eine KI (Anbieter + Modell) in den Einstellungen.</li>
 <li><b>Auftrag geben:</b> Agent antippen → Reiter „Aufgaben“ → Auftrag beschreiben → „Aufgabe zuweisen“. Der Chef verteilt die Arbeit an sein Team, prüft die Berichte und liefert das Ergebnis in die 📬 Post.</li>
 <li><b>Ergebnis abholen:</b> 📬 Post öffnen. „✅ Erledigt“ schließt den Auftrag, „🔁 Überarbeiten…“ schickt ihn mit deinem Hinweis zurück.</li></ul>
@@ -1887,8 +1897,8 @@ const HELP=[
 <li><b>… Telegram schweigt:</b> Token und Chat-ID in <code>.env</code> prüfen, Hyperstead neu starten, dem Bot <code>/start</code> schreiben.</li>
 <li><b>… nach einem Update etwas fehlt:</b> Die README hat die Tabelle „Was passiert, wenn etwas fehlt“ mit der Lösung für jede Datei und jeden Schlüssel.</li></ul>`},
  {id:'firmen',t:'🏙 Alle Firmen: klassisch und modern',h:`<p>Hyperstead hat zwei Ebenen. Beide zeigen dieselben echten Firmen, Abteilungen und Agenten, nur anders gezeichnet.</p>
-<ul><li><b>📐 Klassisch:</b> die sachlichen Ansichten einer Firma (Organigramm, Bauplan, Weltall, Atom). Hier verwaltest und stellst du ein.</li>
-<li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie links bei „Projekte“ mit 🏙 oder in der Grafik-Auswahl oben mit „🏙 Alle Firmen (modern)“. Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt und 🌌 Kosmos um.</li>
+<ul><li><b>📐 Klassisch:</b> die sachlichen Ansichten einer Firma: die drei Organigramme (Baum, Gliederung, Kreis) und der Bauplan. Hier verwaltest und stellst du ein. In der Grafik-Auswahl stehen sie unter „Klassik“, Weltall und Molekül unter „Modern“.</li>
+<li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie in der Grafik-Auswahl oben in der Gruppe „Modern“ (Stadt, Kosmos oder Molekül, alle Firmen). Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt, 🌌 Kosmos und 🧬 Molekül um.</li>
 <li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Arbeitet eine Firma gerade, gehen bei ihr die Lichter an; ruhige Firmen sind fast dunkel.</li>
 <li><b>⚛️ Molekül:</b> Jede Firma ist ihr eigenes Molekül, Form und Farben sind je Firma anders. Partner-Firmen sind über einen leuchtenden Stab zwischen ihren Leitungen verbunden, darauf wandern Funken (mehr, wenn beide arbeiten). Antippen zoomt hinein, jede Kugel öffnet Abteilung und Agent.</li>
 <li><b>🖼 Logo:</b> Im Infofenster einer Firma kannst du unter „Logo“ ein eigenes Logo hochladen (PNG, JPEG oder WebP, höchstens 2 MB). In der Stadt steht es als Schild auf dem Dach, im Kosmos mitten in der Sonne. ✕ entfernt es wieder.</li>
@@ -2926,7 +2936,7 @@ function drawHub(){
   const sig=JSON.stringify([HUB.world,HUB.sel,HUB.inside,HUB.dep,HUB.agent,HUB.d,motionOff()]);
   if(sig===HUB.sig && svg.firstChild) return; HUB.sig=sig;
   $('#app').classList.toggle('hub-in', !!f);
-  if(!HUB.d.firms.length){ svg.innerHTML=`<text class="hlbl" x="0" y="0">Noch keine Firma. Lege links bei „Projekte“ mit ＋ eine an.</text>`; HUB.box={x0:-320,x1:320,y0:-60,y1:60}; return; }
+  if(!HUB.d.firms.length){ svg.innerHTML=`<text class="hlbl" x="0" y="0">Noch keine Firma. Lege links mit „＋ Neues Projekt“ eine an.</text>`; HUB.box={x0:-320,x1:320,y0:-60,y1:60}; return; }
   svg.innerHTML = f ? (HUB.world==='kosmos' ? hubInsideCosmos(f) : HUB.world==='molekuel' ? hubInsideMol(f) : hubInsideCity(f)) : HUB_DRAW[HUB.world]();
   if(f) HUB.tr=[];
   HUB.els=[...svg.querySelectorAll('.hpl')]; HUB.trEls=[...svg.querySelectorAll('.veh')];
