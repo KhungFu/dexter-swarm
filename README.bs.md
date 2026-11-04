@@ -216,6 +216,7 @@ Ova lista se dopunjava pri svakoj promjeni programa. Svaki red kaže šta sistem
 | Saradnik kojeg CEO želi otpustiti ili izmijeniti | Ako tog imena nema u njegovom timu (greška u kucanju, drugi tim, već otpušten), uputstvo se preskače i bilježi u rezultatu. Ako saradnik još ima otvoren zadatak, ostaje. | Ništa, ili kasnije ponovo zadajte. |
 | `video_providers.py` (programski fajl) | Alati za video, zvuk i cloud glasove nestaju za agente, sve ostalo radi dalje. | Ponovo pokrenite `git pull`, fajl je dio programa. |
 | `GITHUB_UPLOAD_TOKEN` ili `GITHUB_UPLOAD_REPO` | GitHub se pod ☁️ Cloud prikazuje kao „nije podešeno”, agentima se ne nudi kao cilj. Sve ostalo radi. | Unesite token i repo ([docs/cloud.md](docs/cloud.md), na njemačkom), ponovo pokrenite. |
+| CUPS (`lp`) na Pi-ju, štampač ili pravo CEO-a na štampanje | Pod 🖨 Drucker piše „CUPS fehlt” ili postoji samo testni štampač. 🖨 Drucken javlja „nije izabran štampač” ili „štampanje je zabranjeno” i ništa ne šalje. | `./install.sh --print`, podesite štampač ([docs/drucken.md](docs/drucken.md)), izaberite ga i dozvolite pod 🖨 Drucker. |
 | `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` ili `ONEDRIVE_CLIENT_ID` | Servis ostaje „nije podešeno”, dugme „Prijava” ne postoji. | Registrujte aplikaciju i unesite redove ([docs/cloud.md](docs/cloud.md)), ponovo pokrenite. |
 | Prijava kod Google-a/Microsoft-a (folder `tokens/`) | Servis stoji na „nije prijavljeno”. Otpremanje javlja „još niste prijavljeni” odnosno „prijava je istekla” i ništa ne otprema. | ☁️ Cloud → Prijava. Pri selidbi sa Pi-ja na laptop jednostavno se ponovo prijavite na laptopu. |
 | Fajl veći od 50 MB za Telegram | Telegram ga ne prima. `/datei` ga označava sa ⚠️ i ne šalje ga, agent dobija napomenu. | Kao cilj izaberite Google Drive, OneDrive ili GitHub. |
@@ -534,6 +535,10 @@ Radi bez interneta i bez ključeva (dobavljač `mock`, vlastita baza).
 - **Telegram:** `/datei` vam šalje fajlove do 50 MB na telefon, samo kada kliknete ili odobrite.
 - GitHub: do 50 MB kao fajl u repou, veći kao prilog izdanju `paperclip-ablage` (do 2 GB). Google Drive: samo folderi i fajlovi koje je
   Hyperstead sam napravio (pravo `drive.file`). OneDrive: bilo koji folder. Testirano samo na simuliranim servisima.
+
+## 🖨 Štampanje večernjih izvještaja
+
+👑 Kontrolni obilazak CEO-a na kraju radnog dana piše večernji izvještaj. U 📬 pošti i u zadacima CEO-a stoji dugme **🖨 Drucken**: jedan klik, kratka potvrda, zatim ide na štampač. Štampač birate pod **🖨 Drucker** u bočnoj traci (Pi: mrežni štampač preko CUPS-a, `./install.sh --print`; Windows: dijeljeni štampač pod Štampači i skeneri). U istom prozoru CEO dozvoljava ili zabranjuje štampanje (pravo „Darf Abendberichte drucken”). **Testdrucker (Datei)** samo snima ispis kao tekstualni fajl u `workspace/.druck/`. Uputstvo: [docs/drucken.md](docs/drucken.md) (na njemačkom).
 
 ## 🌐 Pravi pregledač i ▶ pokretanje koda
 

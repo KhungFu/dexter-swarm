@@ -216,6 +216,7 @@ This list is extended with every change to the program. Each row says what the s
 | Employee the CEO wants to fire or change | If the name is not in his team (typo, other team, already fired), the instruction is skipped and noted in the result. If the employee still has an open task, he stays. | Nothing, or assign it again later. |
 | `video_providers.py` (program file) | The video, sound and cloud voice tools disappear for the agents; everything else keeps running. | Run `git pull` again, the file is part of the program. |
 | `GITHUB_UPLOAD_TOKEN` or `GITHUB_UPLOAD_REPO` | GitHub shows as "not set up" under ☁️ Cloud and agents are not offered it as a target. Everything else keeps running. | Enter token and repo ([docs/cloud.md](docs/cloud.md), German), restart. |
+| CUPS (`lp`) on the Pi, a printer or the CEO's print right | 🖨 Drucker shows "CUPS fehlt" or only the test printer. 🖨 Print reports "no printer chosen" or "printing is blocked" and sends nothing. | `./install.sh --print`, set up the printer ([docs/drucken.md](docs/drucken.md)), choose and allow it under 🖨 Drucker. |
 | `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` or `ONEDRIVE_CLIENT_ID` | The service stays "not set up", the "Sign in" button is missing. | Register the app and enter the lines ([docs/cloud.md](docs/cloud.md)), restart. |
 | Sign-in at Google/Microsoft (folder `tokens/`) | The service shows "not signed in". An upload reports "not signed in yet" or "sign-in expired" and uploads nothing. | ☁️ Cloud → Sign in. When moving from Pi to laptop, simply sign in again on the laptop. |
 | File over 50 MB for Telegram | Telegram does not accept it. `/datei` marks it with ⚠️ and does not send it, the agent gets a notice. | Choose Google Drive, OneDrive or GitHub as the target. |
@@ -535,6 +536,10 @@ Runs without internet and without keys (provider `mock`, own database).
 - **Telegram:** `/datei` sends you files up to 50 MB on your phone, only when you click or approve it.
 - GitHub: up to 50 MB as a file in the repo, larger ones as an attachment to the release `paperclip-ablage` (up to 2 GB). Google Drive: only
   folders and files that Hyperstead created itself (scope `drive.file`). OneDrive: any folder. Only tested against simulated services.
+
+## 🖨 Printing evening reports
+
+The 👑 CEO inspection writes an evening report at closing time. In 📬 Post and in the CEO's tasks it has a **🖨 Print** button: one click, a short confirmation, then it goes to the printer. Choose the printer under **🖨 Drucker** in the sidebar (Pi: network printer via CUPS, `./install.sh --print`; Windows: shared printer under Printers & scanners). In the same window the CEO allows or blocks printing (right "Darf Abendberichte drucken"). The **Testdrucker (Datei)** only saves the printout as a text file in `workspace/.druck/`. Guide: [docs/drucken.md](docs/drucken.md) (German).
 
 ## 🌐 Real browser and ▶ run code
 

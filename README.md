@@ -217,6 +217,7 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | Mitarbeiter, den der CEO entlassen oder ändern will | Gibt es den Namen in seinem Team nicht (Tippfehler, anderes Team, schon entlassen), wird die Anweisung übersprungen und im Ergebnis vermerkt. Hat der Mitarbeiter noch eine offene Aufgabe, bleibt er. | Nichts, oder später erneut beauftragen. |
 | `video_providers.py` (Programmdatei) | Die Video-, Ton- und Cloud-Stimmen-Werkzeuge verschwinden für die Agenten, alles andere läuft weiter. | `git pull` erneut ausführen, die Datei gehört zum Programm. |
 | `GITHUB_UPLOAD_TOKEN` oder `GITHUB_UPLOAD_REPO` | GitHub erscheint unter ☁️ Cloud als „nicht eingerichtet“, Agenten bekommen es nicht als Ziel angeboten. Alles andere läuft. | Token und Repo eintragen ([docs/cloud.md](docs/cloud.md)), neu starten. |
+| CUPS (`lp`) auf dem Pi, Drucker oder Druckrecht des CEO | Unter 🖨 Drucker steht „CUPS fehlt“ bzw. nur der Testdrucker. 🖨 Drucken meldet „kein Drucker gewählt“ oder „Drucken ist gesperrt“ und sendet nichts. | `./install.sh --print`, Drucker einrichten ([docs/drucken.md](docs/drucken.md)), unter 🖨 Drucker wählen und erlauben. |
 | `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` oder `ONEDRIVE_CLIENT_ID` | Der Dienst bleibt „nicht eingerichtet“, der Knopf „Anmelden“ fehlt. | App registrieren und die Zeilen eintragen ([docs/cloud.md](docs/cloud.md)), neu starten. |
 | Anmeldung bei Google/Microsoft (Ordner `tokens/`) | Der Dienst steht auf „nicht angemeldet“. Ein Upload meldet „noch nicht angemeldet“ bzw. „Anmeldung abgelaufen“ und lädt nichts hoch. | ☁️ Cloud → Anmelden. Beim Umzug Pi → Laptop einfach auf dem Laptop neu anmelden. |
 | Datei über 50 MB für Telegram | Telegram nimmt sie nicht. `/datei` markiert sie mit ⚠️ und schickt sie nicht, der Agent bekommt den Hinweis. | Google Drive, OneDrive oder GitHub als Ziel nehmen. |
@@ -539,6 +540,10 @@ Läuft ohne Internet und ohne Keys (Anbieter `mock`, eigene Datenbank).
 - **Telegram:** `/datei` schickt dir Dateien bis 50 MB aufs Handy, nur wenn du es anklickst oder freigibst.
 - GitHub: bis 50 MB als Datei im Repo, größere als Anhang an das Release `paperclip-ablage` (bis 2 GB). Google Drive: nur Ordner und
   Dateien, die Hyperstead selbst angelegt hat (Recht `drive.file`). OneDrive: jeder Ordner. Nur gegen simulierte Dienste getestet.
+
+## 🖨 Abendberichte drucken
+
+Der 👑 CEO-Kontrollgang schreibt bei Feierabend einen Abendbericht. In der 📬 Post und in den Aufgaben des CEO steht dabei **🖨 Drucken**: ein Klick, kurze Rückfrage, dann geht er an den Drucker. Drucker wählen unter **🖨 Drucker** in der Seitenleiste (Pi: Netzwerkdrucker über CUPS, `./install.sh --print`; Windows: freigegebener Drucker unter Drucker & Scanner). Im selben Fenster erlaubt oder sperrt der CEO das Drucken (Recht „Darf Abendberichte drucken“). Der **Testdrucker (Datei)** speichert den Ausdruck nur als Textdatei in `workspace/.druck/`. Anleitung: [docs/drucken.md](docs/drucken.md).
 
 ## 🌐 Echter Browser und ▶ Code ausführen
 
