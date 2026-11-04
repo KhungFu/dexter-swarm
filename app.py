@@ -271,6 +271,9 @@ CREATE TABLE IF NOT EXISTS connections(
   id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL, name TEXT NOT NULL, url TEXT NOT NULL,
   method TEXT DEFAULT 'POST', headers TEXT DEFAULT '{}', description TEXT DEFAULT '', confirm INTEGER DEFAULT 1,
   on_post INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1, created REAL);
+CREATE TABLE IF NOT EXISTS firm_links(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, a INTEGER NOT NULL, b INTEGER NOT NULL, note TEXT DEFAULT '', created REAL,
+  UNIQUE(a, b));
 CREATE TABLE IF NOT EXISTS audit(
   id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL, project_id INTEGER, agent_id INTEGER,
   task_id INTEGER, event TEXT, detail TEXT);
@@ -3731,10 +3734,73 @@ def api_project_del(pid):
     ex("DELETE FROM schedules WHERE project_id=?", (pid,))
     ex("DELETE FROM goals WHERE project_id=?", (pid,))
     ex("DELETE FROM connections WHERE project_id=?", (pid,))
+    ex("DELETE FROM firm_links WHERE a=? OR b=?", (pid, pid))
     site_stop(pid, persist=False)
     ex("DELETE FROM settings WHERE k=?", (f"site:{pid}",))
     ex("DELETE FROM projects WHERE id=?", (pid,))
     log("project_deleted", pid, pid)  # Audit bleibt erhalten
+    return jsonify({"ok": True})
+
+
+# ------------------------------------------------ Alle Firmen (Uebersicht Stadt/Weltall/Molekuel) + Partnerschaften
+def firm_links():
+    return q("SELECT * FROM firm_links ORDER BY id")
+
+
+def firms_overview():
+    """Alle Projekte (= Firmen) fuer die Uebersicht: Stufe, Agenten (nur das, was die Grafik braucht), laufende Arbeit, Partner.
+    Reine Oberflaechendaten, die Agenten sehen davon nichts."""
+    busy = {}
+    for r in q("SELECT project_id, agent_id, COUNT(*) c FROM tasks WHERE status IN ('running','queued') GROUP BY project_id, agent_id"):
+        busy.setdefault(r["project_id"], {})[r["agent_id"]] = r["c"]
+    links = firm_links()
+    out = []
+    for p in q("SELECT id, name, goal FROM projects ORDER BY id"):
+        pid = p["id"]
+        try:
+            g = project_growth(pid)
+            stage = {"stage": g["stage"], "icon": g["icon"], "stage_name": g["name"], "points": g.get("points", 0)}
+        except Exception:
+            stage = {"stage": 0, "icon": "", "stage_name": "", "points": 0}
+        b = busy.get(pid, {})
+        agents = [{"id": a["id"], "name": a["name"], "role": a["role"], "parent_id": a["parent_id"], "busy": b.get(a["id"], 0)}
+                  for a in q("SELECT id, name, role, parent_id FROM agents WHERE project_id=? ORDER BY id", (pid,))]
+        partners = sorted({(l["b"] if l["a"] == pid else l["a"]) for l in links if pid in (l["a"], l["b"])})
+        out.append({**p, **stage, "agents": agents, "busy": sum(b.values()), "partners": partners})
+    return {"firms": out, "links": links}
+
+
+@app.get("/api/firms")
+def api_firms():
+    return jsonify(firms_overview())
+
+
+@app.post("/api/firms/links")
+def api_firm_link_new():
+    d = request.get_json(force=True) or {}
+    try:
+        a, b = sorted((int(d.get("a")), int(d.get("b"))))
+    except (TypeError, ValueError):
+        return jsonify({"error": "a und b muessen Projekt-IDs sein"}), 400
+    if a == b:
+        return jsonify({"error": "Eine Firma kann nicht mit sich selbst zusammenarbeiten"}), 400
+    if len(q("SELECT id FROM projects WHERE id IN (?,?)", (a, b))) != 2:
+        return jsonify({"error": "Projekt nicht gefunden"}), 404
+    old = q1("SELECT id FROM firm_links WHERE a=? AND b=?", (a, b))
+    if old:
+        return jsonify({"id": old["id"], "exists": True})
+    lid = ex("INSERT INTO firm_links(a,b,note,created) VALUES(?,?,?,?)", (a, b, str(d.get("note") or "")[:200], time.time()))
+    log("firm_link", f"{a}<->{b}", a)
+    return jsonify({"id": lid})
+
+
+@app.delete("/api/firms/links/<int:lid>")
+def api_firm_link_del(lid):
+    l = q1("SELECT * FROM firm_links WHERE id=?", (lid,))
+    if not l:
+        abort(404)
+    ex("DELETE FROM firm_links WHERE id=?", (lid,))
+    log("firm_unlink", f"{l['a']}<->{l['b']}", l["a"])
     return jsonify({"ok": True})
 
 
