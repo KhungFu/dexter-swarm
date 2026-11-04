@@ -127,7 +127,8 @@ TOOLS = {
      optional bei allen: name (Dateiname des Ergebnisses ohne Endung)"""),
     "speak": ("media", '{"tool": "speak", "text": "Sprechertext", "lang": "de", "name": "sprecher1"}  Text zu gesprochener Audiodatei (output/audio/). lang: de, en, tr ... '
                        'Optional eigene Stimme: voice (espeak-Variante m1-m7/f1-f5, Piper-Modell x.onnx, Edge-Stimme, ElevenLabs-Stimmen-ID oder OpenAI-Stimme '
-                       'wie nova/onyx, je nach TTS_ENGINE), pitch 0-99 (50 normal), rate 0.5-2'),
+                       'wie nova/onyx, je nach TTS_ENGINE), pitch 0-99 (50 normal), rate 0.5-2. '
+                       'engine (optional, nur fuer diesen Aufruf): auto | piper | espeak | edge | elevenlabs | openai'),
     "film": ("media", """{"tool": "film", "op": "...", ...}  ANIMATIONSFILM (Blender, Figuren mit Stimmen, Lippensync, Kamera). Drehbuch = film/film.json:
      {"titel": "Bello und der Ball", "aufloesung": "640x360", "fps": 12,
       "figuren": {"Bello": {"art": "hund", "farbe": "#c8843c", "farbe2": "#f6e7d0", "stimme": {"lang": "de", "voice": "m3", "pitch": 40}},
@@ -143,6 +144,7 @@ TOOLS = {
      tun: gehen (nach, dauer), springen (hoehe), winken, drehen (richtung), nicken, erscheinen, verschwinden. Requisiten auch per id bewegen.
      requisiten typ: baum busch haus stein ball wolke blume kiste bild. ort: himmel, boden (false = keiner), hintergrund (Bild), licht tag|abend|nacht.
      kamera: einstellung total|halbtotal|nah, ziel (Figur), bewegung keine|zoom_rein|zoom_raus|schwenk_links|schwenk_rechts|folgen.
+     stimme/erzaehler_stimme: lang, voice, pitch, rate, optional engine (z. B. elevenlabs nur fuer die Figuren, die besonders gut klingen sollen).
      dialog ohne figur = Erzaehler (erzaehler_stimme). Optional: musik, musik_lautstaerke, titelkarte (Sekunden), renderer eevee|workbench|cycles.
      Ablauf: op=save mit "film": {...} (prueft + speichert) -> op=check -> op=voices -> op=preview, szene "s01" (Standbild, danach view_image)
      -> op=render (szene "s01" oder alle; nur geaenderte Szenen, kann lange dauern) -> op=assemble, name "film", untertitel true -> output/<name>.mp4"""),
@@ -172,7 +174,18 @@ def available(perms):
 
 
 def describe(names):
-    return "\n".join("  " + TOOLS[n][1] for n in names)
+    out = []
+    for n in names:
+        out.append("  " + TOOLS[n][1])
+        if n in ("speak", "film") and _env("ELEVENLABS_API_KEY"):
+            out.append(TTS_PREMIUM_HINT)
+    return "\n".join(out)
+
+
+TTS_PREMIUM_HINT = ("     ELEVENLABS IST EINGERICHTET: Wenn eine Stimme wirklich gut klingen muss (Hoerbuch, Werbung, Film-Figuren, Erzaehler), "
+                    "\"engine\": \"elevenlabs\" setzen (bei film in stimme bzw. erzaehler_stimme). Kostet pro Zeichen, fuer Tests und Entwuerfe "
+                    "die lokale Stimme lassen. Passende Stimmen-IDs: {\"tool\": \"speak\", \"list_voices\": true}, dann als voice eintragen. "
+                    "Ohne voice nimmt ElevenLabs die Standardstimme. Klappt ElevenLabs nicht, kommt automatisch die lokale Stimme.")
 
 
 # ------------------------------------------------------------------------- Sicherer Abruf
@@ -2001,9 +2014,26 @@ def _num(v, lo, hi):
         return None
 
 
-def speak(root, text, lang="de", name="", voice=None, pitch=None, rate=None, target=None):
+TTS_ENGINES = ("auto", "piper", "espeak", "edge", "elevenlabs", "openai")
+_CLOUD_TTS = {"elevenlabs": "ElevenLabs", "openai": "OpenAI-Stimme"}
+
+
+def tts_engine(engine=None):
+    """Wirksame Stimmen-Engine: Wahl im Aufruf (engine) vor TTS_ENGINE aus .env. 'beste'/'premium' = elevenlabs."""
+    e = re.sub(r"[^a-z]", "", str(engine or "").lower())
+    if e in ("beste", "premium", "hoch", "gut", "eleven"):
+        e = "elevenlabs"
+    e = e or _env("TTS_ENGINE", "auto").lower()
+    if e not in TTS_ENGINES:
+        raise ToolError(f"engine '{e}' unbekannt. Erlaubt: {', '.join(TTS_ENGINES)}")
+    return e
+
+
+def speak(root, text, lang="de", name="", voice=None, pitch=None, rate=None, target=None, engine=None):
     """voice/pitch/rate geben jeder Filmfigur eine eigene Stimme: espeak-ng Variante (z. B. m3, f2) bzw. Piper-Modell
-    (Dateiname in models/piper/) bzw. Edge-Stimme; pitch 0-99 (50 = normal), rate 0.5-2.0. target = fester Zielpfad (film/ton/)."""
+    (Dateiname in models/piper/) bzw. Edge-Stimme; pitch 0-99 (50 = normal), rate 0.5-2.0. target = fester Zielpfad (film/ton/).
+    engine waehlt fuer diesen Aufruf (z. B. elevenlabs nur dort, wo die Stimme wirklich gut sein muss). Scheitert eine
+    Cloud-Stimme (Key fehlt, Guthaben leer, Netz), springt die lokale Stimme ein, ausser TTS_FALLBACK=0."""
     text = str(text or "").strip()[:6000]
     if not text:
         raise ToolError("text fehlt")
@@ -2020,7 +2050,21 @@ def speak(root, text, lang="de", name="", voice=None, pitch=None, rate=None, tar
     else:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.unlink(missing_ok=True)
-    engine = _env("TTS_ENGINE", "auto").lower()
+    engine, note = tts_engine(engine), ""
+    if engine in _CLOUD_TTS:  # Cloud-Stimmen (kosten pro Zeichen) zuerst, bei Fehler lokale Stimme
+        try:
+            _vp().cloud_tts(engine, text, voice, rate, target)
+            p = _probe(target)
+            return (f"Sprache erzeugt mit {_CLOUD_TTS[engine]}: {_rel(root, target)} ({p['duration']:.1f} s). "
+                    "Fuer Videos: video_edit add_audio oder slideshow mit audio.")
+        except (ToolError, OSError) as e:  # requests-Fehler sind OSError
+            target.unlink(missing_ok=True)
+            if _env("TTS_FALLBACK", "1") == "0":
+                raise ToolError(str(e)) if not isinstance(e, ToolError) else e
+            note = f"HINWEIS: {_CLOUD_TTS[engine]} nicht genutzt ({_clip(str(e), 200)}), stattdessen lokale Stimme. "
+            engine = "auto"
+            if len(voice) >= 16 or voice in ("alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse"):
+                voice = ""  # Cloud-Stimmen-ID passt nicht zu espeak/Piper
     tmp = Path(tempfile.mkdtemp(prefix=".tmp-", dir=root))
     try:
         txt = tmp / "t.txt"
@@ -2056,16 +2100,13 @@ def speak(root, text, lang="de", name="", voice=None, pitch=None, rate=None, tar
             r = subprocess.run([py, "-m", "edge_tts", "--voice", ev, "--file", str(txt), "--write-media", str(target)] + extra,
                                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
             done = r.returncode == 0 and target.exists()
-        if not done and engine in ("elevenlabs", "openai"):  # Cloud-Stimmen (kosten pro Zeichen)
-            _vp().cloud_tts(engine, text, voice, rate, target)
-            done = True
         if not done:
-            raise ToolError("Keine Sprachausgabe verfuegbar. Auf dem Pi: sudo apt install espeak-ng (einfache Stimme), oder "
+            raise ToolError(note + "Keine Sprachausgabe verfuegbar. Auf dem Pi: sudo apt install espeak-ng (einfache Stimme), oder "
                             "PIPER_MODEL (Piper, gute Offline-Stimme) bzw. TTS_ENGINE=edge mit pip install edge-tts (Online-Stimmen, inoffizieller Dienst).")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     p = _probe(target)
-    return f"Sprache erzeugt: {_rel(root, target)} ({p['duration']:.1f} s). Fuer Videos: video_edit add_audio oder slideshow mit audio."
+    return note + f"Sprache erzeugt: {_rel(root, target)} ({p['duration']:.1f} s). Fuer Videos: video_edit add_audio oder slideshow mit audio."
 
 
 # ----------------------------------------------------------------------------- Dokumente bauen
@@ -2518,7 +2559,11 @@ def run_tool(call, root, perms):
         elif name == "video_edit":
             out = video_edit(root, call)
         elif name == "speak":
-            out = speak(root, call.get("text"), call.get("lang"), call.get("name"), call.get("voice"), call.get("pitch"), call.get("rate"))
+            if call.get("list_voices"):
+                out = _vp().elevenlabs_voices(call.get("lang"))
+            else:
+                out = speak(root, call.get("text"), call.get("lang"), call.get("name"), call.get("voice"), call.get("pitch"),
+                            call.get("rate"), engine=call.get("engine"))
         elif name == "make_document":
             out = make_document(root, call)
         elif name == "film":

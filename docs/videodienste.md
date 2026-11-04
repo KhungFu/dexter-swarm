@@ -52,6 +52,10 @@ nicht unterstützte Angaben werden weggelassen oder auf den nächsten erlaubten 
   (`FAL_AUDIO_MODEL`, Std. `fal-ai/stable-audio`, bis 47 s).
 - `speak` mit `TTS_ENGINE=elevenlabs` (`ELEVENLABS_API_KEY`, Stimme `ELEVENLABS_VOICE` oder je Figur als `voice` = Stimmen-ID) oder
   `TTS_ENGINE=openai` (`OPENAI_API_KEY`, Stimme `OPENAI_TTS_VOICE`, z. B. nova, onyx, coral). Damit klingen auch die Figuren im Filmstudio besser.
+- **ElevenLabs nur bei Bedarf:** Steht nur `ELEVENLABS_API_KEY` in der `.env` (ohne `TTS_ENGINE=elevenlabs`), bleibt die lokale Stimme
+  Standard. Die Agenten sehen dann einen Hinweis und setzen `"engine": "elevenlabs"` im `speak`-Aufruf bzw. in `stimme`/`erzaehler_stimme`
+  einer Filmfigur, wenn es gut klingen muss. `{"tool": "speak", "list_voices": true}` listet die Stimmen des Kontos mit ID.
+  Scheitert eine Cloud-Stimme, spricht die lokale Stimme mit HINWEIS im Ergebnis (abschaltbar mit `TTS_FALLBACK=0`).
 
 ## Was nicht über eine API geht
 

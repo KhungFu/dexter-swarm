@@ -1548,6 +1548,13 @@ const HELP=[
 <li><b>Webseite veröffentlichen:</b> Liegt <code>www/index.html</code> im Projekt, kann Hyperstead sie als Webseite ausliefern („Veröffentlichen“).</li>
 <li><b>☁️ Cloud:</b> GitHub, Google Drive, OneDrive und Telegram einrichten. Jeder Upload eines Agenten wartet auf deine Freigabe. ☁️ neben einer Datei lädt sie selbst hoch.</li>
 <li><b>🔌 Verbindungen:</b> Webhooks. Agenten mit dem Recht „Verbindungen“ dürfen deine eingetragenen Adressen aufrufen (z. B. Zapier, Home Assistant), Hyperstead meldet neue Post an einen Dienst, oder andere Programme schicken über eine geheime Eingangsadresse Aufträge herein. Ohne Eintrag passiert nichts.</li></ul>`},
+ {id:'stimmen',t:'🎙 Stimmen und ElevenLabs',h:`<p>Agenten mit dem Recht „Medien“ können Texte sprechen lassen (Werkzeug <code>speak</code>) und Filmfiguren vertonen. Normal läuft das kostenlos auf deinem Gerät (Piper, espeak-ng oder Edge-Stimmen).</p>
+<ul><li><b>Bessere Stimmen mit ElevenLabs:</b> Trage in der Datei <code>.env</code> <code>ELEVENLABS_API_KEY=…</code> ein (Schlüssel aus elevenlabs.io → Profil → API Keys) und starte Hyperstead neu. Den Schlüssel nie in der Oberfläche oder im Chat eingeben.</li>
+<li><b>Nur wenn nötig:</b> Mit Schlüssel bleibt alles zuerst lokal und kostenlos. Die Agenten nehmen ElevenLabs gezielt dort, wo die Stimme wirklich gut klingen muss, z. B. Hörbuch, Werbung, Hauptfiguren oder Erzähler im Film. Du kannst es im Auftrag auch ausdrücklich sagen: „Sprich das mit ElevenLabs“.</li>
+<li><b>Immer ElevenLabs:</b> <code>TTS_ENGINE=elevenlabs</code> in der <code>.env</code>. Standardstimme mit <code>ELEVENLABS_VOICE=&lt;Stimmen-ID&gt;</code>, Modell mit <code>ELEVENLABS_TTS_MODEL</code> (Standard <code>eleven_multilingual_v2</code>, spricht auch Deutsch und Türkisch).</li>
+<li><b>Eigene Stimme je Figur:</b> Die Agenten holen sich die Stimmen deines ElevenLabs-Kontos selbst und tragen die passende Stimmen-ID bei der Figur ein.</li>
+<li><b>Wenn ElevenLabs nicht klappt</b> (Schlüssel falsch, Guthaben leer, kein Internet): Dann spricht automatisch die lokale Stimme, und im Ergebnis steht ein HINWEIS mit dem Grund. Im Film wird die Zeile beim nächsten Vertonen noch einmal mit ElevenLabs versucht. Mit <code>TTS_FALLBACK=0</code> bricht die Aufgabe stattdessen mit der Fehlermeldung ab.</li>
+<li><b>Kosten:</b> ElevenLabs rechnet pro Zeichen ab. Ohne Schlüssel entstehen keine Kosten, alles läuft wie bisher.</li></ul>`},
  {id:'telegram',t:'📱 Telegram',h:`<p>Mit <code>TELEGRAM_BOT_TOKEN</code> und <code>TELEGRAM_CHAT_ID</code> in der <code>.env</code> steuerst du Hyperstead vom Handy. Nur deine Chat-ID darf steuern.</p>
 <ul><li>Einfach Text schreiben = neuer Auftrag an den Chef des gewählten Projekts. Fotos/Dateien mit Bildunterschrift = Auftrag mit Anhang.</li>
 <li><code>/post</code> offene Ergebnisse, <code>/ok &lt;Nr&gt;</code> erledigt, Antwort auf eine Ergebnis-Nachricht = Überarbeitung.</li>
@@ -1563,7 +1570,7 @@ const HELP=[
 <p>Auf dem Handy gibt es kein Draufzeigen. Schalte dafür hier den <b>Hilfe-Modus</b> ein: Dann zeigt das erste Tippen auf einen Knopf die Erklärung, erst das zweite Tippen führt ihn aus. Unten erscheint eine Leiste, mit „Aus“ beendest du ihn.</p>
 <p>ⓘ oben in einem Fenster springt direkt zum passenden Kapitel dieser Anleitung.</p>`},
 ];
-const HELP_MAP=[['Freigaben','auftraege'],['Post','auftraege'],['Ziele','auftraege'],['Zeitplan','zeitplan'],['Cloud','dateien'],['Hochladen','dateien'],['Dateien','dateien'],['🔌','dateien'],['Betriebszentrale','betrieb'],['Nutzung','betrieb'],['Verlauf','betrieb'],['Wachstum','welt'],['Modelle','agenten'],['KI für','agenten'],['Firmenwissen','agenten'],['Vorlage','start']];
+const HELP_MAP=[['Freigaben','auftraege'],['Post','auftraege'],['Ziele','auftraege'],['Zeitplan','zeitplan'],['Cloud','dateien'],['Hochladen','dateien'],['Dateien','dateien'],['🔌','dateien'],['Betriebszentrale','betrieb'],['Nutzung','betrieb'],['Verlauf','betrieb'],['Wachstum','welt'],['Modelle','agenten'],['KI für','agenten'],['Firmenwissen','agenten'],['Vorlage','start'],['Stimme','stimmen']];
 function helpFor(title){ if(String(title).startsWith('📖')) return null; const m=HELP_MAP.find(([k])=>String(title).includes(k)); return m?m[1]:null; }
 function showHelp(chapter){
   openOv('📖 Anleitung'); const body=$('#ovbody');

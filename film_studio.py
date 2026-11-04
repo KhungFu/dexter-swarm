@@ -235,7 +235,8 @@ def normalize(root, data):
             continue
         st = fd.get("stimme") if isinstance(fd.get("stimme"), dict) else {}
         fig["stimme"] = {"lang": str(st.get("lang") or "de")[:5], "voice": str(st.get("voice") or "")[:60],
-                         "pitch": st.get("pitch", st.get("tonhoehe")), "rate": st.get("rate", st.get("tempo"))}
+                         "pitch": st.get("pitch", st.get("tonhoehe")), "rate": st.get("rate", st.get("tempo")),
+                         "engine": _engine(st, f"Figur {name}", errs)}
         plan["figuren"][fig["name"]] = fig
 
     scenes = data.get("szenen")
@@ -354,7 +355,7 @@ def _norm_scene(root, sc, sid, plan, errs, guard):
                             "zeit": None if d.get("zeit") in (None, "") else guard(_f, d.get("zeit"), 0, 0, MAX_DAUER, f"Szene {sid}: zeit")})
     erz = sc.get("erzaehler_stimme") if isinstance(sc.get("erzaehler_stimme"), dict) else {}
     s["erzaehler"] = {"lang": str(erz.get("lang") or "de")[:5], "voice": str(erz.get("voice") or "")[:60],
-                      "pitch": erz.get("pitch"), "rate": erz.get("rate")}
+                      "pitch": erz.get("pitch"), "rate": erz.get("rate"), "engine": _engine(erz, f"Szene {sid}: erzaehler_stimme", errs)}
 
     k = sc.get("kamera") if isinstance(sc.get("kamera"), dict) else {}
     ein, bew = str(k.get("einstellung") or "total").lower(), str(k.get("bewegung") or "keine").lower()
@@ -377,6 +378,18 @@ _PROP_COLORS = {"baum": "#3f9b3f", "busch": "#4caf50", "haus": "#f2d38b", "stein
 
 
 # ----------------------------------------------------------------------------- Ton
+def _engine(st, where, errs):
+    """Stimmen-Engine je Figur/Erzaehler (z. B. elevenlabs fuer die Hauptfigur), leer = TTS_ENGINE aus .env."""
+    e = str(st.get("engine") or "").strip()
+    if not e:
+        return ""
+    try:
+        return T.tts_engine(e)
+    except ToolError as ex:
+        errs.append(f"{where}: {ex}")
+        return ""
+
+
 def _voice_of(plan, scene, who):
     return plan["figuren"][who]["stimme"] if who else scene["erzaehler"]
 
@@ -397,13 +410,16 @@ def voices(root, plan, scene_ids=None):
         lines = []
         for n, d in enumerate(sc["dialog"], 1):
             v = _voice_of(plan, sc, d["figur"])
-            key, h = f"{sc['id']}_{n:02d}", _hash(d["text"], v, T._env("TTS_ENGINE", "auto"))
+            eng = T.tts_engine(v.get("engine"))
+            key, h = f"{sc['id']}_{n:02d}", _hash(d["text"], v, eng)
             f = tondir / f"{key}.mp3"
             if not (f.is_file() and idx.get(key, {}).get("hash") == h):
-                T.speak(root, d["text"], v["lang"], "", v["voice"], v["pitch"], v["rate"], target=f)
+                res = T.speak(root, d["text"], v["lang"], "", v["voice"], v["pitch"], v["rate"], target=f, engine=eng)
                 idx[key] = {"hash": h, "dauer": round(T._probe(f)["duration"], 3)}
+                if res.startswith("HINWEIS"):  # Ersatzstimme: Hash ungueltig, damit sie beim naechsten Mal nachvertont wird
+                    idx[key].update(hash="ersatz", ersatz=res.split(" stattdessen")[0][9:])
                 made += 1
-            lines.append(dict(d, datei=str(f), dauer=idx[key]["dauer"]))
+            lines.append(dict(d, datei=str(f), dauer=idx[key]["dauer"], ersatz=idx[key].get("ersatz", "")))
         out[sc["id"]] = lines
     idx_f.write_text(json.dumps(idx, indent=1), encoding="utf-8")
     return out, made
@@ -735,7 +751,10 @@ def op_voices(root, plan, call):
     ids = _scene_ids(plan, call)
     got, made = voices(root, plan, ids)
     rows = [f"- {sid}: {len(ls)} Zeilen, {sum(x['dauer'] for x in ls):.1f} s Sprache" for sid, ls in got.items()]
-    return f"Stimmen fertig ({made} neu vertont, Rest aus dem Zwischenspeicher) in film/ton/:\n" + "\n".join(rows)
+    ersatz = [x["ersatz"] for ls in got.values() for x in ls if x.get("ersatz")]
+    hint = (f"\nHINWEIS: {len(ersatz)} Zeilen mit lokaler Ersatzstimme, weil: " + "; ".join(sorted(set(ersatz)))
+            + ". Beim naechsten op=voices wird es erneut versucht.") if ersatz else ""
+    return f"Stimmen fertig ({made} neu vertont, Rest aus dem Zwischenspeicher) in film/ton/:\n" + "\n".join(rows) + hint
 
 
 def op_preview(root, plan, call):

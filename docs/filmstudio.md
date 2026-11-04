@@ -15,6 +15,7 @@ Gerendert wird mit **Blender** auf dem Rechner, auf dem Hyperstead läuft (bei d
    ```
 3. ffmpeg und eine Sprachausgabe müssen da sein (siehe [windows.md](windows.md)): `winget install Gyan.FFmpeg`,
    für Stimmen `venv\Scripts\pip install edge-tts` und `TTS_ENGINE=edge` (oder Piper/espeak-ng).
+   Besonders gute Stimmen: `ELEVENLABS_API_KEY` in `.env`, dann bei einer Figur `"stimme": {"engine": "elevenlabs", "voice": "<Stimmen-ID>"}`.
 4. Prüfen: `venv\Scripts\python selftest.py film`. Das rendert ein Vorschaubild und eine 1,5-Sekunden-Szene.
 5. Firma anlegen: Vorlage **🐶 Animationsstudio (Blender)**. Oder einem vorhandenen Agenten das Recht „Medien“ geben.
 

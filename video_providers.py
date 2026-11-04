@@ -697,3 +697,22 @@ def cloud_tts(engine, text, voice, rate, target):
     if r.status_code >= 400:
         raise ToolError(f"{who} antwortet mit HTTP {r.status_code}: " + T._clip(r.text, 300))
     target.write_bytes(r.content)
+
+
+def elevenlabs_voices(lang=None):
+    """Stimmen des ElevenLabs-Kontos (inkl. Standardstimmen) als kurze Liste fuer die Agenten."""
+    key = T._env("ELEVENLABS_API_KEY")
+    if not key:
+        raise ToolError("ElevenLabs ist nicht eingerichtet (ELEVENLABS_API_KEY in .env fehlt). Ohne Key gibt es nur die lokalen Stimmen.")
+    r = requests.get("https://api.elevenlabs.io/v1/voices", headers={"xi-api-key": key}, timeout=60)
+    if r.status_code >= 400:
+        raise ToolError(f"ElevenLabs antwortet mit HTTP {r.status_code}: " + T._clip(r.text, 300))
+    rows = []
+    for v in (r.json() or {}).get("voices") or []:
+        lab = v.get("labels") or {}
+        info = ", ".join(str(lab[k]) for k in ("gender", "age", "accent", "description", "use_case", "language") if lab.get(k))
+        rows.append(f"- {v.get('name', '?')}: {v.get('voice_id', '')}" + (f" ({info})" if info else ""))
+    if not rows:
+        return "Keine Stimmen im ElevenLabs-Konto gefunden."
+    return ("ElevenLabs-Stimmen (voice = ID, alle sprechen mit eleven_multilingual_v2 auch Deutsch/Tuerkisch):\n"
+            + "\n".join(rows[:80]) + ("\n..." if len(rows) > 80 else ""))
