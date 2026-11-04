@@ -122,3 +122,15 @@ def test_welten_grafik_nach_referenzbild():
     # Raumschiff-Spur nur bei aktiver Zusammenarbeit
     routes = html[html.index("function hubCosmosRoutes("):html.index("function hubAlong(")]
     assert "if(T.live) veh.unshift(`<path class=\"sroute\"" in routes
+
+
+def test_welten_bewegung_und_lesbare_namen():
+    """Wunsch ABI: alles dreht sich (auch am Handy und innen), Namen lesbar, keine Firmensymbole, Sonne wächst."""
+    import os
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    moving = html[html.index("function hubMoving("):html.index("function hubTick(")]
+    assert "innerWidth" not in moving
+    assert "HUB.mv.push({rx:r, ry, a0:a" in html[html.index("function hubInsideCosmos("):]
+    assert "var(--lz,1)" in html and "setProperty('--lz'" in html
+    assert 'class="badge"' not in html[html.index("function hubBuilding("):html.index("function hubCity(")]
+    assert "function hubSunR(" in html

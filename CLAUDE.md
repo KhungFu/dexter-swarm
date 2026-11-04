@@ -187,7 +187,7 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
 - UI moderne Ebene (`VIEW='hub'`, `#hubsvg`, `#hubbar` Umschalter 📐 Klassisch = zurueck zu `HUB.back` / `data-hubworld` stadt|kosmos,
   localStorage `hs-hubworld`/`hs-hubback`): `loadFirms` (alle 4,5 s), `drawHub` -> `HUB_DRAW[welt]()` (neue Welt = neuer Eintrag), `hubTeams`
   (Leitung + Abteilungen wie im Weltall). Stadt `hubCity`/`hubBuilding` (isometrisch, Baustil je Firma `hubStyle` turm|buero|zwilling|campus aus `isoBox`, Hoehe nach Stufe, Box nach `HUB.zmax`, Beschriftungen in eigener Ebene obenauf),
-  Kosmos `hubCosmos`/`hubSystem` (Planeten kreisen per rAF nur mit Bewegung und nicht auf dem Handy). Klick -> `hubSelect` -> `#hubcard`
+  Kosmos `hubCosmos`/`hubSystem` (Planeten kreisen per rAF nur mit Bewegung, seit 2026-11-04 auch auf dem Handy mit ~15 fps und im Innern; `HUB.hold` haelt unter Maus/Finger an; Sonne `hubSunR` waechst mit Stufe+Team; keine Firmensymbole (Wunsch ABI); Beschriftungen per CSS-Variable `--lz` aus `applyView` gegen Herauszoomen vergroessert, zweite Zeile per `dy` in em). Klick -> `hubSelect` -> `#hubcard`
   (Leitung/Abteilungen, Name -> `hubOpenFirm` = klassische Ansicht + `selectAgent`). JS steht VOR dem Atom-Abschnitt (Atom-Test verbietet rAF dort).
 - Innen (Phase 2): Klick auf Firma -> `hubEnter(pid, dep, agent)` (`hubZoomTo` faehrt 380 ms hin, dann `HUB.inside`). `hubInsideCity` (Etagen,
   Leitung ganz oben in der Chefetage (Wunsch ABI 2026-11-04), rechts `hubOrgChart`, `data-dep` -1 = Leitung, sonst Index in `hubTeams().deps`) bzw. `hubInsideCosmos` (statisch, damit man trifft). `#hubdeps` Liste,

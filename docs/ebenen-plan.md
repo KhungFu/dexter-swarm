@@ -35,7 +35,7 @@ Eingang (seit 2026-11-04, Wunsch ABI): „Projekte“ ist der Oberpunkt. Links d
   Was du dort änderst, gilt überall.
 - Suche nach Firmen und Agenten, Infofenster beim Auswählen, Zoomen und Verschieben wie bisher.
 - Neue Welten (Inseln, Fabrik, Ökosystem) sollen später nur eine weitere Zeichenfunktion sein (`HUB_WORLDS`).
-- Bewegung nur mit eingeschaltetem „Bewegung“, auf dem Handy ruhig. Jeder neue Knopf hat einen Hilfetext,
+- Bewegung nur mit eingeschaltetem „Bewegung“, auch auf dem Handy (sparsamer) und im geöffneten Sonnensystem. Jeder neue Knopf hat einen Hilfetext,
   die Anleitung ein Kapitel „Alle Firmen“.
 
 ## Was „Zusammenarbeit“ heißt
