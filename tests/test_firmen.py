@@ -53,12 +53,12 @@ def test_projekt_loeschen_entfernt_partnerschaft(client):
 
 
 def test_oberflaeche_stadt_und_kosmos():
-    """Moderne Ebene: Umschalter Klassisch/Stadt/Kosmos mit Hilfetexten, Anleitungskapitel, Zeichnung je Welt."""
+    """Moderne Ebene: Zusammenarbeit/Suche mit Hilfetexten, Anleitungskapitel, Zeichnung je Welt."""
     import os
     import re
     html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
     bar = html[html.index('id="hubbar"'):html.index('id="hubcard"')]
-    for b in ('id="hubClassic"', 'data-hubworld="stadt"', 'data-hubworld="kosmos"'):
+    for b in ('id="hubLink"', 'id="hubOut"', 'id="hubSearch"'):
         assert b in bar
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", bar))
     assert 'data-view="hub"' in html
@@ -107,8 +107,13 @@ def test_projekte_menue_neu_und_ansichten():
     k, m = menu.index(">Klassik<"), menu.index(">Modern<")
     for org in ("baum", "gliederung", "kreis"):
         assert k < menu.index(f'data-org="{org}"') < m
-    for v in ('data-view="world"', 'data-view="atom"', 'data-hubworld="stadt"', 'data-hubworld="kosmos"', 'data-hubworld="molekuel"'):
+    for v in ('data-hubworld="stadt"', 'data-hubworld="kosmos"', 'data-hubworld="molekuel"'):
         assert menu.index(v) > m
+    # Weltall und Molekuel je Projekt sind weg (Wunsch ABI), alte gespeicherte Ansichten fallen auf das Organigramm zurueck
+    assert 'data-view="world"' not in menu and 'data-view="atom"' not in menu
+    assert "if(!['org','plan','hub'].includes(v)) v='org';" in html
+    # moderne Ansicht: die normale obere Leiste bleibt, eigener Welt-Umschalter ist weg
+    assert 'id="hubClassic"' not in html and '#app.view-hub #growth' not in html
 
 
 def test_welten_grafik_nach_referenzbild():
