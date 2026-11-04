@@ -169,3 +169,37 @@ def test_stadt_lichter_und_atom_molekuel():
     assert "function atomLayout(" in atom and 'class="abond"' in atom
     assert "aorbit\" rx" not in atom.split("function atomSky(")[0]  # keine Elektronenbahnen mehr
     assert "requestAnimationFrame" not in atom
+
+
+def test_firmenlogo_hochladen_zeigen_entfernen(client):
+    """Wunsch ABI 2026-11-04: Firmen bekommen ein eigenes Logo (nur PNG/JPEG/WebP, kein SVG), sichtbar in Stadt und Kosmos."""
+    import io
+    pid = make_project("Logo GmbH")
+    png = b"\x89PNG\r\n\x1a\n" + b"\0" * 64
+    assert client.get(f"/api/projects/{pid}/logo").status_code == 404
+    f = next(x for x in client.get("/api/firms").json["firms"] if x["id"] == pid)
+    assert f["logo"] == 0
+    r = client.post(f"/api/projects/{pid}/logo", data={"file": (io.BytesIO(png), "logo.svg")}, content_type="multipart/form-data")
+    assert r.status_code == 200 and r.json["logo"] > 0  # Art kommt aus den Bytes, nicht aus dem Namen
+    assert (A.proj_dir(pid) / ".logo.png").is_file()  # versteckt: Agenten, Webseite und ZIP sehen es nicht
+    g = client.get(f"/api/projects/{pid}/logo")
+    assert g.status_code == 200 and g.mimetype == "image/png" and "sandbox" in g.headers["Content-Security-Policy"]
+    assert next(x for x in client.get("/api/firms").json["firms"] if x["id"] == pid)["logo"] > 0
+    # SVG/HTML und zu grosse Dateien werden abgelehnt
+    bad = client.post(f"/api/projects/{pid}/logo", data={"file": (io.BytesIO(b"<svg onload=alert(1)>"), "x.png")}, content_type="multipart/form-data")
+    assert bad.status_code == 400
+    big = client.post(f"/api/projects/{pid}/logo", data={"file": (io.BytesIO(png + b"\0" * A.LOGO_MAX), "x.png")}, content_type="multipart/form-data")
+    assert big.status_code == 400
+    # Wechsel auf JPEG ersetzt das PNG
+    jpg = b"\xff\xd8\xff\xe0" + b"\0" * 32
+    client.post(f"/api/projects/{pid}/logo", data={"file": (io.BytesIO(jpg), "a.jpg")}, content_type="multipart/form-data")
+    assert client.get(f"/api/projects/{pid}/logo").mimetype == "image/jpeg" and not (A.proj_dir(pid) / ".logo.png").exists()
+    assert client.delete(f"/api/projects/{pid}/logo").json["ok"]
+    assert client.get(f"/api/projects/{pid}/logo").status_code == 404
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    assert html.count("hubLogo(f,") >= 4 and 'id="hubLogoUp"' in html
+
+
+def test_logo_bytes_erkennung():
+    assert A.logo_kind(b"RIFF\0\0\0\0WEBPVP8 ") == "webp"
+    assert A.logo_kind(b"GIF89a") is None and A.logo_kind(b"") is None
