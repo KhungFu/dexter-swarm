@@ -148,7 +148,7 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   `teamsOf` (Team = Wurzel oder Agent mit Unterstellten, members = alle direkt Unterstellten), `sysLayout` (Sonne = Wurzel, Planeten = ihre Kinder,
   bis 5 Planeten je eigene Bahn, sonst geteilte Bahnen; Bahnen als Ellipsen `MAP.TILT`), `systemSvg`/`moonSvg` (Monde = Kinder der Planeten, alle
   tieferen als Mini-Monde `allBelow`), `skySvg` (Sterne/Nebel/Spirale je Stufe, Zufall mit Projekt-ID als Saat). Mehrere Wurzeln = mehrere Sonnen
-  nebeneinander. Eigendrehung: `bands` liefert die Oberflaeche ueber `spinWrap` zweimal nebeneinander in `.spin`, `placeMovers` verschiebt sie (`spinSpeed`, 10–20 s je Drehung, Monde ohne). Bewegung per `requestAnimationFrame` (`orbitTick`/`placeMovers`, Winkel = a0 + Zeit*w, ~25 fps), nur mit Bewegung an, nicht auf
+  nebeneinander. Eigendrehung: `bands` liefert die Oberflaeche ueber `spinWrap` zweimal nebeneinander in `.spin`, `placeMovers` verschiebt sie (`spinSpeed`, 10–20 s je Drehung, Monde ohne). Sonne (`sunSpots` mit `.spin` data-w/data-period), Strahlenkranz und Galaxie-Spirale (`.rot` data-period) sammelt `MAP.spinners`, `placeMovers` bewegt sie mit. Bewegung per `requestAnimationFrame` (`orbitTick`/`placeMovers`, Winkel = a0 + Zeit*w, ~25 fps), nur mit Bewegung an, nicht auf
   dem Handy, haelt bei Maus ueber einem Koerper (`MAP.hold`). `drawMap` baut nur neu, wenn sich `MAP.sig` (Agenten, Zaehler, Stufe, Auswahl) aendert.
   Zustandsringe `agentState` (appr > run > fail > wait). Klick ueber `mapPick`: Sonne/Planet mit Team -> `#bcard`, Mond -> Agent. Handy <=820 px `#wlist`
   (Sonne, Planeten, Monde als eingerueckte Karten). Ansicht `VIEW` world|plan (localStorage `hs-view`).

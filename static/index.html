@@ -1640,7 +1640,7 @@ const HELP=[
 <li><b>Ergebnis abholen:</b> 📬 Post öffnen. „✅ Erledigt“ schließt den Auftrag, „🔁 Überarbeiten…“ schickt ihn mit deinem Hinweis zurück.</li></ul>
 <p>Auf dem Handy öffnet ☰ oben links die Seitenleiste. Die Seitenleiste ist in Kategorien geordnet (📬 Tagesgeschäft, 🤖 Team &amp; KI, 📁 Dateien &amp; Verbindungen, 📊 Auswertung): Antippen klappt eine Kategorie auf oder zu, das Gerät merkt sich das. Ein farbiger Punkt an einer zugeklappten Kategorie heißt: darin wartet etwas (z. B. neue Post).</p>`},
  {id:'welt',t:'🌌 Weltall und Wachstum',h:`<p>Jedes Projekt ist ein kleines Universum, das mit seinen Erfolgen wächst: vom ☄️ Asteroiden über 🪐 Planet, ☀️ Sonnensystem und ✨ Sternhaufen bis zur 🌌 Galaxie. Oben in der Leiste siehst du Stufe, Sternenstaub (Punkte) und den Fortschritt bis zur nächsten Stufe.</p>
-<ul><li><b>Sonnensystem:</b> Die <b>Sonne</b> ist die oberste Leitung (z. B. der CEO). Die <b>Planeten</b> kreisen um sie und drehen sich dabei um die eigene Achse: das sind die Abteilungen bzw. Vorarbeiter. Um jeden Planeten kreisen seine <b>Monde</b>, die Mitarbeiter. Wer noch tiefer steht, ist ein kleiner Mond am Mond. Das Weltall ändert nur das Aussehen, nie die Arbeit der Agenten.</li>
+<ul><li><b>Sonnensystem:</b> Die <b>Sonne</b> ist die oberste Leitung (z. B. der CEO); sie dreht sich langsam um die eigene Achse, ihr Strahlenkranz kreist mit. Die <b>Planeten</b> kreisen um sie und drehen sich dabei um die eigene Achse: das sind die Abteilungen bzw. Vorarbeiter. Um jeden Planeten kreisen seine <b>Monde</b>, die Mitarbeiter. Wer noch tiefer steht, ist ein kleiner Mond am Mond. Das Weltall ändert nur das Aussehen, nie die Arbeit der Agenten.</li>
 <li><b>Punkte:</b> Lieferung beim ersten Mal abgenommen +10, nach Überarbeitung +5, Auftrag in der Post erledigt +20, fehlgeschlagen −3, Nacharbeit angefordert −5.</li>
 <li><b>Stufen:</b> ab 0, 100, 300, 700 und 1500 Punkten. Die Stufe begrenzt nur, wie viele Agenten die Führung <i>selbst</i> anwirbt. Du kannst immer alles von Hand anlegen. Abschalten unter ⓘ in der Leiste.</li>
 <li><b>Ränge:</b> Agenten steigen nach ihren eigenen abgenommenen Lieferungen auf (ab 5, 20, 60).</li>
@@ -2069,13 +2069,14 @@ function systemSvg(root, L, cx, cy, t, tIdx){
   }));
   return `<g transform="translate(${cx},${cy})">${out.join('')}${sun}${planets.join('')}</g>`;
 }
-function sunRays(r, seed){ const R=rnd(seed*13); let h='';
+function sunRays(r, seed){ const R=rnd(seed*13); let h='';  // Strahlenkranz dreht sich langsam (.rot)
   for(let i=0;i<28;i++){ const a=i/28*2*Math.PI+R()*.1, l=r*(1.25+R()*.9); h+=`<line x1="${(Math.cos(a)*r*.95).toFixed(1)}" y1="${(Math.sin(a)*r*.95).toFixed(1)}" x2="${(Math.cos(a)*l).toFixed(1)}" y2="${(Math.sin(a)*l).toFixed(1)}" stroke="#ffe7a8" stroke-opacity="${(.06+R()*.1).toFixed(2)}" stroke-width="${(1+R()*2.5).toFixed(1)}" stroke-linecap="round"/>`; }
-  return `<g class="rays">${h}</g>`; }
-function sunSpots(r, seed){ const R=rnd(seed*7); let h='';
-  for(let i=0;i<60;i++){ const a=R()*2*Math.PI, d=Math.sqrt(R())*r*.92; h+=`<circle cx="${(Math.cos(a)*d).toFixed(1)}" cy="${(Math.sin(a)*d).toFixed(1)}" r="${(r*(.03+R()*.05)).toFixed(1)}" fill="#f59e0b" opacity="${(.08+R()*.12).toFixed(2)}"/>`; }
-  for(let i=0;i<2;i++){ const a=R()*2*Math.PI, d=R()*r*.6; h+=`<circle cx="${(Math.cos(a)*d).toFixed(1)}" cy="${(Math.sin(a)*d).toFixed(1)}" r="${(r*.05).toFixed(1)}" fill="#7c2d12" opacity=".35"/>`; }
-  return h; }
+  return `<g class="rays rot" data-period="120">${h}</g>`; }
+function sunSpots(r, seed){ const R=rnd(seed*7); let h='';  // Flecken zweimal nebeneinander, .spin wandert = Sonne dreht sich um die eigene Achse
+  for(let i=0;i<70;i++){ const x=(R()-.5)*2*r, y=(R()-.5)*1.9*r; h+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r*(.03+R()*.05)).toFixed(1)}" fill="#f59e0b" opacity="${(.08+R()*.12).toFixed(2)}"/>`; }
+  for(let i=0;i<3;i++){ const x=(R()-.5)*2*r, y=(R()-.5)*1.1*r; h+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r*.05).toFixed(1)}" fill="#7c2d12" opacity=".35"/>`; }
+  const id='cS'+seed;
+  return `<g clip-path="url(#${id})"><clipPath id="${id}"><circle r="${r}"/></clipPath><g class="spin" data-w="${(2*r).toFixed(1)}" data-period="40">${h}<g transform="translate(${(2*r).toFixed(1)},0)">${h}</g></g></g>`; }
 function asteroidBelt(L, seed){  // Guertel zwischen zweiter und dritter Bahn (oder ausserhalb der ersten)
   if(!L.orbits.length) return ''; const o=L.orbits[Math.min(1,L.orbits.length-1)], R0=o.R+o.ext+18, R=rnd(seed*101); let h='';
   for(let i=0;i<220;i++){ const a=R()*2*Math.PI, d=R0+(R()-.5)*26; h+=`<circle cx="${(Math.cos(a)*d).toFixed(1)}" cy="${(Math.sin(a)*d*MAP.TILT).toFixed(1)}" r="${(.4+R()*1.3).toFixed(1)}" fill="${R()>.5?'#9c8f80':'#6f6a64'}" opacity="${(.35+R()*.45).toFixed(2)}"/>`; }
@@ -2108,8 +2109,10 @@ function skySvg(b, stage, cx, cy){
   // Milchstrassen-Band quer ueber den Himmel
   out.push(`<ellipse class="milky" cx="${cx}" cy="${cy}" rx="${(Math.max(W,H)*.75).toFixed(0)}" ry="${(Math.min(W,H)*.14).toFixed(0)}" fill="#b9c4dd" transform="rotate(-24 ${cx} ${cy})"/>`);
   if(stage>=4){ // Spiralgalaxie im Hintergrund
-    for(let arm=0;arm<2;arm++) for(let i=0;i<160;i++){ const th=i*0.07, rr=40+i*Math.max(W,H)/330, a=th+arm*Math.PI;
-      out.push(`<circle class="gstar" cx="${(cx+rr*Math.cos(a)+(R()-.5)*30).toFixed(0)}" cy="${(cy+rr*Math.sin(a)*.55+(R()-.5)*30).toFixed(0)}" r="${(R()*1.2+.3).toFixed(1)}"/>`); }
+    const gs=[]; for(let arm=0;arm<2;arm++) for(let i=0;i<160;i++){ const th=i*0.07, rr=40+i*Math.max(W,H)/330, a=th+arm*Math.PI;
+      gs.push(`<circle class="gstar" cx="${(rr*Math.cos(a)+(R()-.5)*30).toFixed(0)}" cy="${(rr*Math.sin(a)+(R()-.5)*50).toFixed(0)}" r="${(R()*1.2+.3).toFixed(1)}"/>`); }
+    // flach geneigte Scheibe: innen drehen (.rot, in placeMovers), aussen stauchen
+    out.push(`<g transform="translate(${cx} ${cy}) scale(1 .55)"><g class="rot" data-period="-300">${gs.join('')}</g></g>`);
   }
   if(stage>=3){ const cols=['#3b4a8a','#5b3d6e','#2c5a66'];
     for(let i=0;i<3;i++) out.push(`<ellipse cx="${(b.x0+W*(.2+.3*i)).toFixed(0)}" cy="${(b.y0+H*(.3+.2*(i%2))).toFixed(0)}" rx="${(W*.28).toFixed(0)}" ry="${(H*.2).toFixed(0)}" fill="${cols[i]}" class="nebula"/>`); }
@@ -2148,6 +2151,7 @@ function drawMap(){
     MAP.box = i ? {x0:MAP.box.x0, x1:x-40, y0:Math.min(MAP.box.y0,-L.extY), y1:Math.max(MAP.box.y1,L.extY)} : {x0:-L.ext, x1:L.ext, y0:-L.extY, y1:L.extY}; });
   const b=MAP.box, pad=60, sky={x0:b.x0-pad*4, x1:b.x1+pad*4, y0:b.y0-pad*3, y1:b.y1+pad*3};
   svg.innerHTML = `${mapDefs()}<g>${skySvg(sky, stage, 0, 0)}</g>${parts.join('')}`;
+  MAP.spinners = [...svg.querySelectorAll('.sun .spin, .rot')].map(el=>({el, p:+el.dataset.period||60, w:+el.dataset.w||0}));
   MAP.movers = [...svg.querySelectorAll('.mv')].map((el,i)=>({el, ...MAP.mv[i], shade: MAP.mv[i]&&MAP.mv[i].sh ? el.querySelector(':scope > .body > .shade') : null, spin: MAP.mv[i]&&MAP.mv[i].sw ? el.querySelector(':scope > .body .spin') : null}));
   // Handy: Liste statt Karte (Sonne, darunter je Planet mit seinen Monden)
   $('#wlist').innerHTML = teams.map(tm=>{ const st=teamState(tm), lvl=!tm.parent?'sun':!tm.parent.parent?'planet':'moon';
@@ -2159,10 +2163,12 @@ function drawMap(){
         return `<button data-agent="${a.id}" class="st-${s}" title="${esc(a.name)}: ${STATE_TEXT[s]}">${k?sym:(lvl==='sun'?'☀️ ':lvl==='planet'?'🪐 ':'🌙 ')}${r?r.icon+' ':''}${esc(a.name)}${s==='run'?' ▶':s==='appr'?' ✋':s==='fail'?' 🔧':''}${a.paused?' ⏸':''}</button>`; }).join('')}</div></div>`; }).join('');
   startOrbit();
 }
-function placeMovers(t){ for(const m of MAP.movers){ const a=m.a0+t*m.w; m.el.setAttribute('transform',`translate(${(m.r*Math.cos(a)).toFixed(1)},${(m.r*Math.sin(a)*(m.k||1)).toFixed(1)})`); if(m.shade) m.shade.setAttribute('transform',`rotate(${shadeDeg(a).toFixed(0)})`); if(m.spin) m.spin.setAttribute('transform',`translate(${(-((t*m.sv)%m.sw)).toFixed(1)},0)`); } }
+function placeMovers(t){
+  for(const d of MAP.spinners||[]) d.el.setAttribute('transform', d.w ? `translate(${(-((t*d.w/d.p)%d.w)).toFixed(1)},0)` : `rotate(${((t*360/d.p)%360).toFixed(2)})`);
+  for(const m of MAP.movers){ const a=m.a0+t*m.w; m.el.setAttribute('transform',`translate(${(m.r*Math.cos(a)).toFixed(1)},${(m.r*Math.sin(a)*(m.k||1)).toFixed(1)})`); if(m.shade) m.shade.setAttribute('transform',`rotate(${shadeDeg(a).toFixed(0)})`); if(m.spin) m.spin.setAttribute('transform',`translate(${(-((t*m.sv)%m.sw)).toFixed(1)},0)`); } }
 function orbitTick(now){
   MAP.raf=0;
-  if(VIEW!=='world' || !MAP.movers.length || document.hidden || motionOff() || $('#app').classList.contains('narrow')) return;
+  if(VIEW!=='world' || !(MAP.movers.length || (MAP.spinners||[]).length) || document.hidden || motionOff() || $('#app').classList.contains('narrow')) return;
   if(MAP.hold){ MAP.off=(MAP.off||0)+(now-(MAP.last||now)); MAP.last=now; }  // Maus auf einem Himmelskoerper: alles haelt an, damit man ihn treffen kann
   else if(now-MAP.last>40){ MAP.off=MAP.off||0; MAP.last=now; placeMovers((now-MAP.off)/1000); }
   MAP.raf=requestAnimationFrame(orbitTick);

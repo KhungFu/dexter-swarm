@@ -94,3 +94,11 @@ def test_planeten_drehen_sich_um_die_eigene_achse():
     assert "function spinWrap(" in HTML and 'class="spin"' in HTML
     place = HTML[HTML.index("function placeMovers("):HTML.index("function orbitTick(")]
     assert "m.spin" in place
+
+
+def test_sonne_und_galaxie_drehen_sich():
+    spots = HTML[HTML.index("function sunSpots("):HTML.index("function asteroidBelt(")]
+    assert 'class="spin"' in spots
+    assert 'class="rays rot"' in HTML and 'class="rot" data-period' in HTML
+    place = HTML[HTML.index("function placeMovers("):HTML.index("function orbitTick(")]
+    assert "MAP.spinners" in place
