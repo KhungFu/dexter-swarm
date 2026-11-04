@@ -601,6 +601,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
         <summary title="Projektdateien, Cloud-Upload und Webhooks (antippen zum Auf- und Zuklappen)">📁 Dateien &amp; Verbindungen<span class="grp-dot" aria-hidden="true"></span></summary>
         <button class="side-btn" id="btnFiles">📁 Dateien dieses Projekts</button>
         <button class="side-btn" id="btnCloud" title="GitHub, Google Drive, OneDrive und Telegram: wohin Dateien hochgeladen werden">☁️ Cloud</button>
+        <button class="side-btn" id="btnPrint" title="Drucker für die Abendberichte wählen und Drucken erlauben oder sperren">🖨 Drucker</button>
         <button class="side-btn" id="btnConn" title="Webhooks: Agenten rufen deine Dienste auf, Aufträge kommen von außen">🔌 Verbindungen</button>
       </details>
       <details class="side-grp" data-grp="auswertung">
@@ -1106,6 +1107,7 @@ function drawSettings(a){
     <div class="chk"><input type="checkbox" id="p_publish" ${pm.publish?'checked':''}><div>Darf die Webseite zur Veröffentlichung vorschlagen<small>„veröffentlichen“ legt dir eine Freigabe vor; erst nach deinem Klick geht der Ordner www/ des Projekts online</small></div></div>
     <div class="chk"><input type="checkbox" id="p_connect" ${pm.connect?'checked':''}><div>Darf Verbindungen nutzen<small>Webhooks aus 🔌 Verbindungen aufrufen (n8n, Zapier, eigene Dienste); Verbindungen mit Freigabe laufen erst nach deinem Klick</small></div></div>
     <div class="chk"><input type="checkbox" id="p_upload" ${pm.upload?'checked':''}><div>Darf in die Cloud hochladen<small>Fertige Dateien zu GitHub, Google Drive, OneDrive oder per Telegram an dich (eingerichtet unter ☁️ Cloud). Jeder Upload wartet auf deine Freigabe</small></div></div>
+    ${a.parent_id?'':`<div class="chk"><input type="checkbox" id="p_print" ${pm.print?'checked':''}><div>Darf Abendberichte drucken (CEO)<small>Erlaubt oder sperrt den Knopf 🖨 Drucken bei den Abendberichten dieses Projekts. Drucker wählen unter 🖨 Drucker</small></div></div>`}
     <div class="chk"><input type="checkbox" id="p_werkstatt" ${pm.werkstatt?'checked':''} ${S.info.werkstatt?'':'disabled'}><div>Werkstatt: arbeitet wie an einem echten Rechner<small>${S.info.werkstatt?'Führt Befehle im Projektordner aus (Claude und Codex mit ihren eigenen Werkzeugen) und beantragt fehlende Programme. Jeder Antrag geht über den CEO an dich (Web oder Telegram).':'auf dem Server aus (PCL_ALLOW_WERKSTATT=1 in .env)'}</small>
       <select id="p_wstufe" style="margin-top:6px;max-width:100%" ${S.info.werkstatt?'':'disabled'}>
         <option value="1" ${pm.werkstatt_stufe==1?'selected':''}>Stufe 1 · vorsichtig (jeder Befehl fragt)</option>
@@ -1154,7 +1156,7 @@ function drawSettings(a){
   $('#saveAg').onclick=async()=>{
     const body={name:$('#f_name').value.trim()||'Agent',role:$('#f_role').value,...($('#f_prov').value?{provider:$('#f_prov').value}:{}),model:$('#f_model').value.trim(),
       system_prompt:$('#f_sys').value,...($('#f_mem').value!==(a.memory||'')?{memory:$('#f_mem').value}:{}),paused:$('#f_pause').checked,
-      perms:{delegate:$('#p_delegate').checked,judge:$('#p_judge').checked,auto_run:$('#p_auto').checked,write_files:$('#p_files').checked,web:$('#p_web').checked,media:$('#p_media').checked,images:$('#p_images').checked,read_files:$('#p_read').checked,recruit:$('#p_recruit').checked,publish:$('#p_publish').checked,code:$('#p_code').checked,run_code:$('#p_run_code').checked,connect:$('#p_connect').checked,upload:$('#p_upload').checked,shell:$('#p_shell').checked,werkstatt:$('#p_werkstatt').checked,werkstatt_stufe:+$('#p_wstufe').value}};
+      perms:{delegate:$('#p_delegate').checked,judge:$('#p_judge').checked,auto_run:$('#p_auto').checked,write_files:$('#p_files').checked,web:$('#p_web').checked,media:$('#p_media').checked,images:$('#p_images').checked,read_files:$('#p_read').checked,recruit:$('#p_recruit').checked,publish:$('#p_publish').checked,code:$('#p_code').checked,run_code:$('#p_run_code').checked,connect:$('#p_connect').checked,upload:$('#p_upload').checked,shell:$('#p_shell').checked,werkstatt:$('#p_werkstatt').checked,werkstatt_stufe:+$('#p_wstufe').value,...($('#p_print')?{print:$('#p_print').checked}:{})}};
     if($('#cliwrap').style.display!=='none') body.cli_command=$('#f_cli').value;
     const np=$('#f_parent').value; body.parent_id=np?+np:null;
     await api('/agents/'+a.id,'PUT',body); toast('Gespeichert'); $('#toast').style.borderColor='var(--green)';
@@ -1274,6 +1276,7 @@ async function loadTasks(){
       <div class="tb">
         ${t.description?`<div style="color:var(--mute);font-size:12px;white-space:pre-wrap">${esc(t.description)}</div>`:''}
         ${t.result?resHtml(t.result):''}
+        ${t.report&&t.result?`<div class="row" style="margin-top:6px"><button class="btn sm" data-prn="${t.id}" title="Diesen Abendbericht auf dem gewählten Drucker ausdrucken (mit Rückfrage)">🖨 Drucken</button></div>`:''}
         ${(t.children&&t.children.length)?`<div class="tlabel">Team-Arbeit</div><div class="tree">${treeHtml(t.children)}</div>`:''}
         <div class="row" style="margin-top:6px">
           ${['todo','failed','blocked','done'].includes(t.status)?`<button class="btn sm pri" data-run="${t.id}" data-kids="${(t.children&&t.children.length)?1:0}">▶ ${t.status==='done'?'Nochmal':'Starten'}</button>`:''}
@@ -1498,6 +1501,7 @@ $('#btnInbox').onclick=()=>{
         <div class="row">
           ${r.inbox==='new'?`<button class="btn pri sm" data-ok="${r.id}">✅ Erledigt</button>`:''}
           ${['done','failed','blocked'].includes(r.status)?`<button class="btn sm" data-rw="${r.id}">🔁 Überarbeiten…</button>`:''}
+          ${r.report&&r.result?`<button class="btn sm" data-prn="${r.id}" title="Diesen Abendbericht auf dem gewählten Drucker ausdrucken (mit Rückfrage)">🖨 Drucken</button>`:''}
         </div>
       </div>`).join(''):'<div style="color:var(--mute)">Keine Post. Wenn ein Chef einen Auftrag abschließt, erscheint er hier.</div>');
     body.querySelectorAll('[data-ok]').forEach(b=>b.onclick=async()=>{ await api('/inbox/'+b.dataset.ok+'/close','POST',{}); await load(); refresh(true); });
@@ -1643,6 +1647,39 @@ async function showCloud(){
   Object.entries(r.services).forEach(([k,s])=>{ if(s.pending&&s.pending.state==='pending') watch(k); });
 }
 $('#btnCloud').onclick=showCloud;
+
+/* ---------- Drucker (Abendberichte) ---------- */
+async function showPrinters(){
+  if(!S.pid){ toast('Erst ein Projekt wählen.'); return; }
+  openOv('🖨 Drucker'); const body=$('#ovbody'); body.innerHTML='<div style="color:var(--mute)">Suche Drucker …</div>';
+  const r=await api('/printers?pid='+S.pid);
+  const opts=r.printers.map(n=>`<option value="${esc(n)}" ${n===r.selected?'selected':''}>${esc(n)}</option>`).join('');
+  body.innerHTML=`
+    <div style="color:var(--mute);font-size:12px;margin-bottom:8px">Abendberichte (Ergebnis des 👑 CEO-Kontrollgangs) bekommen in der 📬 Post und in den Aufgaben einen Knopf 🖨 Drucken. Gedruckt wird erst nach deiner Bestätigung. ${r.system==='windows'?'Windows: freigegebene Drucker erst unter Einstellungen › Drucker &amp; Scanner verbinden.':'Pi/Linux: Netzwerkdrucker in CUPS einrichten (docs/drucken.md).'}</div>
+    ${r.error?`<div class="task" style="padding:8px;margin-bottom:8px;border-color:var(--warn,#c90)">⚠ ${esc(r.error)}</div>`:''}
+    <label>Drucker</label>
+    <select id="pr_sel"><option value="">– keiner –</option>${opts}</select>
+    <small style="color:var(--mute);display:block;margin-top:4px">„${esc(r.test)}“ druckt nicht, sondern speichert den Ausdruck als Textdatei (workspace/.druck/). Gut zum Ausprobieren.</small>
+    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Diesen Drucker für alle Abendberichte verwenden">Speichern</button><button class="btn sm" id="pr_reload" title="Druckerliste neu vom System holen">↻ Neu suchen</button></div>
+    <div class="task" style="padding:10px;margin-top:12px">
+      <b>Drucken in diesem Projekt: ${r.allowed?'✅ erlaubt':'⛔ gesperrt'}</b>
+      <div style="color:var(--mute);font-size:12px;margin:4px 0 8px">${r.ceo?'Entscheidet '+esc(r.ceo.name)+' als CEO (Recht „Darf Abendberichte drucken“).':'Das Projekt hat noch keinen CEO.'}</div>
+      ${r.ceo?`<button class="btn sm ${r.allowed?'danger':'pri'}" id="pr_allow" title="Recht des CEO: Abendberichte dürfen gedruckt werden oder nicht">${r.allowed?'⛔ Drucken sperren':'✅ Drucken erlauben'}</button>`:''}
+    </div>`;
+  $('#pr_save').onclick=async()=>{ await api('/printers','PUT',{printer:$('#pr_sel').value}); toast('Drucker gespeichert'); };
+  $('#pr_reload').onclick=showPrinters;
+  if($('#pr_allow')) $('#pr_allow').onclick=async()=>{ await api('/projects/'+S.pid+'/print','PUT',{allowed:!r.allowed}); toast(r.allowed?'Drucken gesperrt':'Drucken erlaubt'); showPrinters(); };
+}
+$('#btnPrint').onclick=showPrinters;
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-prn]'); if(!b) return; e.preventDefault(); e.stopPropagation();
+  const r=await api('/printers'+(S.pid?'?pid='+S.pid:''));
+  if(!r.selected){ toast('Erst einen Drucker wählen.'); showPrinters(); return; }
+  if(!confirm('Abendbericht #'+b.dataset.prn+' jetzt auf „'+r.selected+'“ drucken?')) return;
+  b.disabled=true;
+  try{ const x=await api('/tasks/'+b.dataset.prn+'/print','POST',{confirm:true}); toast('🖨 '+x.message); }catch(_){}
+  b.disabled=false;
+});
 
 async function cloudUpload(path){
   const r=await api('/projects/'+S.pid+'/cloud');
@@ -1895,6 +1932,7 @@ const HELP=[
 <li><b>📜 Verlauf:</b> jedes Ereignis wird protokolliert und nie gelöscht.</li></ul>`},
  {id:'dateien',t:'📁 Dateien, Cloud und Verbindungen',h:`<ul><li><b>📁 Dateien:</b> alles, was die Agenten erzeugt haben. Antippen öffnet, „⬇ Alles als ZIP“ lädt das Projekt herunter. Hochgeladene Dateien landen in <code>input/</code>.</li>
 <li><b>Webseite veröffentlichen:</b> Liegt <code>www/index.html</code> im Projekt, kann Hyperstead sie als Webseite ausliefern („Veröffentlichen“).</li>
+<li><b>🖨 Drucker:</b> Drucker für die Abendberichte wählen (Netzwerkdrucker über CUPS bzw. Windows). Der CEO erlaubt oder sperrt das Drucken. Bei jedem Abendbericht steht dann 🖨 Drucken, gedruckt wird nach deiner Bestätigung.</li>
 <li><b>☁️ Cloud:</b> GitHub, Google Drive, OneDrive und Telegram einrichten. Jeder Upload eines Agenten wartet auf deine Freigabe. ☁️ neben einer Datei lädt sie selbst hoch.</li>
 <li><b>🔌 Verbindungen:</b> Webhooks. Agenten mit dem Recht „Verbindungen“ dürfen deine eingetragenen Adressen aufrufen (z. B. Zapier, Home Assistant), Hyperstead meldet neue Post an einen Dienst, oder andere Programme schicken über eine geheime Eingangsadresse Aufträge herein. Ohne Eintrag passiert nichts.</li></ul>`},
  {id:'stimmen',t:'🎙 Stimmen und ElevenLabs',h:`<p>Agenten mit dem Recht „Medien“ können Texte sprechen lassen (Werkzeug <code>speak</code>) und Filmfiguren vertonen. Normal läuft das kostenlos auf deinem Gerät (Piper, espeak-ng oder Edge-Stimmen).</p>

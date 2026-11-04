@@ -30,6 +30,7 @@ from urllib.parse import quote
 import requests
 import agent_tools as tools
 import cloud_upload as cloud
+import printing
 import werkstatt as W
 import company_templates
 import growth as G
@@ -216,7 +217,8 @@ PROVIDERS = {
 # recruit    = stellt anhand des Auftrags selbst ein Team zusammen (legt Mitarbeiter ohne KI an; der Besitzer weist KI/Modell zu)
 DEFAULT_PERMS = {"delegate": False, "judge": False, "auto_run": True, "write_files": False, "shell": False,
                  "web": True, "images": True, "read_files": True, "media": True, "recruit": False, "publish": False, "code": False, "connect": False, "run_code": False, "upload": False,
-                 "werkstatt": False}
+                 "werkstatt": False, "print": False}
+# print      = nur beim CEO (oberster Chef) wirksam: Abendberichte dieses Projekts duerfen gedruckt werden (sonst gesperrt)
 # werkstatt  = arbeitet mit echten Befehlen im Projektordner und beantragt fehlende Programme (Antrag -> CEO -> Besitzer); Stufe 1-3 je Agent
 # code       = Programmieren: Quellcode jeder Sprache schreiben und pruefen/kompilieren (ohne Ausfuehrung)
 # upload     = darf Dateien in die Cloud des Besitzers / per Telegram schicken (immer mit Freigabe)
@@ -4005,6 +4007,7 @@ def api_agent_del(aid):
 def api_tasks(aid):
     rows = q("SELECT * FROM tasks WHERE agent_id=? ORDER BY id DESC LIMIT 100", (aid,))
     for r in rows:
+        r["report"] = is_evening_report(r)
         r["children"] = task_tree(r["id"])  # Team-Arbeit unter dieser Aufgabe (rekursiv ueber alle Ebenen)
     return jsonify(rows)
 
@@ -4089,6 +4092,96 @@ def api_hours_put(pid):
 @app.get("/api/projects/<int:pid>/report")
 def api_report(pid):
     return jsonify({"report": inspection_report(pid)})
+
+
+# ------------------------------------------------------- Drucken (Abendberichte)
+REPORT_HEAD = "STATUSBERICHT (vom System erzeugt"
+
+
+def ceo_of(pid):
+    """Der CEO: oberster Agent mit den meisten direkten Mitarbeitern (wie beim Kontrollgang in der Oberflaeche)."""
+    roots = q("SELECT * FROM agents WHERE project_id=? AND parent_id IS NULL ORDER BY id", (pid,))
+    if not roots:
+        return None
+    cnt = {r["id"]: q1("SELECT COUNT(*) c FROM agents WHERE parent_id=?", (r["id"],))["c"] for r in roots}
+    return max(roots, key=lambda r: (cnt[r["id"]], -r["id"]))
+
+
+def print_allowed(pid):
+    a = ceo_of(pid)
+    return bool(a and perms_of(a).get("print"))
+
+
+def is_evening_report(t):
+    """Abendbericht = Ergebnis eines Kontrollgangs (Zeitplan-Art 'inspect', Beschreibung beginnt mit dem Statusbericht)."""
+    return bool(t) and t.get("parent_task_id") is None and (t.get("description") or "").startswith(REPORT_HEAD)
+
+
+def report_print_text(t):
+    p = q1("SELECT name FROM projects WHERE id=?", (t["project_id"],)) or {"name": "?"}
+    a = q1("SELECT name FROM agents WHERE id=?", (t["agent_id"],)) or {"name": "?"}
+    when = time.strftime("%d.%m.%Y %H:%M", time.localtime(t.get("updated") or time.time()))
+    head = f"ABENDBERICHT  -  {p['name']}\n{when}  -  {a['name']}  -  Auftrag #{t['id']}\n" + "=" * 60
+    return f"{head}\n\n{(t.get('result') or '(leer)').strip()}\n"
+
+
+@app.get("/api/printers")
+def api_printers():
+    names, err = printing.list_printers()
+    pid = request.args.get("pid", type=int)
+    out = {"printers": names, "error": err, "selected": get_setting("printer", ""), "test": printing.TEST_PRINTER,
+           "system": "windows" if printing.is_windows() else "cups"}
+    if pid:
+        ceo = ceo_of(pid)
+        out.update(allowed=print_allowed(pid), ceo={"id": ceo["id"], "name": ceo["name"]} if ceo else None)
+    return jsonify(out)
+
+
+@app.put("/api/printers")
+def api_printers_set():
+    name = str((request.get_json(force=True) or {}).get("printer", "")).strip()
+    if name and not printing.valid_name(name):
+        abort(400, "Ungültiger Druckername.")
+    set_setting("printer", name)
+    log("printer_set", name or "(keiner)")
+    return jsonify({"ok": True})
+
+
+@app.put("/api/projects/<int:pid>/print")
+def api_print_allow(pid):
+    """Drucken erlauben/sperren = Recht 'print' des CEO."""
+    ceo = ceo_of(pid)
+    if not ceo:
+        abort(400, "Dieses Projekt hat noch keinen CEO.")
+    allow = bool((request.get_json(force=True) or {}).get("allowed"))
+    p = json.loads(ceo.get("perms") or "{}")
+    p["print"] = allow
+    ex("UPDATE agents SET perms=? WHERE id=?", (json.dumps(p), ceo["id"]))
+    log("print_allowed" if allow else "print_blocked", ceo["name"], pid, ceo["id"])
+    return jsonify({"ok": True, "allowed": allow})
+
+
+@app.post("/api/tasks/<int:tid>/print")
+def api_task_print(tid):
+    d = request.get_json(force=True) or {}
+    if d.get("confirm") is not True:  # gedruckt wird nur nach Bestaetigung im Dialog
+        abort(400, "Drucken braucht eine Bestätigung.")
+    t = q1("SELECT * FROM tasks WHERE id=?", (tid,))
+    if not is_evening_report(t):
+        abort(400, "Nur Abendberichte (Kontrollgang) können gedruckt werden.")
+    if not (t.get("result") or "").strip():
+        abort(400, "Der Abendbericht ist noch leer.")
+    if not print_allowed(t["project_id"]):
+        ceo = ceo_of(t["project_id"])
+        abort(400, f"Drucken ist gesperrt. Erlauben: beim CEO{' ' + ceo['name'] if ceo else ''} das Recht „Darf Abendberichte drucken“ setzen.")
+    printer = get_setting("printer", "")
+    if not printer:
+        abort(400, "Noch kein Drucker gewählt (🖨 Drucker in der Seitenleiste).")
+    ok, msg = printing.print_text(printer, f"Abendbericht #{tid}", report_print_text(t), WORKSPACE / ".druck")
+    log("print" if ok else "print_failed", f"Abendbericht #{tid} -> {printer}: {msg}"[:400], t["project_id"], t["agent_id"], tid)
+    if not ok:
+        abort(400, msg)
+    return jsonify({"ok": True, "message": msg, "printer": printer})
 
 
 @app.get("/api/projects/<int:pid>/schedules")
@@ -4575,13 +4668,15 @@ def approval_add_result(tid, add):
 @app.get("/api/inbox")
 def api_inbox():
     rows = q("""SELECT t.id, t.title, t.status, t.result, t.inbox, t.updated, t.rounds, a.name AS agent_name,
-                       p.name AS project_name, t.project_id, t.agent_id
+                       p.name AS project_name, t.project_id, t.agent_id, t.parent_task_id, t.description
                 FROM tasks t LEFT JOIN agents a ON a.id=t.agent_id LEFT JOIN projects p ON p.id=t.project_id
                 WHERE t.parent_task_id IS NULL AND t.inbox IN ('new','closed')
                 ORDER BY (t.inbox='new') DESC, t.updated DESC LIMIT 40""")
     for r in rows:
         r["result"] = clip(r["result"], 20000)
         r["team"], r["revisions"] = team_stats(r["id"])
+        r["report"] = is_evening_report(r)
+        r.pop("description", None)
     return jsonify(rows)
 
 

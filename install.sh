@@ -7,13 +7,14 @@
 #   ./install.sh --code     -> Compiler/Pruefer fuer das Recht "Programmieren" per apt installieren (sudo, ca. 1,5 GB)
 #   ./install.sh --browser  -> echter Browser (Chromium ueber Playwright) fuer Seiten mit JavaScript (ca. 400 MB)
 #   ./install.sh --run      -> bubblewrap fuer das Recht "Code ausfuehren" (abgeschottet, ohne Internet)
-#   ./install.sh --all      -> alles oben zusammen (system + code + piper + browser + run + service)
+#   ./install.sh --print    -> CUPS-Programme (lp, lpstat) zum Drucken der Abendberichte auf einem Netzwerkdrucker
+#   ./install.sh --all      -> alles oben zusammen (system + code + piper + browser + run + print + service)
 #   Optionen sind kombinierbar. Danach pruefen:  ./venv/bin/python selftest.py
 set -euo pipefail
 cd "$(dirname "$0")"
 DIR="$(pwd)"
 OPT=" $* "
-case "$OPT" in *" --all "*) OPT="$OPT --system --code --piper --browser --run --service ";; esac
+case "$OPT" in *" --all "*) OPT="$OPT --system --code --piper --browser --run --print --service ";; esac
 has() { case "$OPT" in *" $1 "*) return 0;; esac; return 1; }
 
 command -v python3 >/dev/null || { echo "python3 fehlt: sudo apt install python3 python3-venv"; exit 1; }
@@ -52,6 +53,16 @@ if [ -n "$CMISS" ]; then
     sudo apt-get update -qq && sudo apt-get install -y $CMISS
   else
     echo "Fuer das Recht 'Programmieren' (Code pruefen/kompilieren) fehlen:$CMISS  -> ./install.sh --code"
+  fi
+fi
+
+# Drucken der Abendberichte (Knopf 🖨 Drucken): CUPS-Befehle lp/lpstat
+if ! command -v lp >/dev/null; then
+  if has --print; then
+    sudo apt-get update -qq && sudo apt-get install -y cups cups-client
+    echo "Netzwerkdrucker einrichten: siehe docs/drucken.md (z. B. sudo lpadmin -p Buero -E -v ipp://DRUCKER-IP/ipp/print -m everywhere)"
+  else
+    echo "Zum Drucken der Abendberichte fehlt CUPS  -> ./install.sh --print"
   fi
 fi
 

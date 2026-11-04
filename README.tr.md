@@ -215,6 +215,7 @@ Bu liste programda her değişiklikle genişletilir. Her satır sistemin ne yapt
 | CEO'nun çıkarmak veya değiştirmek istediği çalışan | Ad ekibinde yoksa (yazım hatası, başka ekip, zaten çıkarılmış) talimat atlanır ve sonuçta not edilir. Çalışanın hâlâ açık görevi varsa kalır. | Hiçbir şey, ya da daha sonra yeniden görevlendirin. |
 | `video_providers.py` (program dosyası) | Video, ses ve bulut sesi araçları ajanlar için görünmez olur, geri kalan her şey çalışmaya devam eder. | `git pull` komutunu yeniden çalıştırın, dosya programın parçasıdır. |
 | `GITHUB_UPLOAD_TOKEN` veya `GITHUB_UPLOAD_REPO` | GitHub, ☁️ Cloud altında "kurulmamış" görünür, ajanlara hedef olarak sunulmaz. Geri kalan her şey çalışır. | Token ve repoyu girin ([docs/cloud.md](docs/cloud.md), Almanca), yeniden başlatın. |
+| Pi'de CUPS (`lp`), yazıcı veya CEO'nun yazdırma hakkı | 🖨 Drucker altında "CUPS fehlt" ya da yalnızca test yazıcısı görünür. 🖨 Drucken "yazıcı seçilmedi" veya "yazdırma engelli" der ve hiçbir şey göndermez. | `./install.sh --print`, yazıcıyı kurun ([docs/drucken.md](docs/drucken.md)), 🖨 Drucker altında seçin ve izin verin. |
 | `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` veya `ONEDRIVE_CLIENT_ID` | Hizmet "kurulmamış" kalır, "Oturum aç" düğmesi görünmez. | Uygulamayı kaydedin ve satırları girin ([docs/cloud.md](docs/cloud.md)), yeniden başlatın. |
 | Google/Microsoft oturumu (`tokens/` klasörü) | Hizmet "oturum açılmamış" görünür. Yükleme "henüz oturum açılmadı" ya da "oturumun süresi doldu" der ve hiçbir şey yüklemez. | ☁️ Cloud → Oturum aç. Pi'den dizüstüne taşırken dizüstünde yeniden oturum açın. |
 | Telegram için 50 MB üstü dosya | Telegram kabul etmez. `/datei` dosyayı ⚠️ ile işaretler ve göndermez, ajan bir uyarı alır. | Hedef olarak Google Drive, OneDrive veya GitHub seçin. |
@@ -528,6 +529,10 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
 - **Telegram:** `/datei` 50 MB'a kadar dosyaları telefonunuza gönderir, yalnızca siz tıkladığınızda ya da onayladığınızda.
 - GitHub: 50 MB'a kadar repoda dosya olarak, daha büyükler `paperclip-ablage` sürümüne ek olarak (2 GB'a kadar). Google Drive: yalnızca
   Hyperstead'ın kendisinin oluşturduğu klasör ve dosyalar (`drive.file` yetkisi). OneDrive: her klasör. Yalnızca taklit hizmetlere karşı test edildi.
+
+## 🖨 Akşam raporlarını yazdırma
+
+👑 CEO denetimi mesai bitiminde bir akşam raporu yazar. 📬 Post'ta ve CEO'nun görevlerinde **🖨 Drucken** düğmesi bulunur: bir tıklama, kısa bir onay, ardından yazıcıya gider. Yazıcıyı kenar çubuğundaki **🖨 Drucker** altında seçin (Pi: CUPS üzerinden ağ yazıcısı, `./install.sh --print`; Windows: Yazıcılar ve tarayıcılar altında paylaşılan yazıcı). Aynı pencerede CEO yazdırmaya izin verir veya engeller ("Darf Abendberichte drucken" hakkı). **Testdrucker (Datei)** çıktıyı yalnızca `workspace/.druck/` içine metin dosyası olarak kaydeder. Kılavuz: [docs/drucken.md](docs/drucken.md) (Almanca).
 
 ## 🌐 Gerçek tarayıcı ve ▶ kod çalıştırma
 
