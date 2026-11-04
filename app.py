@@ -3759,9 +3759,9 @@ def firms_overview():
         pid = p["id"]
         try:
             g = project_growth(pid)
-            stage = {"stage": g["stage"], "icon": g["icon"], "name": g["name"], "points": g.get("points", 0)}
+            stage = {"stage": g["stage"], "icon": g["icon"], "stage_name": g["name"], "points": g.get("points", 0)}
         except Exception:
-            stage = {"stage": 0, "icon": "", "name": "", "points": 0}
+            stage = {"stage": 0, "icon": "", "stage_name": "", "points": 0}
         b = busy.get(pid, {})
         agents = [{"id": a["id"], "name": a["name"], "role": a["role"], "parent_id": a["parent_id"], "busy": b.get(a["id"], 0)}
                   for a in q("SELECT id, name, role, parent_id FROM agents WHERE project_id=? ORDER BY id", (pid,))]

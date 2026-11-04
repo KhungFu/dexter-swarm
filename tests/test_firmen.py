@@ -11,6 +11,7 @@ def test_firmen_uebersicht(client):
     d = client.get("/api/firms").json
     f = {x["id"]: x for x in d["firms"]}
     assert set(f) >= {p1, p2}
+    assert f[p1]["name"] == "Baeckerei" and f[p1]["stage_name"]
     assert f[p1]["busy"] == 1 and f[p2]["busy"] == 0
     assert [a["name"] for a in f[p1]["agents"]] == ["Chef", "Ofen"]
     assert f[p1]["agents"][1]["parent_id"] == chef and f[p1]["agents"][0]["busy"] == 1
