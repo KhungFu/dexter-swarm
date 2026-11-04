@@ -601,10 +601,37 @@ def record_call(agent, tokens, seconds):
                       "auf einen anderen Anbieter stellen (Menü 🔀 KI für Gruppe).")
 
 
+# Laufende KI-Anfragen (fuer den Hinweis im Dashboard): id -> {agent_id, agent, provider, model, start, chars}
+LLM_LIVE = {}
+_live_lock = threading.Lock()
+_live_tl = threading.local()
+
+
+def live_list(agent_ids=None):
+    """Laufende KI-Anfragen, optional nur fuer bestimmte Agenten, mit Laufzeit in Sekunden."""
+    now = time.time()
+    with _live_lock:
+        rows = [dict(v) for v in LLM_LIVE.values()]
+    return [dict(r, secs=int(now - r["start"])) for r in rows if agent_ids is None or r["agent_id"] in agent_ids]
+
+
 def call_llm(agent, messages, images=None):
-    """Wie _call_llm, protokolliert aber jeden erfolgreichen Aufruf (Tokens, Dauer, geschaetzte Kosten) fuer 📊 Nutzung."""
+    """Wie _call_llm, protokolliert aber jeden erfolgreichen Aufruf (Tokens, Dauer, geschaetzte Kosten) fuer 📊 Nutzung
+    und meldet ihn waehrend der Laufzeit in LLM_LIVE (Dashboard zeigt „⏳ … schreibt“)."""
     t0 = time.time()
-    out = _call_llm(agent, messages, images)
+    lid = secrets.token_hex(6)
+    entry = {"id": lid, "agent_id": agent.get("id"), "agent": agent.get("name") or "", "provider": agent.get("provider") or "",
+             "model": agent.get("model") or "", "start": t0, "chars": 0}
+    with _live_lock:
+        LLM_LIVE[lid] = entry
+    prev = getattr(_live_tl, "entry", None)
+    _live_tl.entry = entry
+    try:
+        out = _call_llm(agent, messages, images)
+    finally:
+        _live_tl.entry = prev
+        with _live_lock:
+            LLM_LIVE.pop(lid, None)
     try:
         record_call(agent, out[1], time.time() - t0)
     except Exception as e:  # Statistik darf nie eine Aufgabe scheitern lassen
@@ -670,6 +697,8 @@ def _call_llm(agent, messages, images=None):
     model = agent.get("model") or default_model(pid)
     if images:
         messages = _with_images(cfg, messages, images)
+    if pid == "ollama":
+        return _call_ollama(cfg, model, messages)
     start = _key_idx.get(pid, 0)
     last = None
     # Ueberlastung (429/5xx) oder leere Antwort: alle Keys durchprobieren, dann mit wachsender Pause erneut
@@ -751,9 +780,93 @@ def _post_openai(cfg, key, model, messages):
         body["max_tokens"] = MAX_OUTPUT
     elif cfg is PROVIDERS["openrouter"] and not model.endswith((":free", "openrouter/free")):
         body["max_tokens"] = 8192  # ohne Angabe reserviert OpenRouter die Hoechstlaenge und meldet bei wenig Guthaben 402
-    # Lokale Modelle (Ollama) antworten auf dem Pi sehr langsam -> eigenes, grosszuegiges Zeitlimit
-    tmo = int(os.environ.get("OLLAMA_TIMEOUT", "900")) if cfg is PROVIDERS["ollama"] else 180
-    return requests.post(cfg["url"], headers=headers, timeout=tmo, json=body)
+    return requests.post(cfg["url"], headers=headers, timeout=180, json=body)
+
+
+def _env_secs(name, default):
+    try:
+        return max(0, int(float(os.environ.get(name, "") or default)))
+    except ValueError:
+        return default
+
+
+class OllamaTimeout(RuntimeError):
+    pass
+
+
+def ollama_limits():
+    """(Wartezeit ohne neue Daten, Gesamtzeit) in Sekunden. 0 = ohne Grenze.
+    Auf dem Pi laedt Ollama erst das Modell und liest den ganzen Prompt, bevor das erste Wort kommt; das kann viele Minuten dauern."""
+    return _env_secs("OLLAMA_TIMEOUT", 1800), _env_secs("OLLAMA_MAX_TIME", 7200)
+
+
+def _ollama_stream(cfg, model, messages):
+    """Fragt Ollama mit Streaming: die Antwort kommt Stueck fuer Stueck, darum bricht nichts ab, solange Ollama schreibt.
+    Gibt (status, text, tokens, finish_reason, fehlertext)."""
+    idle, total = ollama_limits()
+    body = {"model": model, "messages": messages, "temperature": 0.4, "stream": True, "stream_options": {"include_usage": True}}
+    if MAX_OUTPUT:
+        body["max_tokens"] = MAX_OUTPUT
+    live = getattr(_live_tl, "entry", None)
+    t0, parts, tok, why = time.time(), [], None, None
+    with requests.post(cfg["url"], json=body, stream=True, timeout=(10, idle or None),
+                       headers={"Content-Type": "application/json", "Accept": "text/event-stream"}) as r:
+        if r.status_code != 200:
+            return r.status_code, "", 0, None, r.text[:400]
+        for raw in r.iter_lines(chunk_size=None):
+            if total and time.time() - t0 > total:
+                raise OllamaTimeout(f"Ollama lief laenger als OLLAMA_MAX_TIME ({total // 60} Min.) und wurde abgebrochen. "
+                                    f"Bisher {sum(len(x) for x in parts)} Zeichen. Wert in .env erhoehen (0 = ohne Grenze).")
+            line = raw.decode("utf-8", "replace").strip() if raw else ""
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if data == "[DONE]":
+                break
+            try:
+                d = json.loads(data)
+            except ValueError:
+                continue
+            if d.get("error"):
+                e = d["error"]
+                return 500, "".join(parts), 0, None, str(e.get("message") if isinstance(e, dict) else e)[:400]
+            if d.get("usage"):
+                tok = d["usage"].get("total_tokens") or tok
+            for ch in d.get("choices") or []:
+                piece = (ch.get("delta") or {}).get("content") or ""
+                if piece:
+                    parts.append(piece)
+                    if live is not None:
+                        live["chars"] += len(piece)
+                why = ch.get("finish_reason") or why
+    return 200, "".join(parts), tok, why, ""
+
+
+def _call_ollama(cfg, model, messages):
+    """Ollama ohne Wiederholungen: eine abgebrochene Anfrage noch einmal zu stellen, kostet auf dem Pi nur weitere Minuten."""
+    idle, _ = ollama_limits()
+    try:
+        status, text, tok, why, err = _ollama_stream(cfg, model, messages)
+    except requests.RequestException as e:
+        # Beim Lesen des Streams meldet requests eine Zeitueberschreitung als ConnectionError(ReadTimeoutError)
+        if not (isinstance(e, requests.exceptions.ReadTimeout) or "timed out" in str(e).lower()):
+            raise RuntimeError(f"Ollama nicht erreichbar ({cfg['url']}): {str(e)[:200]}. Laeuft der Dienst? `systemctl status ollama`")
+        raise RuntimeError(f"Ollama hat {idle // 60} Minuten lang nichts geliefert (OLLAMA_TIMEOUT={idle}). Laedt das Modell noch, "
+                           "ist der RAM voll oder der Prompt sehr lang? Wert in .env erhoehen oder ein kleineres Modell waehlen.")
+    if status != 200:
+        if _model_gone(status, err):
+            _bad_models[("ollama", model)] = time.time()
+            _models_cache.pop("ollama", None)
+            raise RuntimeError(f"MODELL_WEG: Modell „{model}“ gibt es in Ollama nicht. `ollama pull {model}` oder im Menü "
+                               f"„⚠ Modelle“ ein anderes wählen. ({err[:160]})")
+        hint = ""
+        if "memory" in err.lower():
+            hint = " Zu wenig RAM fuer dieses Modell: ein kleineres waehlen (z. B. qwen2.5:1.5b) oder OLLAMA_CONTEXT_LENGTH senken."
+        raise RuntimeError(f"Ollama: HTTP {status}: {err[:300]}{hint}")
+    if not text.strip():
+        hint = ", Antwort zu lang abgeschnitten" if str(why).lower() in ("length", "max_tokens") else ""
+        raise EmptyReply(f"{cfg['label']} lieferte eine leere Antwort (Grund: {why or 'unbekannt'}{hint}).")
+    return text, int(tok or max(1, (sum(len(str(m["content"])) for m in messages) + len(text)) // 4))
 
 
 def _post_anthropic(cfg, key, model, messages):
@@ -3909,6 +4022,7 @@ def api_graph(pid):
     pend = q1("SELECT COUNT(*) c FROM approvals WHERE status='pending'")["c"]
     inbox_new = q1("SELECT COUNT(*) c FROM tasks WHERE parent_task_id IS NULL AND inbox='new'")["c"]
     return jsonify({"project": proj, "agents": agents, "pending_approvals": pend, "inbox_new": inbox_new,
+                    "live": live_list({a["id"] for a in agents}),
                     "model_problems": len(model_health(cached_only=True)),
                     "closed": hours_of(pid)["gate_all"] and not is_open(pid)})
 
@@ -5165,21 +5279,69 @@ def api_chat_post(aid):
         past.append({"role": h["role"], "content": h["content"] + extra})
     extra, images = chat_attachment_block(pid, files, CHAT_FILE_CHARS, True)
     messages = [{"role": "system", "content": chat_system(a, proj)}] + past + [{"role": "user", "content": msg + extra}]
-    note = ""
     if a["provider"] == "mock":
-        text, tokens = (f"[Mock {a['name']}] Du sagtest: {msg[:200]}"
-                        + (f" (Anhänge: {len(files)} Datei(en), {len(images)} Bild(er))" if files else "")), 20
-    else:
-        try:
-            text, tokens, hint = call_llm_img(a, messages, images)
-        except Exception as e:
-            abort(400, f"Das Modell hat nicht geantwortet: {str(e)[:300]}")
-        note = f"\n\n_(Hinweis: {hint})_" if hint else ""
-    now = time.time()
-    ex("INSERT INTO chats(agent_id,role,content,ts,files) VALUES(?,?,?,?,?)", (aid, "user", msg, now, json.dumps(files) if files else ""))
-    ex("INSERT INTO chats(agent_id,role,content,ts) VALUES(?,?,?,?)", (aid, "assistant", text.strip() + note, time.time()))
+        text = (f"[Mock {a['name']}] Du sagtest: {msg[:200]}"
+                + (f" (Anhänge: {len(files)} Datei(en), {len(images)} Bild(er))" if files else ""))
+        _chat_save(aid, msg, files, text, 20)
+        return jsonify({"reply": text, "files": files})
+    # Langsame Modelle (Ollama auf dem Pi) brauchen oft viele Minuten. Darum laeuft die Antwort im Hintergrund,
+    # der Browser fragt nur nach (GET .../chat/job) und kein Handy, Router oder Proxy bricht die Verbindung ab.
+    with _chat_lock:
+        if any(j["agent_id"] == aid and not j["done"] for j in CHAT_JOBS.values()):
+            abort(409, f"{a['name']} schreibt noch an der letzten Antwort. Bitte warten.")
+        _chat_gc()
+        jid = secrets.token_hex(8)
+        CHAT_JOBS[jid] = {"id": jid, "agent_id": aid, "start": time.time(), "done": False, "reply": None, "error": None,
+                          "files": files, "message": msg}
+    threading.Thread(target=_chat_job, args=(jid, a, messages, images, msg, files), daemon=True).start()
+    return jsonify({"job": jid, "files": files})
+
+
+CHAT_JOBS = {}  # id -> {agent_id, start, done, reply, error, files, message}
+_chat_lock = threading.Lock()
+
+
+def _chat_gc():
+    """Fertige Chat-Auftraege nach einer Stunde vergessen (die Antwort steht dann ohnehin im Verlauf)."""
+    old = time.time() - 3600
+    for k in [k for k, j in CHAT_JOBS.items() if j["done"] and j["start"] < old]:
+        CHAT_JOBS.pop(k, None)
+
+
+def _chat_save(aid, msg, files, text, tokens):
+    ex("INSERT INTO chats(agent_id,role,content,ts,files) VALUES(?,?,?,?,?)", (aid, "user", msg, time.time(), json.dumps(files) if files else ""))
+    ex("INSERT INTO chats(agent_id,role,content,ts) VALUES(?,?,?,?)", (aid, "assistant", text, time.time()))
     ex("INSERT INTO usage(agent_id,ts,tokens) VALUES(?,?,?)", (aid, time.time(), tokens))
-    return jsonify({"reply": text.strip() + note, "files": files})
+
+
+def _chat_job(jid, a, messages, images, msg, files):
+    job = CHAT_JOBS[jid]
+    try:
+        text, tokens, hint = call_llm_img(a, messages, images)
+        reply = text.strip() + (f"\n\n_(Hinweis: {hint})_" if hint else "")
+        _chat_save(a["id"], msg, files, reply, tokens)
+        job["reply"] = reply
+    except Exception as e:
+        job["error"] = f"Das Modell hat nicht geantwortet: {str(e)[:400]}"
+    finally:
+        job["done"] = True
+
+
+def _chat_job_view(j):
+    live = [x for x in live_list({j["agent_id"]})]
+    return {"job": j["id"], "done": j["done"], "reply": j["reply"], "error": j["error"], "files": j["files"],
+            "message": j["message"], "secs": int(time.time() - j["start"]), "chars": sum(x["chars"] for x in live)}
+
+
+@app.get("/api/agents/<int:aid>/chat/job")
+def api_chat_job(aid):
+    """Laufende (oder gerade fertige) Chat-Antwort dieses Agenten; jid optional."""
+    jid = request.args.get("id", "")
+    with _chat_lock:
+        j = CHAT_JOBS.get(jid) if jid else next((x for x in CHAT_JOBS.values() if x["agent_id"] == aid and not x["done"]), None)
+    if not j or j["agent_id"] != aid:
+        return jsonify(None)
+    return jsonify(_chat_job_view(j))
 
 
 @app.delete("/api/agents/<int:aid>/chat")

@@ -184,6 +184,7 @@ Bu liste programda her değişiklikle genişletilir. Her satır sistemin ne yapt
 | `.env` | Hyperstead anahtarsız ve şifresiz başlar; yalnızca bu bilgisayardan erişilebilir. `HOST=0.0.0.0` ile `APP_TOKEN` boş olduğu sürece başlatma iptal edilir. | `./install.sh` (Pi) ya da `install.ps1` (Windows) rastgele şifreli bir tane oluşturur. |
 | `data.db` | Boş olarak yeniden oluşturulur. Şirketler, görevler ve gönderiler kaybolur. | Önce yedekleyin (İşletim bölümüne bakın). Yalnızca bir yedekten geri kopyalayın. |
 | `.env` içindeki API anahtarı | Sağlayıcı selbsttest'te FEHLT olarak gösterilir ve ajanlar kullanmaz. Girilmiş ama geçersizse: HTTP 401 ile FEHLER. | Anahtarı girin ya da satırı `#` ile kapatın. |
+| Ollama erişilemiyor veya model çok büyük | Görev „Ollama nicht erreichbar“ ya da „Zu wenig RAM für dieses Modell“ ile başarısız olur; eksik model „`ollama pull …`“ bildirir. Ollama `OLLAMA_TIMEOUT` saniye boyunca hiçbir şey göndermezse istek bu uyarıyla, tekrarlanmadan durur. | `systemctl status ollama`, daha küçük bir model çekin (`ollama pull qwen2.5:1.5b`) ve ajanda seçin ya da `OLLAMA_TIMEOUT` değerini artırın. |
 | `SDCPP_URL` (`IMAGE_PROVIDER=sdcpp` ile) | Görsel istekleri „SDCPP_URL fehlt“ (eksik) hatasıyla başarısız olur. `IMAGE_FALLBACK=pollinations` ile referanssız, ücretsiz bir yedek görsel üretilir ve sonuçta bir not yer alır. | `.env` dosyasına satırı ekleyin, Hyperstead'i yeniden başlatın. |
 | Görsel bilgisayarına ulaşılamıyor (dizüstü kapalı, güvenlik duvarı, yanlış IP) | Yukarıdaki gibi: „Bildrechner … nicht erreichbar“ (erişilemiyor) hatası; yedekle bir yedek görsel. | Dizüstünü açın, `bildrechner-start.bat` dosyasını başlatın, IP'yi ve güvenlik duvarını kontrol edin. |
 | `sd-server.exe` (Windows, görsel bilgisayarı) | `bildrechner-start.bat` „sd-server.exe fehlt“ (eksik) gösterir ve hiçbir şey başlatmaz. | `deploy\windows\bildrechner-einrichten.ps1` dosyasını çalıştırın. |
@@ -612,10 +613,21 @@ Telegram (bot belirteci ve sohbet kimliğinize test mesajı), ffmpeg, sesli çı
 
 ## Ollama (yerel modeller)
 
-Sağlayıcı „Ollama (lokal)“: anahtar gerekmez, model listesi doğrudan Ollama'dan gelir (`ollama pull qwen2.5:3b`). „Firma aus Vorlage“ (şablondan şirket) penceresinde
+Sağlayıcı „Ollama (lokal)“: anahtar gerekmez, model listesi doğrudan Ollama'dan gelir (`ollama pull qwen2.5:1.5b`). „Firma aus Vorlage“ (şablondan şirket) penceresinde
 „Alles lokal“ (her şey yerel) ve „Nur Mitarbeiter lokal“ (yalnızca çalışanlar yerel) düğmeleri vardır; aksi halde Ollama'yı ajan başına seçersiniz. Ollama başka bir bilgisayarda
 çalışıyorsa (ör. dizüstü) `OLLAMA_URL` değerini onun adresine ayarlayın. Küçük modeller (3B) Pi'de yavaştır ve araç protokolüne çoğu zaman zayıf uyar;
 patronlar için güçlü bir model, yerel olarak daha çok basit çalışanlar ya da sohbet için uygundur.
+
+**Uzun yanıtlar (Pi):** Hyperstead Ollama'ya akış (streaming) ile sorar. Model yazdığı sürece hiçbir şey kesilmez, yanıt bir saat sürse bile.
+`OLLAMA_TIMEOUT` (varsayılan 1800 sn) yalnızca **yeni veri gelmeden** beklenen süredir, ör. Ollama modeli yüklerken ve görevi okurken;
+`OLLAMA_MAX_TIME` (varsayılan 7200 sn, 0 = sınırsız) toplam süreyi sınırlar. Kesilen bir Ollama isteği tekrarlanmaz.
+Bir yapay zekâ yazarken panelin sol altında „⏳ Ajan · Ollama · 4:12 min · 380 Zeichen“ görünür. Sohbet arka planda bekler,
+pencereyi kapatabilirsiniz; yanıt sonra geçmişte durur.
+
+**Az RAM (≈ 2 GB boş):** `qwen2.5:3b` bağlamla birlikte yaklaşık 2,5 GB ister ve sığmaz. `qwen2.5:1.5b` iyi uyar
+(indirme ≈ 1 GB, RAM'de ≈ 1,3–1,6 GB, Almanca, Türkçe ve İngilizce anlar); daha küçüğü `gemma3:1b` (≈ 0,8 GB indirme, ≈ 1,1 GB RAM).
+Ollama'nın kendisi için (`sudo systemctl edit ollama`): `Environment="OLLAMA_CONTEXT_LENGTH=4096"`, `"OLLAMA_NUM_PARALLEL=1"`, `"OLLAMA_MAX_LOADED_MODELS=1"`.
+Pi 4'te saniyede birkaç kelime ve ilk kelimeye kadar birkaç dakika bekleyin (uzun sistem istemleri).
 
 ## Claude ve ChatGPT aboneliğinizle (API anahtarı yerine CLI)
 

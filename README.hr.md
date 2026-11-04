@@ -185,6 +185,7 @@ Ovaj popis se dopunjuje pri svakoj promjeni programa. Svaki redak kaže što sus
 | `.env` | Hyperstead se pokreće bez ključeva i bez lozinke, dostupan samo s ovog računala. S `HOST=0.0.0.0` pokretanje se prekida dok je `APP_TOKEN` prazan. | `./install.sh` (Pi) odnosno `install.ps1` (Windows) ga stvara s nasumičnom lozinkom. |
 | `data.db` | Stvara se nova i prazna. Tvrtke, zadaci i pošta su nestali. | Prvo napravite sigurnosnu kopiju (vidi Rad). Vraćajte samo iz kopije. |
 | API ključ u `.env` | Pružatelj se u samoprovjeri prijavljuje kao FEHLT i agenti ga ne koriste. Ako je unesen, ali nevažeći: FEHLER s HTTP 401. | Unesite ključ ili isključite redak s `#`. |
+| Ollama nedostupna ili model prevelik | Zadatak ne uspijeva uz „Ollama nicht erreichbar“ odnosno „Zu wenig RAM für dieses Modell“; model koji nedostaje javlja „`ollama pull …`“. Ako Ollama `OLLAMA_TIMEOUT` sekundi ništa ne pošalje, zahtjev se prekida s tom napomenom, bez ponavljanja. | `systemctl status ollama`, preuzmite manji model (`ollama pull qwen2.5:1.5b`) i odaberite ga kod agenta, ili povećajte `OLLAMA_TIMEOUT`. |
 | `SDCPP_URL` (uz `IMAGE_PROVIDER=sdcpp`) | Zahtjevi za slike ne uspijevaju uz poruku „SDCPP_URL fehlt“ (nedostaje). Uz `IMAGE_FALLBACK=pollinations` izrađuje se besplatna nadomjesna slika bez referenci, uz napomenu u rezultatu. | Dodajte redak u `.env`, ponovno pokrenite Hyperstead. |
 | Računalo za slike nije dostupno (laptop isključen, vatrozid, kriva IP) | Kao gore: pogreška „Bildrechner … nicht erreichbar“ (nije dostupno), uz nadomjesnu sliku. | Uključite laptop, pokrenite `bildrechner-start.bat`, provjerite IP i vatrozid. |
 | `sd-server.exe` (Windows, računalo za slike) | `bildrechner-start.bat` prikazuje „sd-server.exe fehlt“ (nedostaje) i ništa ne pokreće. | Pokrenite `deploy\windows\bildrechner-einrichten.ps1`. |
@@ -619,10 +620,21 @@ Telegram (token bota i probna poruka na vaš ID chata), ffmpeg, glasovni izlaz, 
 
 ## Ollama (lokalni modeli)
 
-Pružatelj „Ollama (lokal)“: ključ nije potreban, popis modela dolazi izravno iz Ollama (`ollama pull qwen2.5:3b`). U dijalogu „Firma aus Vorlage“ (tvrtka iz predloška)
+Pružatelj „Ollama (lokal)“: ključ nije potreban, popis modela dolazi izravno iz Ollama (`ollama pull qwen2.5:1.5b`). U dijalogu „Firma aus Vorlage“ (tvrtka iz predloška)
 postoje gumbi „Alles lokal“ (sve lokalno) i „Nur Mitarbeiter lokal“ (samo suradnici lokalno); inače Ollamu birate po agentu. Ako Ollama radi na drugom računalu
 (npr. laptopu), postavite `OLLAMA_URL` na njegovu adresu. Mali modeli (3B) su na Pi-ju spori i često loše drže protokol alata;
 za nadređene jak model, lokalno prije svega za jednostavne suradnike ili chat.
+
+**Dugi odgovori (Pi):** Hyperstead pita Ollamu streamingom. Dok model piše, ništa se ne prekida, čak i ako odgovor traje sat vremena.
+`OLLAMA_TIMEOUT` (zadano 1800 s) je samo vrijeme čekanja **bez novih podataka**, npr. dok Ollama učitava model i čita zadatak;
+`OLLAMA_MAX_TIME` (zadano 7200 s, 0 = bez granice) ograničava ukupno vrijeme. Prekinuti Ollama zahtjev se ne ponavlja.
+Dok AI piše, nadzorna ploča dolje lijevo prikazuje „⏳ Agent · Ollama · 4:12 min · 380 Zeichen“. Chat čeka u pozadini,
+prozor možete zatvoriti; odgovor je poslije u povijesti.
+
+**Malo RAM-a (≈ 2 GB slobodno):** `qwen2.5:3b` s kontekstom treba oko 2,5 GB i ne staje. Dobro staje `qwen2.5:1.5b`
+(preuzimanje ≈ 1 GB, u RAM-u ≈ 1,3–1,6 GB, razumije njemački, turski i engleski); još manji `gemma3:1b` (≈ 0,8 GB preuzimanje, ≈ 1,1 GB RAM).
+Za samu Ollamu (`sudo systemctl edit ollama`): `Environment="OLLAMA_CONTEXT_LENGTH=4096"`, `"OLLAMA_NUM_PARALLEL=1"`, `"OLLAMA_MAX_LOADED_MODELS=1"`.
+Na Pi 4 računajte s nekoliko riječi u sekundi i nekoliko minuta do prve riječi (dugi sustavski promptovi).
 
 ## Claude i ChatGPT preko vaše pretplate (CLI umjesto API ključa)
 
