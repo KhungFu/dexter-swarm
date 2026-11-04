@@ -223,9 +223,6 @@ Ova lista se dopunjuje pri svakoj promeni programa. Svaki red kaže šta sistem 
 | Program koji je agentu potreban (npr. Node.js, Remotion, Python paket) | Agent sa radionicom podnosi zahtev za dopunu: CEO ga proverava, vi dobijate ✅/❌ preko Telegrama i pod ✋ Odobrenja. Posle vašeg „da“ server instalira i zadatak se nastavlja. Bez radionice agent samo navodi šta nedostaje. | Pročitajte zahtev i odlučite. Bez Telegrama samo preko veba. |
 | AI CEO-a (kod zahteva za dopunu) | Zahtev stiže direktno vama uz napomenu „Nema CEO-a sa AI“ ili „CEO nije dostupan“. | Odlučite sami ili dodelite CEO-u AI. |
 | `werkstatt.py` (programski fajl) | Hyperstead se ne pokreće (greška pri uvozu). | Ponovo pokrenite `git pull`, fajl je deo programa. |
-| Servis `hyperstead` (Pi) | Posle ažuriranja i dalje radi stari servis `paperclip-lite`, `systemctl … hyperstead` javlja "not found". | Jednom pokrenite `./install.sh --service`, on zamenjuje stari servis. |
-| `deploy/windows/hyperstead-start.bat` | `paperclip-start.bat` ne nalazi novi fajl i prozor se zatvara sa greškom. | Ponovo pokrenite `git pull`, fajl je deo programa. |
-| Git adresa i dalje pokazuje na `KhungFu/paperclip-lite` | `git pull` i dalje radi jer GitHub preusmerava. Ako neko napravi novi repo sa starim imenom, preusmeravanje prestaje i `git pull` ne uspeva. | Jednom pokrenite `git remote set-url origin https://github.com/KhungFu/hyperstead.git` u folderu programa. |
 | `growth.py` (programski fajl) | Hyperstead se ne pokreće (greška pri uvozu). | Ponovo pokrenite `git pull`, fajl je deo programa. |
 | Raniji svet (Ceh, Tycoon, Gizmo grad) sačuvan u projektu | Projekat automatski prikazuje svemir. Poeni, nivo i rangovi ostaju isti, menjaju se samo nazivi i ikone. | Ništa ne treba raditi. |
 | Danas nema poziva veštačke inteligencije (operativni centar, 💶 u traci) | Prikazuje 0 $ odnosno „keine Aufrufe“. | Ništa ne treba raditi. Troškovi su procene, sopstvene cene preko `PCL_PRICES` u `.env`. |
