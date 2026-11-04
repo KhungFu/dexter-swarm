@@ -248,3 +248,13 @@ def test_hub_drehen_und_neigen():
     # Texte im Hub haben kein eigenes transform-Attribut (sonst ueberschreibt die CSS-Rueckdrehung es)
     hub = html[html.index("const HUB = {"):html.index("const ATOM")]
     assert not re.search(r"<text[^>]*transform=", hub)
+
+
+def test_hub_hebt_gewaehlte_firma_hervor():
+    """Links gewähltes Projekt leuchtet in Stadt/Kosmos/Molekül (Wunsch ABI)."""
+    import os
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    assert "function hubMarkCur(" in html and "function hubShowCur(" in html
+    assert "#hubsvg .firm.cur{" in html and "#hubsvg.has-cur .firm:not(.cur)" in html
+    op = html[html.index("async function openProject("):html.index("$('#btnNewProj').onclick")]
+    assert "hubMarkCur()" in op and "hubShowCur()" in op

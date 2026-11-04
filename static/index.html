@@ -366,6 +366,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubsvg .badge text{font-size:17px;text-anchor:middle}
 #hubsvg .firm{cursor:pointer}
 #hubsvg .firm:focus{outline:none}
+/* links gewaehlte Firma leuchtet in Stadt/Kosmos/Molekuel (Wunsch ABI 2026-11-04), die anderen treten zurueck */
+#hubsvg .firm.cur{filter:drop-shadow(0 0 10px var(--hc,#38bdf8)) drop-shadow(0 0 22px var(--hc,#38bdf8)) brightness(1.2)}
+#hubsvg.has-cur .firm:not(.cur):not(:hover){opacity:.5;transition:opacity .3s}
+@keyframes hubCur{50%{filter:drop-shadow(0 0 4px var(--hc,#38bdf8)) brightness(1.05)}}
+#hubsvg .firm.cur{animation:hubCur 2.4s ease-in-out infinite}[data-motion=off] #hubsvg .firm.cur{animation:none}
 #hubsvg .firm:hover .roofedge,#hubsvg .firm:focus-visible .roofedge,#hubsvg .firm.sel .roofedge{stroke:#fff}
 #hubsvg .firm:hover .plotedge,#hubsvg .firm:focus-visible .plotedge,#hubsvg .firm.sel .plotedge{stroke-opacity:1;stroke-width:2.5}
 #hubsvg .hhit{fill:transparent}
@@ -732,8 +737,10 @@ async function loadProjects(){
 }
 async function openProject(id){
   S.pid = id; S.sel = null; closePanel(); WORLD.g = null; WORLD.at = 0;
+  if(VIEW==='hub' && HUB.inside && HUB.inside!==id){ HUB.inside=null; HUB.dep=null; HUB.agent=null; HUB.sig=''; $('#hubcard').classList.remove('on'); $('#app').classList.remove('hub-in'); drawHub(); }
   await loadProjects(); await refresh(true);
   fit();
+  if(VIEW==='hub'){ hubMarkCur(); hubShowCur(); }
 }
 $('#btnNewProj').onclick = ()=>newProjectDialog();
 $('#btnDelProj').onclick = async ()=>{
@@ -1919,6 +1926,7 @@ const HELP=[
 <li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
 <li><b>← Alle Firmen</b> oder Esc führt wieder hinaus.</li>
 <li><b>Drehen und Neigen:</b> Rechts unten drehen ⟲ ⟳ die Welt, ⤵ ⤴ neigen sie nach hinten, ⌂ oder „🗂 Ordnen“ oben stellt sie wieder gerade und passt alles ein, falls man sich verloren hat. Mit der Maus geht es auch: rechte Maustaste (oder Umschalttaste) gedrückt halten und ziehen, seitlich = drehen, hoch/runter = neigen. Auf dem Handy mit zwei Fingern drehen bzw. beide Finger gemeinsam hoch- oder runterschieben. Die Namen bleiben dabei lesbar, das Gerät merkt sich die Stellung je Welt.</li>
+<li><b>Firma links wählen:</b> Tippst du links in der Seitenleiste ein Projekt an, leuchtet es in Stadt, Kosmos und Molekül auf, die anderen Firmen treten zurück, und die Ansicht fährt zu ihm. Antippen öffnet es wie gewohnt.</li>
 <li><b>Agent hinzufügen:</b> Die Leiste unter der Wachstumsleiste ist in jeder Grafik da. Ein neuer Agent kommt in das Projekt, das oben steht.</li>
 <li><b>🤝 Zusammenarbeit:</b> Oben (oder 🤝 im Infofenster einer Firma) verbindest du zwei Firmen als Partner, mit „Lösen“ trennst du sie wieder. Nur Partner bekommen in der Stadt eine Straße, auf der Lieferwagen fahren, und im Kosmos fliegen Raumschiffe zwischen ihren Sonnen. Ruhen beide Firmen, ist nur ein langsames Fahrzeug unterwegs und die Straße bleibt dunkel. Arbeiten sie, leuchtet die Straße und es wird mehr Verkehr. Firmen ohne Partnerschaft bleiben unverbunden. Die Agenten merken davon nichts.</li>
 <li><b>🔍 Suche:</b> oben Firma oder Agent eintippen (Name oder Rolle). Ein Treffer zoomt in die Firma und zeigt den Agenten in seiner Abteilung.</li></ul>`},
@@ -2980,7 +2988,19 @@ function drawHub(){
   hubPlace(hubMoving() ? performance.now()/1000 : 0);
   startHub();
   if(f){ hubDepsList(f); if(!HUB.cardOff) hubCardFill(); } else if(HUB.sel) hubCardFill();
-  hubCamApply();
+  hubCamApply(); hubMarkCur();
+}
+function hubMarkCur(){  // die links gewaehlte Firma hervorheben (nur aussen, im Innern ist es ohnehin die eine Firma)
+  const svg=$('#hubsvg'), on=VIEW==='hub' && !HUB.inside && S.pid && HUB.d && HUB.d.firms.length>1;
+  svg.classList.toggle('has-cur', !!on);
+  svg.querySelectorAll('.firm').forEach(g=>g.classList.toggle('cur', !!on && +g.dataset.firm===S.pid));
+}
+function hubShowCur(){  // nach Auswahl links sanft zur Firma fahren, Zoom bleibt
+  const el=VIEW==='hub' && !HUB.inside && $('#hubsvg').querySelector(`.firm[data-firm="${S.pid}"]`); if(!el) return;
+  const r=el.getBoundingClientRect(), vp=$('#vp').getBoundingClientRect(), dx=vp.left+vp.width/2-(r.left+r.width/2), dy=vp.top+vp.height/2-(r.top+r.height/2);
+  if(Math.abs(dx)<40 && Math.abs(dy)<40) return;
+  const x0=V.x, y0=V.y, t0=performance.now(), dur=motionOff()?0:420;
+  (function step(now){ const t=dur?Math.min(1,(now-t0)/dur):1, e=t*t*(3-2*t); V.x=x0+dx*e; V.y=y0+dy*e; applyView(); if(t<1) requestAnimationFrame(step); })(t0);
 }
 /* Zusammenarbeit (Phase 3): nur zwischen Partner-Firmen gibt es Straßen (Stadt) bzw. Flugrouten (Kosmos). Ohne Partnerschaft keine Linie.
    Verkehr nach echter Aktivität: ruhen beide Firmen, fährt/fliegt nur ein langsames Fahrzeug, arbeiten sie, wird es mehr und schneller. */
