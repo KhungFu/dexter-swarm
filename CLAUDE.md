@@ -186,16 +186,16 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   entfernt seine Links. Agenten sehen davon nichts. Tests `tests/test_firmen.py`.
 - UI moderne Ebene (`VIEW='hub'`, `#hubsvg`, `#hubbar` Umschalter 📐 Klassisch = zurueck zu `HUB.back` / `data-hubworld` stadt|kosmos,
   localStorage `hs-hubworld`/`hs-hubback`): `loadFirms` (alle 4,5 s), `drawHub` -> `HUB_DRAW[welt]()` (neue Welt = neuer Eintrag), `hubTeams`
-  (Leitung + Abteilungen wie im Weltall). Stadt `hubCity`/`hubBuilding` (isometrisch, Hoehe nach Stufe, Beschriftungen in eigener Ebene obenauf),
+  (Leitung + Abteilungen wie im Weltall). Stadt `hubCity`/`hubBuilding` (isometrisch, Baustil je Firma `hubStyle` turm|buero|zwilling|campus aus `isoBox`, Hoehe nach Stufe, Box nach `HUB.zmax`, Beschriftungen in eigener Ebene obenauf),
   Kosmos `hubCosmos`/`hubSystem` (Planeten kreisen per rAF nur mit Bewegung und nicht auf dem Handy). Klick -> `hubSelect` -> `#hubcard`
   (Leitung/Abteilungen, Name -> `hubOpenFirm` = klassische Ansicht + `selectAgent`). JS steht VOR dem Atom-Abschnitt (Atom-Test verbietet rAF dort).
 - Innen (Phase 2): Klick auf Firma -> `hubEnter(pid, dep, agent)` (`hubZoomTo` faehrt 380 ms hin, dann `HUB.inside`). `hubInsideCity` (Etagen,
-  EG = Leitung, `data-dep` -1 = Leitung, sonst Index in `hubTeams().deps`) bzw. `hubInsideCosmos` (statisch, damit man trifft). `#hubdeps` Liste,
+  Leitung ganz oben in der Chefetage (Wunsch ABI 2026-11-04), rechts `hubOrgChart`, `data-dep` -1 = Leitung, sonst Index in `hubTeams().deps`) bzw. `hubInsideCosmos` (statisch, damit man trifft). `#hubdeps` Liste,
   `hubDep` -> `#hubcard` zeigt Team (`hubAgRow`). `HUB.cardOff` = Infofenster zu (Handy beim Hineingehen). `hubLeave`/Esc/`#hubOut`. Suche `#hubSearch`
   -> `#hubResults` (Firmen + Agenten nach Name/Rolle). `fit` laesst im Innern links 226 px und bei offenem Infofenster rechts 346 px frei.
 - Zusammenarbeit (Phase 3): nur `links` erzeugen Verbindungen. `hubTraffic` (Anzahl/Tempo aus `busy` beider Firmen, ruhend = 1 langsames
-  Fahrzeug), Stadt `hubCityRoads` (Strasse durch die Luecken zwischen den Grundstuecken, Fahrzeuge vor den Gebaeuden gezeichnet), Kosmos
-  `hubCosmosRoutes` (Bogen zwischen den Sonnen, keine Linie, nur Raumschiffe). `HUB.tr` + `.veh`, `hubAlong` hin und zurueck, `hubPlaceTraffic`
+  Fahrzeug), Stadt `hubCityRoads`/`hubRoadPath` (Strasse nur durch die Gassen zwischen den Grundstuecken, orange Leuchtkanten, Fahrzeuge vor den Gebaeuden gezeichnet), Kosmos
+  `hubCosmosRoutes` (Bogen zwischen den Sonnen, nur Raumschiffe; zarte Spur `.sroute` nur bei aktiver Zusammenarbeit). Abteilungssymbole `hubDepIcon` (Stichwoerter aus Name/Rolle). Canva-Bilder kommen in der Cloud-Sitzung nur als 200-px-Vorschau an, darum alles SVG. `HUB.tr` + `.veh`, `hubAlong` hin und zurueck, `hubPlaceTraffic`
   (Schiffe drehen in Flugrichtung). Dialog `showFirmLinks(pid)` (🤝 `#hubLink` oben, `#hubCardLink` im Infofenster).
 
 ## Verbindungen (Webhooks)

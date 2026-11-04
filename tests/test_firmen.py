@@ -107,3 +107,18 @@ def test_projekte_menue_neu_und_ansichten():
     assert "'/projects','POST'" in dlg and "/templates" in dlg and "/projects/from_template" in dlg
     menu = html[html.index('id="gViewMenu"'):html.index('id="gTheme"')]
     assert menu.index("Alle Projekte") < menu.index('data-hubworld="stadt"') < menu.index("Dieses Projekt") < menu.index('data-view="world"')
+
+
+def test_welten_grafik_nach_referenzbild():
+    """Stadt mit Baustil je Firma und Straßen nur durch Gassen, Gebäude innen mit der Leitung ganz oben, Abteilungssymbole."""
+    import os
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    for fn in ("function hubStyle(", "function isoBox(", "function hubRoadPath(", "function hubDepIcon(", "function hubOrgChart(", "function hubSunSvg("):
+        assert fn in html
+    inner = html[html.index("function hubInsideCity("):html.index("function hubInsideCosmos(")]
+    # Leitung ist die erste Etage und wird oben (y=-H) begonnen
+    assert "floors=[{dep:-1, name:'Leitung'" in inner and "let y=-H;" in inner and "'Chefetage'" in inner
+    assert "hubOrgChart(T," in inner
+    # Raumschiff-Spur nur bei aktiver Zusammenarbeit
+    routes = html[html.index("function hubCosmosRoutes("):html.index("function hubAlong(")]
+    assert "if(T.live) veh.unshift(`<path class=\"sroute\"" in routes
