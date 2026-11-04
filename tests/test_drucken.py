@@ -66,7 +66,7 @@ def test_druck_nur_mit_bestaetigung_und_recht(client, firm, monkeypatch):
     A.set_setting("printer", "Buero_HP")
     f = Fake(monkeypatch, out="request id is Buero_HP-7 (1 file(s))")
     r = client.post(f"/api/tasks/{tid}/print", json={})
-    assert r.status_code == 400 and "Bestätigung" in r.get_data(as_text=True)
+    assert r.status_code == 400 and "confirmation" in r.get_data(as_text=True)
     r = client.post(f"/api/tasks/{tid}/print", json={"confirm": True})
     assert r.status_code == 400 and "gesperrt" in r.get_data(as_text=True)
     assert not f.calls
@@ -90,7 +90,7 @@ def test_nur_abendberichte(client, firm, monkeypatch):
     tid = make_task(pid, ceo, "Normaler Auftrag", status="done")
     A.ex("UPDATE tasks SET result='x' WHERE id=?", (tid,))
     r = client.post(f"/api/tasks/{tid}/print", json={"confirm": True})
-    assert r.status_code == 400 and "Nur Abendberichte" in r.get_data(as_text=True)
+    assert r.status_code == 400 and "Only evening reports" in r.get_data(as_text=True)
 
 
 def test_ohne_drucker(client, firm):
@@ -98,7 +98,7 @@ def test_ohne_drucker(client, firm):
     client.put(f"/api/projects/{pid}/print", json={"allowed": True})
     tid = report_task(pid, ceo)
     r = client.post(f"/api/tasks/{tid}/print", json={"confirm": True})
-    assert r.status_code == 400 and "kein Drucker" in r.get_data(as_text=True)
+    assert r.status_code == 400 and "No printer" in r.get_data(as_text=True)
 
 
 def test_testdrucker_schreibt_datei(client, firm):

@@ -1,7 +1,7 @@
 # Hyperstead – Projektnotizen für die Weiterarbeit
 
 Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipLite), läuft auf einem Raspberry Pi 4
-(Hostname `dexter`). Sprache der Oberfläche und Doku: Deutsch.
+(Hostname `dexter`). Oberfläche (index.html, Server-Fehlermeldungen, Login, Stufennamen in growth.py, Vorlagen-label/desc) seit 2026-11-04 auf internationalem Englisch (Wunsch ABI, andere Sprachen per Browser-Übersetzer); Doku, Code-Kommentare, Agenten-Prompts, Vorlageninhalte und Telegram bleiben Deutsch.
 
 ## Aufbau
 - `app.py`: komplettes Backend (Flask + SQLite, `PCL_WORKERS` Worker-Threads). Abschnitte: Konfiguration/.env, Datenbank,
@@ -205,6 +205,7 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   `hubCosmosRoutes` (Bogen zwischen den Sonnen, nur Raumschiffe; zarte Spur `.sroute` nur bei aktiver Zusammenarbeit). Abteilungssymbole `hubDepIcon` (Stichwoerter aus Name/Rolle). Canva-Bilder kommen in der Cloud-Sitzung nur als 200-px-Vorschau an, darum alles SVG. `HUB.tr` + `.veh`, `hubAlong` hin und zurueck, `hubPlaceTraffic`
   (Schiffe drehen in Flugrichtung). Dialog `showFirmLinks(pid)` (🤝 `#hubLink` oben, `#hubCardLink` im Infofenster).
 - Molekuel-Welt (Wunsch ABI 2026-11-04, `HUB_DRAW.molekuel`): `molStyle(seed,farbe)` (Saat = Projekt-ID -> Spreizung/Stablaenge/Streckung/Drehung/Farbreihe), `molLayout`/`molSvg` im Atom-Abschnitt (ohne rAF) gemeinsam fuer Atom-Ansicht und Hub; `firmTree(f)`, `hubMolecules` (statisch, `hubMolBonds` = Stab zwischen den Leitungen von Partnern + Funken `.veh.spark` ueber `HUB.tr`), innen `hubInsideMol` (data-agent/data-dep). `#hubcard` ausserhalb von `view-hub` per CSS versteckt.
+- Zurück/Monde (Wunsch ABI 2026-11-04): `#gBack` (← vor `#gViews`) + `GHIST` (`gState` = view/org/world/inside/dep/pid, `gNote` am Ende von setView/hubWorld/hubEnter/hubLeave/hubDep/openProject, max. 40, nur im Tab), `gBack` stellt genau das Design wieder her (`busy` verhindert neue Einträge). Knopf „📐 Firma öffnen“ (`#hubOpen`) entfernt, `hubOpenFirm` öffnet den Agenten ohne Ansichtswechsel. Kosmos: `hubMoons` (Mitarbeiter = Monde um den Planeten, `HUB.moons`/`HUB.moonEls`, innen klickbar mit data-agent), `hubSpin` (Oberfläche in `.hspin` mit data-w/data-p, dreifach nebeneinander, geclippt) = Eigendrehung von Sonnen und Planeten; `hubPlace` bewegt beides.
 - Firmenlogo (Wunsch ABI 2026-11-04): `/api/projects/<id>/logo` GET/POST/DELETE, nur PNG/JPEG/WebP nach Magic Bytes (`logo_kind`, kein SVG), `LOGO_MAX` 2 MB,
   Datei `.logo.<art>` im Projektordner (Dotdatei = fuer Agenten/Webseite/ZIP unsichtbar), GET mit CSP sandbox. `firms_overview` liefert `logo` = mtime (Cache-Brecher).
   UI `hubLogo(f,x,y,groesse,rund)` (Schild auf dem Dach, in der Sonne, innen am Dachaufbau), Knoepfe `#hubLogoUp`/`#hubLogoDel` im Infofenster, `hubLogoPick`.

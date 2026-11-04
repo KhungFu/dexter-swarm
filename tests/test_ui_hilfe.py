@@ -48,7 +48,7 @@ def test_drei_organigramme():
     assert 'data-view="org"' in html
     for art, fn in (("baum", "orgBaum"), ("gliederung", "orgGliederung"), ("kreis", "orgKreis")):
         assert f'data-org="{art}"' in html and f"function {fn}(" in html
-    assert "🏢 Organigramm:</b>" in html
+    assert "🏢 Org chart:</b>" in html
 
 
 def test_postkorb_und_seitenmenue():
@@ -57,7 +57,7 @@ def test_postkorb_und_seitenmenue():
         assert f'id="{i}"' in HTML
     assert "/inbox/clear" in HTML and "confirm(" in HTML[HTML.index("in_clear"):]
     assert HTML.count('class="side-grp"') >= 4
-    menu = HTML[HTML.index('id="sidemenu"'):HTML.index('<div class="side-h"><span>Projekte')]
+    menu = HTML[HTML.index('id="sidemenu"'):HTML.index('<div class="side-h"><span>Projects')]
     for b in ("btnInbox", "btnApprovals", "btnOps", "btnGoals", "btnSched", "btnGroupAI", "btnModels", "btnKnow",
               "btnFiles", "btnCloud", "btnConn", "btnUsage", "btnAudit", "btnHelp", "btnLogout"):
         assert f'id="{b}"' in menu

@@ -7,9 +7,9 @@ STYLE = ("Antworte auf Deutsch, sachlich und konkret. Nenne bei Recherche immer 
 
 TEMPLATES = {
     "webagentur": {
-        "label": "Webagentur",
+        "label": "Web agency",
         "icon": "🌐",
-        "desc": "Erstellt Webseiten inkl. Texte, Bilder (suchen/erzeugen) und fertigem HTML im Projektordner.",
+        "desc": "Builds websites including copy, images (searched/generated) and finished HTML in the project folder.",
         "goal": "Wir sind eine Webagentur. Wir erstellen für Kunden komplette, moderne Webseiten (HTML/CSS, mobilfreundlich) "
                 "mit passenden Texten und Bildern. Ergebnis: fertige Dateien im Projektordner (index.html, assets/).",
         "agents": [
@@ -40,9 +40,9 @@ TEMPLATES = {
         ],
     },
     "buchhaltung": {
-        "label": "Buchhaltung / Steuerkanzlei",
+        "label": "Accounting / tax office",
         "icon": "🧾",
-        "desc": "Recherchiert Rechtslage und Fristen des jeweiligen Landes, bucht, prüft und berichtet.",
+        "desc": "Researches the legal situation and deadlines of the respective country, books, checks and reports.",
         "goal": "Wir sind eine Buchhaltung. Wir bearbeiten Belege und Buchungen, klären die steuerliche Lage des Mandanten im jeweiligen Land "
                 "(laut Auftrag, sonst Österreich) und liefern geprüfte Auswertungen und To-dos. Wir geben keine verbindliche Steuerberatung.",
         "agents": [
@@ -66,9 +66,9 @@ TEMPLATES = {
         ],
     },
     "handel": {
-        "label": "Import / Export Handel",
+        "label": "Import / export trading",
         "icon": "🚢",
-        "desc": "Sourcing, Zoll & Compliance, Logistik, Vertrieb und Controlling für einen Handelsbetrieb.",
+        "desc": "Sourcing, customs & compliance, logistics, sales and controlling for a trading business.",
         "goal": "Wir sind ein Import-/Export-Handelsunternehmen. Wir finden Lieferanten und Märkte, klären Zoll, Einfuhr- und Exportregeln, "
                 "kalkulieren Preise und Logistik und bereiten Angebote vor. Wir führen keine echten Käufe, Zahlungen oder Bestellungen aus.",
         "agents": [
@@ -99,9 +99,9 @@ TEMPLATES = {
     },
 
     "animation": {
-        "label": "Animationsagentur / Videoproduktion",
+        "label": "Animation agency / video production",
         "icon": "🎬",
-        "desc": "Skript, Bilder, Sprecher, Schnitt: erstellt Erklärfilme und Diashow-Animationen oder bearbeitet deine Videos (ffmpeg).",
+        "desc": "Script, images, narrator, editing: creates explainer films and slideshow animations or edits your videos (ffmpeg).",
         "goal": "Wir sind eine Animations- und Videoagentur. Wir entwickeln aus einer Idee ein Skript, erzeugen die Bilder pro Szene, "
                 "sprechen den Text ein und schneiden alles zu einem fertigen Video (output/film.mp4). Eigene Videos des Kunden liegen in input/ "
                 "und werden geschnitten, mit Text, Untertiteln, Logo und Ton versehen.",
@@ -136,9 +136,9 @@ TEMPLATES = {
         ],
     },
     "animationsstudio": {
-        "label": "Animationsstudio (Blender)",
+        "label": "Animation studio (Blender)",
         "icon": "🐶",
-        "desc": "Echte Zeichentrick-Episoden: Figuren mit Stimmen und Mundbewegung, Szenen, Kamera, Schnitt. Rendert mit Blender auf dem Laptop.",
+        "desc": "Real cartoon episodes: characters with voices and mouth movement, scenes, camera, editing. Renders with Blender on the laptop.",
         "goal": "Wir sind ein Animationsstudio für Kinderserien. Aus einer Idee entsteht ein Drehbuch (film/film.json), die Figuren sprechen mit "
                 "eigenen Stimmen, jede Szene wird in Blender gerendert und zum fertigen Film mit Ton und Untertiteln geschnitten (output/*.mp4).",
         "agents": [
@@ -170,9 +170,9 @@ TEMPLATES = {
         ],
     },
     "verlag": {
-        "label": "Buchverlag / Content-Agentur",
+        "label": "Book publisher / content agency",
         "icon": "📚",
-        "desc": "Recherche, Autoren, Lektorat und Satz: erstellt Bücher, Ratgeber und Content als PDF, EPUB oder Word.",
+        "desc": "Research, authors, editing and typesetting: creates books, guides and content as PDF, EPUB or Word.",
         "goal": "Wir sind ein Verlag und eine Content-Agentur. Wir entwickeln Bücher, Ratgeber, Artikelreihen und Lehrmaterial: Konzept, Recherche, Kapitel, "
                 "Lektorat, Satz. Ergebnis: fertige Dateien in output/ (PDF, EPUB, DOCX) und die Kapitel als Markdown-Dateien.",
         "agents": [
@@ -208,9 +208,9 @@ TEMPLATES = {
         ],
     },
     "gedanken": {
-        "label": "Gedankenwerkstatt",
+        "label": "Think tank",
         "icon": "💭",
-        "desc": "Denker mit unterschiedlichen Perspektiven: zum Philosophieren (Chat-Tab) und zum Ausarbeiten von Ideen.",
+        "desc": "Thinkers with different perspectives: for philosophizing (chat tab) and for working out ideas.",
         "goal": "Wir sind eine Gedankenwerkstatt. Wir denken gemeinsam mit dem Besitzer über Fragen, Ideen und Projekte nach: Philosophie, Strategie, "
                 "Lebensfragen, Geschäftsideen. Wir hinterfragen, ordnen, entwickeln Alternativen und machen Ideen umsetzbar. Gespräche führt der Besitzer im Chat-Tab; "
                 "größere Denkaufträge bearbeitet das Team.",
@@ -232,9 +232,9 @@ TEMPLATES = {
         ],
     },
     "recherche": {
-        "label": "Recherchebüro / Dokumentenarchiv",
+        "label": "Research office / document archive",
         "icon": "🔎",
-        "desc": "Findet und lädt PDFs und Quellen, liest und fasst sie zusammen und liefert einen Bericht mit Quellenverzeichnis.",
+        "desc": "Finds and downloads PDFs and sources, reads and summarizes them and delivers a report with a list of sources.",
         "goal": "Wir sind ein Recherchebüro. Wir finden Dokumente (PDFs, Studien, Gesetze, Berichte), laden sie ins Archiv (downloads/), lesen und "
                 "fassen sie zusammen und liefern einen belegten Bericht mit Quellenverzeichnis als PDF oder Word.",
         "agents": [
