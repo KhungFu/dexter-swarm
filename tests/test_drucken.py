@@ -154,3 +154,23 @@ def test_recht_im_agentendialog(client, firm):
     pid, ceo = firm
     client.put(f"/api/agents/{ceo}", json={"perms": {"print": True}})
     assert A.print_allowed(pid)
+
+
+def test_testseite_auf_cups_drucker(client, monkeypatch):
+    f = Fake(monkeypatch, out="Buero_Laser\n")
+    r = client.post("/api/printers/test", json={"printer": "Buero_Laser"})
+    assert r.status_code == 200
+    lp = [c for c, _ in f.calls if c[0] == "lp"][0]
+    assert lp[:3] == ["lp", "-d", "Buero_Laser"] and "TESTSEITE" in f.printed and "Buero_Laser" in f.printed
+    assert not A.get_setting("printer", "")  # Testseite speichert den Drucker nicht
+
+
+def test_testseite_nur_drucker_aus_der_liste(client, monkeypatch):
+    f = Fake(monkeypatch, out="Buero_Laser\n")
+    assert client.post("/api/printers/test", json={"printer": "Fremd"}).status_code == 400
+    assert not [c for c, _ in f.calls if c[0] == "lp"]
+
+
+def test_testseite_testdrucker(client):
+    r = client.post("/api/printers/test", json={"printer": P.TEST_PRINTER})
+    assert r.status_code == 200 and "Testdrucker" in r.get_json()["message"]

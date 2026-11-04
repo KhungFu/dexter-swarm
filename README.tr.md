@@ -535,6 +535,8 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
 
 👑 CEO denetimi mesai bitiminde bir akşam raporu yazar. 📬 Post'ta ve CEO'nun görevlerinde **🖨 Drucken** düğmesi bulunur: bir tıklama, kısa bir onay, ardından yazıcıya gider. Yazıcıyı kenar çubuğundaki **🖨 Drucker** altında seçin (Pi: CUPS üzerinden ağ yazıcısı, `./install.sh --print`; Windows: Yazıcılar ve tarayıcılar altında paylaşılan yazıcı). Aynı pencerede CEO yazdırmaya izin verir veya engeller ("Darf Abendberichte drucken" hakkı). **Testdrucker (Datei)** çıktıyı yalnızca `workspace/.druck/` içine metin dosyası olarak kaydeder. Kılavuz: [docs/drucken.md](docs/drucken.md) (Almanca).
 
+**Doğru yazıcı mı?** 🖨 Drucker penceresinde bir yazıcı seçin ve **🧾 Testseite drucken** (test sayfası yazdır) düğmesine tıklayın. Sayfada yazıcı, bilgisayar ve saat yazar, özel harfler de vardır. Doğru yazıcıdan çıkarsa **Speichern** (kaydet) düğmesine tıklayın. Test sayfası tek başına hiçbir şey kaydetmez ve CEO'nun yazdırma hakkını gerektirmez.
+
 ## 🌐 Gerçek tarayıcı ve ▶ kod çalıştırma
 
 - **Tarayıcı** (`./install.sh --browser`, Playwright + Chromium kurar, yaklaşık 400 MB, yalnızca 64 bit sistem): „Internet recherchieren“ (internette araştırma) hakkı olan ajanlar `browse_page` aracını alır.

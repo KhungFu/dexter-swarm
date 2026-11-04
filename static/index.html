@@ -1697,7 +1697,7 @@ async function showPrinters(){
     <label>Drucker</label>
     <select id="pr_sel"><option value="">– keiner –</option>${opts}</select>
     <small style="color:var(--mute);display:block;margin-top:4px">„${esc(r.test)}“ druckt nicht, sondern speichert den Ausdruck als Textdatei (workspace/.druck/). Gut zum Ausprobieren.</small>
-    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Diesen Drucker für alle Abendberichte verwenden">Speichern</button><button class="btn sm" id="pr_reload" title="Druckerliste neu vom System holen">↻ Neu suchen</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Diesen Drucker für alle Abendberichte verwenden">Speichern</button><button class="btn sm" id="pr_test" title="Eine Testseite auf dem ausgewählten Drucker drucken, um zu sehen, ob es der richtige ist">🧾 Testseite drucken</button><button class="btn sm" id="pr_reload" title="Druckerliste neu vom System holen">↻ Neu suchen</button></div>
     <div class="task" style="padding:10px;margin-top:12px">
       <b>Drucken in diesem Projekt: ${r.allowed?'✅ erlaubt':'⛔ gesperrt'}</b>
       <div style="color:var(--mute);font-size:12px;margin:4px 0 8px">${r.ceo?'Entscheidet '+esc(r.ceo.name)+' als CEO (Recht „Darf Abendberichte drucken“).':'Das Projekt hat noch keinen CEO.'}</div>
@@ -1705,6 +1705,9 @@ async function showPrinters(){
     </div>`;
   $('#pr_save').onclick=async()=>{ await api('/printers','PUT',{printer:$('#pr_sel').value}); toast('Drucker gespeichert'); };
   $('#pr_reload').onclick=showPrinters;
+  $('#pr_test').onclick=async()=>{ const n=$('#pr_sel').value; if(!n){ toast('Erst einen Drucker auswählen.'); return; }
+    if(!confirm('Eine Testseite auf „'+n+'“ drucken?')) return;
+    const b=$('#pr_test'); b.disabled=true; try{ const r=await api('/printers/test','POST',{printer:n}); toast(r.message+' Liegt die Seite im richtigen Drucker, auf „Speichern“ klicken.'); }catch(e){} b.disabled=false; };
   if($('#pr_allow')) $('#pr_allow').onclick=async()=>{ await api('/projects/'+S.pid+'/print','PUT',{allowed:!r.allowed}); toast(r.allowed?'Drucken gesperrt':'Drucken erlaubt'); showPrinters(); };
 }
 $('#btnPrint').onclick=showPrinters;
@@ -1969,7 +1972,7 @@ const HELP=[
 <li><b>📜 Verlauf:</b> jedes Ereignis wird protokolliert und nie gelöscht.</li></ul>`},
  {id:'dateien',t:'📁 Dateien, Cloud und Verbindungen',h:`<ul><li><b>📁 Dateien:</b> alles, was die Agenten erzeugt haben. Antippen öffnet, „⬇ Alles als ZIP“ lädt das Projekt herunter. Hochgeladene Dateien landen in <code>input/</code>.</li>
 <li><b>Webseite veröffentlichen:</b> Liegt <code>www/index.html</code> im Projekt, kann Hyperstead sie als Webseite ausliefern („Veröffentlichen“).</li>
-<li><b>🖨 Drucker:</b> Drucker für die Abendberichte wählen (Netzwerkdrucker über CUPS bzw. Windows). Der CEO erlaubt oder sperrt das Drucken. Bei jedem Abendbericht steht dann 🖨 Drucken, gedruckt wird nach deiner Bestätigung.</li>
+<li><b>🖨 Drucker:</b> Drucker für die Abendberichte wählen (Netzwerkdrucker über CUPS bzw. Windows). Mit 🧾 Testseite drucken siehst du vorher, ob es der richtige Drucker ist. Der CEO erlaubt oder sperrt das Drucken. Bei jedem Abendbericht steht dann 🖨 Drucken, gedruckt wird nach deiner Bestätigung.</li>
 <li><b>☁️ Cloud:</b> GitHub, Google Drive, OneDrive und Telegram einrichten. Jeder Upload eines Agenten wartet auf deine Freigabe. ☁️ neben einer Datei lädt sie selbst hoch.</li>
 <li><b>🔌 Verbindungen:</b> Webhooks. Agenten mit dem Recht „Verbindungen“ dürfen deine eingetragenen Adressen aufrufen (z. B. Zapier, Home Assistant), Hyperstead meldet neue Post an einen Dienst, oder andere Programme schicken über eine geheime Eingangsadresse Aufträge herein. Ohne Eintrag passiert nichts.</li></ul>`},
  {id:'stimmen',t:'🎙 Stimmen und ElevenLabs',h:`<p>Agenten mit dem Recht „Medien“ können Texte sprechen lassen (Werkzeug <code>speak</code>) und Filmfiguren vertonen. Normal läuft das kostenlos auf deinem Gerät (Piper, espeak-ng oder Edge-Stimmen).</p>

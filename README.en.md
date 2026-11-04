@@ -542,6 +542,8 @@ Runs without internet and without keys (provider `mock`, own database).
 
 The 👑 CEO inspection writes an evening report at closing time. In 📬 Post and in the CEO's tasks it has a **🖨 Print** button: one click, a short confirmation, then it goes to the printer. Choose the printer under **🖨 Drucker** in the sidebar (Pi: network printer via CUPS, `./install.sh --print`; Windows: shared printer under Printers & scanners). In the same window the CEO allows or blocks printing (right "Darf Abendberichte drucken"). The **Testdrucker (Datei)** only saves the printout as a text file in `workspace/.druck/`. Guide: [docs/drucken.md](docs/drucken.md) (German).
 
+**Right printer?** In the 🖨 Drucker window choose a printer and click **🧾 Testseite drucken** (print test page). The page names the printer, computer and time and contains umlauts. If it comes out of the right printer, click **Speichern** (save). The test page alone saves nothing and needs no print right from the CEO.
+
 ## 🌐 Real browser and ▶ run code
 
 - **Browser** (`./install.sh --browser`, installs Playwright + Chromium, about 400 MB, 64-bit system only): agents with the right

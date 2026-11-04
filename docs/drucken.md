@@ -7,7 +7,7 @@ Dort steht der Knopf **🖨 Drucken**. Ein Klick fragt kurz nach („Abendberich
 ## Einrichten in drei Schritten
 
 1. **Drucker im Betriebssystem verbinden** (einmalig, siehe unten für Pi und Windows).
-2. In Hyperstead links **🖨 Drucker** öffnen, den Drucker wählen, **Speichern**.
+2. In Hyperstead links **🖨 Drucker** öffnen, den Drucker wählen, mit **🧾 Testseite drucken** prüfen, ob es der richtige ist, dann **Speichern**.
 3. Im selben Fenster **✅ Drucken erlauben**. Das ist ein Recht des CEO („Darf Abendberichte drucken“, auch im
    Einstellungen-Reiter des CEO). Mit **⛔ Drucken sperren** ist der Knopf wieder gesperrt.
 

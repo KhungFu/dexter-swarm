@@ -4261,6 +4261,29 @@ def api_printers_set():
     return jsonify({"ok": True})
 
 
+def test_page_text(printer):
+    import platform
+    return ("HYPERSTEAD  -  TESTSEITE\n" + "=" * 60 + "\n\n"
+            f"Drucker:  {printer}\nRechner:  {platform.node() or '?'}\nZeit:     {time.strftime('%d.%m.%Y %H:%M:%S')}\n\n"
+            "Wenn du diese Seite in der Hand hast, ist es der richtige Drucker.\n"
+            "Umlaute: ä ö ü Ä Ö Ü ß  -  Türkçe: ç ğ ı İ ş  -  Srpski/Hrvatski: č ć đ š ž\n\n"
+            "Im Fenster 🖨 Drucker auf „Speichern“ klicken, dann werden Abendberichte hier gedruckt.\n")
+
+
+@app.post("/api/printers/test")
+def api_printers_test():
+    """Testseite auf einem Drucker aus der Liste, damit der Besitzer sieht, ob es der richtige ist (vor dem Speichern)."""
+    name = str((request.get_json(force=True) or {}).get("printer", "")).strip()
+    names, _ = printing.list_printers()
+    if not name or name not in names:
+        abort(400, "Diesen Drucker gibt es nicht (mehr). ↻ Neu suchen und aus der Liste wählen.")
+    ok, msg = printing.print_text(name, "Hyperstead Testseite", test_page_text(name), WORKSPACE / ".druck")
+    log("print_test" if ok else "print_failed", f"Testseite -> {name}: {msg}"[:400])
+    if not ok:
+        abort(400, msg)
+    return jsonify({"ok": True, "message": msg, "printer": name})
+
+
 @app.put("/api/projects/<int:pid>/print")
 def api_print_allow(pid):
     """Drucken erlauben/sperren = Recht 'print' des CEO."""

@@ -541,6 +541,8 @@ Radi bez interneta i bez ključeva (dobavljač `mock`, vlastita baza).
 
 👑 Kontrolni obilazak CEO-a na kraju radnog dana piše večernji izvještaj. U 📬 pošti i u zadacima CEO-a stoji dugme **🖨 Drucken**: jedan klik, kratka potvrda, zatim ide na štampač. Štampač birate pod **🖨 Drucker** u bočnoj traci (Pi: mrežni štampač preko CUPS-a, `./install.sh --print`; Windows: dijeljeni štampač pod Štampači i skeneri). U istom prozoru CEO dozvoljava ili zabranjuje štampanje (pravo „Darf Abendberichte drucken”). **Testdrucker (Datei)** samo snima ispis kao tekstualni fajl u `workspace/.druck/`. Uputstvo: [docs/drucken.md](docs/drucken.md) (na njemačkom).
 
+**Pravi štampač?** U prozoru 🖨 Drucker izaberite štampač i kliknite **🧾 Testseite drucken** (štampaj probnu stranicu). Stranica navodi štampač, računar i vrijeme i sadrži posebna slova. Ako izađe na pravom štampaču, kliknite **Speichern** (sačuvaj). Sama probna stranica ništa ne čuva i ne treba joj pravo CEO-a na štampanje.
+
 ## 🌐 Pravi pregledač i ▶ pokretanje koda
 
 - **Pregledač** (`./install.sh --browser`, instalira Playwright + Chromium, oko 400 MB, samo 64-bitni sistem): agenti sa pravom
