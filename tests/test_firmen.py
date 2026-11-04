@@ -116,8 +116,8 @@ def test_welten_grafik_nach_referenzbild():
     for fn in ("function hubStyle(", "function isoBox(", "function hubRoadPath(", "function hubDepIcon(", "function hubOrgChart(", "function hubSunSvg("):
         assert fn in html
     inner = html[html.index("function hubInsideCity("):html.index("function hubInsideCosmos(")]
-    # Leitung ist die erste Etage und wird oben (y=-H) begonnen
-    assert "floors=[{dep:-1, name:'Leitung'" in inner and "let y=-H;" in inner and "'Chefetage'" in inner
+    # eine Etage je Hierarchie-Ebene, Ebene 0 (Leitung) ganz oben, ein Raum je Person
+    assert "hubLevels(f)" in inner and "top=-H+l*RH" in inner and "'Chefetage'" in inner and 'class="pers room' in inner
     assert "hubOrgChart(T," in inner
     # Raumschiff-Spur nur bei aktiver Zusammenarbeit
     routes = html[html.index("function hubCosmosRoutes("):html.index("function hubAlong(")]
@@ -134,3 +134,24 @@ def test_welten_bewegung_und_lesbare_namen():
     assert "var(--lz,1)" in html and "setProperty('--lz'" in html
     assert 'class="badge"' not in html[html.index("function hubBuilding("):html.index("function hubCity(")]
     assert "function hubSunR(" in html
+
+
+def test_hierarchie_ebenen_im_gebaeude(tmp_path):
+    """Ebenen beliebig tief: hubLevels rechnet Ebene und Abteilung je Agent (per Node nachgerechnet, falls vorhanden)."""
+    import os
+    import shutil
+    import subprocess
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    if not shutil.which("node"):
+        return
+    def fn(name):
+        i = html.index("function " + name + "(")
+        j = html.index("\nfunction ", i + 10)
+        return html[i:j]
+    js = fn("hubTeams") + "\n" + fn("hubLevels") + """
+const f={agents:[{id:1,parent_id:null},{id:2,parent_id:1},{id:3,parent_id:1},{id:4,parent_id:2},{id:5,parent_id:4},{id:6,parent_id:5},{id:7,parent_id:3}]};
+const L=hubLevels(f); console.log(JSON.stringify([L.max,L.lvl[6],L.dep[6],L.dep[7],L.lvl[1],L.dep[1]]));"""
+    p = tmp_path / "t.js"
+    p.write_text(js, encoding="utf-8")
+    out = subprocess.run(["node", str(p)], capture_output=True, text=True, encoding="utf-8").stdout.strip()
+    assert out == "[4,4,0,1,0,-1]"

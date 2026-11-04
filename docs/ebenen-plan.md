@@ -17,8 +17,8 @@ Eingang (seit 2026-11-04, Wunsch ABI): „Projekte“ ist der Oberpunkt. Links d
   Fenster leuchten, wenn dort gearbeitet wird. Dunkler Grund, Leuchtkanten, weiche Schatten (Richtung Konzeptbild).
 - **Straßen nur zwischen Firmen, die zusammenarbeiten.** Firmen ohne Verbindung werden nicht künstlich verbunden.
 - Lieferwagen fahren über diese Straßen, mehr Verkehr bei mehr Aktivität.
-- **Hineingehen:** Klick auf ein Gebäude zoomt hinein. Innen: ganz oben die Leitung (Chefetage), darunter eine Etage je Abteilung, rechts das Organigramm,
-  Agenten an Tischen (leuchtender Bildschirm = arbeitet). Links eine Liste der Abteilungen zum Anklicken.
+- **Hineingehen:** Klick auf ein Gebäude zoomt hinein. Innen: eine Etage je Hierarchie-Ebene (beliebig tief, `hubLevels`), ganz oben die Leitung (Chefetage),
+  jede Person in einem eigenen Raum in der Farbe ihrer Abteilung (leuchtender Bildschirm = arbeitet), rechts das Organigramm. Das Gebäude wächst mit Stufe und Tiefe. Links eine Liste der Abteilungen zum Anklicken.
 
 ## Kosmos
 
