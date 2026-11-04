@@ -122,6 +122,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 #app.view-world #map{display:block}
 #app.view-world #edges,#app.view-world #nodes,#app.view-world #palette{display:none}
 #app.view-world #vp,#app.view-atom #vp{background:radial-gradient(ellipse at 50% 45%,#0c1222,#05070e 60%,#020308) !important;background-size:100% 100% !important;background-position:0 0 !important}
+#app.view-atom #vp{background:radial-gradient(ellipse at 50% 45%,#0b2230,#04121b 60%,#02080d) !important}
 #map .star{opacity:.75}
 #map .halo{opacity:.5}
 #map .star.tw{animation:twinkle 4s ease-in-out infinite}
@@ -445,11 +446,11 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
         <div class="vpick" id="gViews">
           <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Grafik wählen: Weltall, drei Organigramme, Atom oder Bauplan"><span id="gViewLbl">🌌 Weltall</span> ▾</button>
           <div class="vmenu" id="gViewMenu" role="menu" aria-label="Grafik" hidden>
-            <button role="menuitemradio" data-view="world" title="Weltall: Sonnensystem mit Sonne, Planeten und Monden">🌌 Weltall</button>
+            <button role="menuitemradio" data-view="world" title="Welt Weltall: Sonnensystem mit Sonne, Planeten und Monden, Stufen von Asteroid bis Galaxie">🌌 Weltall</button>
             <button role="menuitemradio" data-view="org" data-org="baum" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
             <button role="menuitemradio" data-view="org" data-org="gliederung" title="Organigramm als Gliederung, eine Zeile je Agent (gut fürs Handy)">➡ Organigramm: Gliederung</button>
             <button role="menuitemradio" data-view="org" data-org="kreis" title="Organigramm als Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Organigramm: Kreis</button>
-            <button role="menuitemradio" data-view="atom" title="Atom: die Leitung ist der Kern, jede Abteilung sitzt als Elektron auf ihrer Bahn (steht still)">⚛️ Atom</button>
+            <button role="menuitemradio" data-view="atom" title="Welt Atom: die Leitung ist der Kern, jede Abteilung sitzt als Elektron auf ihrer Bahn (steht still), Stufen von Quark bis Zelle">⚛️ Atom</button>
             <button role="menuitemradio" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
           </div>
         </div>
@@ -1647,7 +1648,8 @@ const HELP=[
 <li><b>Grafik wählen:</b> Der aufklappbare Knopf oben rechts in der Leiste (z. B. „🌌 Weltall ▾“) bietet sechs Grafiken: 🌌 Weltall, drei Organigramme (Baum, Gliederung, Kreis), ⚛️ Atom und 📐 Bauplan zum genauen Bearbeiten. Das Gerät merkt sich die Wahl.</li>
 <li><b>Weltall:</b> Sonne oder Planet antippen öffnet eine Karte mit dem Team, ein Mond öffnet direkt den Agenten. Blau pulsierender Ring = arbeitet, gelber Ring = wartet auf deine Freigabe, roter Ring = Fehler, gestrichelt lila = wartet auf sein Team. Zwischen den Bahnen liegt ein Asteroidengürtel, Monde haben Krater, Planeten Wolken oder Bänder: das ist nur Schmuck. Auf dem Handy siehst du statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden, mit Zeichen ▶ in Arbeit, ✋ Freigabe, ❗ Fehler, ⏳ wartet, 📦 erfüllt.</li>
 <li><b>🏢 Organigramm:</b> zeigt dasselbe Team als klassisches Organigramm in drei Arten, auswählbar im Grafik-Knopf: <b>⬇ Baum</b> (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), <b>➡ Gliederung</b> (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und <b>◎ Kreis</b> (Leitung in der Mitte, jede Ebene ein Ring). Der farbige Streifen bzw. Ring zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Die gewählte Art merkt sich das Gerät. Karten lassen sich mit der Maus oder dem Finger verschieben, die Linien gehen mit. Das merkt sich das Gerät je Projekt und Art; „↺ Anordnung zurücksetzen“ oben in der Mitte stellt die Ordnung wieder her.</li>
-<li><b>⚛️ Atom:</b> wie ein Atom aus dem Film: Im <b>Kern</b> aus roten und grauen Kugeln sitzt die oberste Leitung. Jede Abteilung bekommt eine eigene <b>Elektronenbahn</b>, die großen Elektronen sind die Abteilungsleitungen, die kleinen ihre Mitarbeiter. Ein farbiger Ring zeigt den Zustand wie überall. Die Grafik steht still, damit man in Ruhe lesen kann. Antippen öffnet den Agenten.
+<li><b>⚛️ Atom:</b> wie ein Atom aus dem Film: Im <b>Kern</b> aus roten und grauen Kugeln sitzt die oberste Leitung. Jede Abteilung bekommt eine eigene <b>Elektronenbahn</b>, die großen Elektronen sind die Abteilungsleitungen, die kleinen ihre Mitarbeiter. Ein farbiger Ring zeigt den Zustand wie überall. Die Grafik steht still, damit man in Ruhe lesen kann. Antippen öffnet den Agenten.</li>
+<li><b>Zwei Welten:</b> 🌌 Weltall und ⚛️ Atom sind eigene Welten mit eigenen Stufen, Rängen und Begriffen. Wählst du eine davon in der Grafik-Auswahl, gilt sie für das Projekt (auch in der Wachstumsleiste, bei der Feier und in Telegram). Punkte und Stufengrenzen sind in beiden Welten gleich. Atom: Stufen ✴️ Quark, ⚛️ Atom, 🧪 Molekül, 💎 Kristall, 🧬 Zelle; Ränge Neutrino, Elektron, Proton, Nukleon; Punkte heißen Energie. Mit jeder Stufe wächst das Bild: Nachbaratome mit Bindungen, ein Kristallgitter, zuletzt Zellwand und Erbgut. Organigramm und Bauplan behalten die zuletzt gewählte Welt.</li>
 <li><b>Mehr Sterne:</b> Mit jeder Stufe wird der Himmel voller. Ab Sternhaufen leuchten Nebel, als Galaxie dreht sich eine Spirale im Hintergrund.</li>
 <li><b>🌓</b> wechselt Hell/Dunkel. Unter ⓘ lassen sich Bewegung und Feier-Effekte abschalten.</li></ul>`},
  {id:'agenten',t:'🤖 Agenten, KI und Rechte',h:`<p>Agent antippen öffnet das Seitenfenster mit den Reitern Einstellungen, 💬 Chat, Aufgaben und Verlauf.</p>
@@ -1852,7 +1854,7 @@ async function loadGrowth(force){
     WORLD.g = {...g, pid};
     if(oldRanks) Object.entries(g.ranks||{}).forEach(([id,r])=>{ const o=oldRanks[id];
       if(o && r.rank>o.rank){ const a=((S.graph&&S.graph.agents)||[]).find(x=>x.id===+id); toast(`🎉 ${a?a.name:'Ein Agent'} ist jetzt ${r.icon} ${r.name}`); } });
-    if(first){ renderGrowth(); render(); fit(); }
+    if(first){ renderGrowth(); render(); fit(); syncWorld(); }
     if(before!==null && g.stage>before) celebrate(g);
   }catch(e){ return; }
   renderGrowth(); render();
@@ -1882,9 +1884,9 @@ $('#gTheme').onclick = ()=>{
 try{ const t=localStorage.getItem('hs-theme'); if(t) document.documentElement.dataset.theme=t; }catch(e){}
 $('#gInfo').onclick = ()=>{
   const g=WORLD.g, w=wdef(), L=WORLD.list; if(!g||!w) return;
-  openOv(`🌌 ${w.name} und Wachstum`);
+  openOv(`${g.world==='atom'?'⚛️':'🌌'} ${w.name} und Wachstum`);
   const P=L.points;
-  $('#ovbody').innerHTML = `<div style="color:var(--mute);font-size:12px;margin-bottom:10px">${esc(w.tagline)} Sonne = oberste Leitung, Planeten = Abteilungen, Monde = Mitarbeiter. Das Weltall ändert nur Aussehen und Begriffe. Die Agenten arbeiten weiter mit klaren Begriffen, ihre Qualität bleibt gleich.</div>
+  $('#ovbody').innerHTML = `<div style="color:var(--mute);font-size:12px;margin-bottom:10px">${esc(w.tagline)} ${esc(w.explain||'')} Die Welt ändert nur Aussehen und Begriffe; welche gilt, bestimmt die Grafik-Auswahl (🌌 Weltall oder ⚛️ Atom). Die Agenten arbeiten weiter mit klaren Begriffen, ihre Qualität bleibt gleich.</div>
     <div class="tlabel">Stufen</div>
     ${w.stages.map((st,i)=>`<div class="logrow" style="${i===g.stage?'font-weight:700':''}">${st[0]} ${esc(st[1])} <span class="ts">ab ${L.stage_points[i]} ${esc(w.words.points)} · Führung wirbt selbst bis ${L.stage_team[i]??'beliebig viele'} Agenten an, ${L.stage_depth[i]??'volle'} Ebenen</span>${i===g.stage?' ← jetzt':''}</div>`).join('')}
     <div class="tlabel">Punkte</div>
@@ -1935,6 +1937,15 @@ function setView(v){
   markView();
   hideBcard(); MAP.sig=''; ORG.sig=''; ATOM.sig=''; render(); fit(); startOrbit();
   if(v==='plan' && S.graph) untangle();
+  syncWorld();
+}
+let worldSyncing=false;
+async function syncWorld(){  // Weltall und Atom sind zwei Welten: Stufen, Raenge und Begriffe folgen der gewaehlten Grafik
+  const want = VIEW==='atom' ? 'atom' : VIEW==='world' ? 'kosmos' : null, g=WORLD.g;
+  if(!want || !g || g.pid!==S.pid || g.world===want || worldSyncing) return;
+  worldSyncing=true;
+  try{ await api('/projects/'+S.pid+'/world','PUT',{world:want}); }catch(e){}
+  worldSyncing=false; loadGrowth(true);
 }
 function markView(){
   let lbl='';
@@ -2339,7 +2350,7 @@ function atomNucleus(n, R){  // Protonen (rot) und Neutronen (grau) dicht gepack
 function drawAtom(){
   const g=S.graph, svg=$('#atomsvg');
   if(!g || VIEW!=='atom'){ svg.innerHTML=''; ATOM.box=null; ATOM.sig=''; ATOM.mv=[]; return; }
-  const sig=JSON.stringify([S.pid,S.sel,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts])]);
+  const sig=JSON.stringify([S.pid,S.sel,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts]),WORLD.g&&WORLD.g.stage]);
   if(sig===ATOM.sig && svg.firstChild) return; ATOM.sig=sig;
   const roots=orgTree(g); if(!roots.length){ svg.innerHTML=''; ATOM.box=null; ATOM.mv=[]; return; }
   const shells=[]; roots.forEach(r=>r.kids.forEach(k=>shells.push(k)));
@@ -2375,11 +2386,41 @@ function drawAtom(){
     <radialGradient id="aGlow"><stop offset="0" stop-color="#7dd3fc" stop-opacity=".55"/><stop offset="1" stop-color="#7dd3fc" stop-opacity="0"/></radialGradient>
     <radialGradient id="aHalo"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".25" stop-color="#dbe6ff" stop-opacity=".25"/><stop offset="1" stop-color="#dbe6ff" stop-opacity="0"/></radialGradient>
     <radialGradient id="aNucGlow"><stop offset=".25" stop-color="#fca5a5" stop-opacity=".22"/><stop offset="1" stop-color="#fca5a5" stop-opacity="0"/></radialGradient></defs>`;
-  const back=`<g>${skySvg({x0:-R-300,x1:R+300,y0:-R-200,y1:R+200}, 0, 0, 0).replace(/<ellipse class="milky"[^>]*\/>/,'').replace(/url\(#gHalo\)/g,'url(#aHalo)')}</g>`;
+  const back=`<g>${atomSky({x0:-R-320,x1:R+320,y0:-R-220,y1:R+220}, (WORLD.g&&WORLD.g.stage)||0, R)}</g>`;
   svg.innerHTML=defs+back+`<g>${orbits.join('')}</g>`+nuc+els.join('');
   ATOM.box={x0:-R-50, x1:R+50, y0:-R-40, y1:R+40};
   ATOM.els=[...svg.querySelectorAll('.amv')];
   atomPlace();
+}
+function atomSky(b, stage, R0){  // Welt Atom: ruhiger Hintergrund, der mit der Stufe waechst (Quark, Atom, Molekuel, Kristall, Zelle)
+  const RND=rnd((S.pid||1)*977), W=b.x1-b.x0, H=b.y1-b.y0, out=[];
+  for(let i=0;i<260;i++){ const m=Math.pow(RND(),3); out.push(`<circle cx="${(b.x0+RND()*W).toFixed(0)}" cy="${(b.y0+RND()*H).toFixed(0)}" r="${(.3+m*1.4).toFixed(2)}" fill="${RND()>.5?'#67e8f9':'#c4b5fd'}" opacity="${(.12+m*.4).toFixed(2)}"/>`); }
+  if(stage>=4){  // Zelle: Membran und Erbgut-Doppelhelix
+    out.push(`<circle r="${(R0*1.55).toFixed(0)}" fill="none" stroke="#34d399" stroke-opacity=".10" stroke-width="40"/><circle r="${(R0*1.55).toFixed(0)}" fill="none" stroke="#34d399" stroke-opacity=".18" stroke-width="2"/>`);
+    let h=''; const x0=b.x0+W*.06, len=W*.88;
+    for(let i=0;i<=64;i++){ const t=i/64, x=x0+t*len, y=b.y0+H*.86-t*H*.12, a=t*Math.PI*9, d=26*Math.sin(a);
+      h+=`<circle cx="${x.toFixed(0)}" cy="${(y+d).toFixed(0)}" r="3" fill="#f472b6" opacity=".35"/><circle cx="${x.toFixed(0)}" cy="${(y-d).toFixed(0)}" r="3" fill="#60a5fa" opacity=".35"/>`;
+      if(i%2===0) h+=`<line x1="${x.toFixed(0)}" y1="${(y+d).toFixed(0)}" x2="${x.toFixed(0)}" y2="${(y-d).toFixed(0)}" stroke="#e0f2fe" stroke-opacity=".12"/>`; }
+    out.push(`<g>${h}</g>`);
+  }
+  if(stage>=3){  // Kristall: Gitter aus Atomen
+    let h=''; const step=120;
+    for(let x=Math.floor(b.x0/step)*step; x<=b.x1; x+=step) for(let y=Math.floor(b.y0/step)*step; y<=b.y1; y+=step){
+      if(Math.hypot(x,y)<R0*1.15) continue;
+      h+=`<line x1="${x}" y1="${y}" x2="${x+step}" y2="${y}" stroke="#a5f3fc" stroke-opacity=".06"/><line x1="${x}" y1="${y}" x2="${x}" y2="${y+step}" stroke="#a5f3fc" stroke-opacity=".06"/><circle cx="${x}" cy="${y}" r="4" fill="#a5f3fc" opacity=".14"/>`; }
+    out.push(`<g>${h}</g>`);
+  }
+  if(stage>=2){  // Molekuel: Nachbaratome mit Bindungen zum eigenen Atom
+    const n=3+Math.min(2,stage-2);
+    for(let i=0;i<n;i++){ const a=-2.2+i*2*Math.PI/n+RND()*.4, d=R0*1.32, x=Math.cos(a)*d, y=Math.sin(a)*d*.8, r0=R0*.22;
+      const bx=Math.cos(a)*R0*.16, by=Math.sin(a)*R0*.13, ex=x-Math.cos(a)*r0, ey=y-Math.sin(a)*r0*.8, nx=-Math.sin(a)*4, ny=Math.cos(a)*4;
+      out.push(`<line x1="${(bx+nx).toFixed(0)}" y1="${(by+ny).toFixed(0)}" x2="${(ex+nx).toFixed(0)}" y2="${(ey+ny).toFixed(0)}" stroke="#e0f2fe" stroke-opacity=".16" stroke-width="2"/><line x1="${(bx-nx).toFixed(0)}" y1="${(by-ny).toFixed(0)}" x2="${(ex-nx).toFixed(0)}" y2="${(ey-ny).toFixed(0)}" stroke="#e0f2fe" stroke-opacity=".16" stroke-width="2"/>
+        <g transform="translate(${x.toFixed(0)},${y.toFixed(0)})" opacity=".55"><ellipse rx="${r0.toFixed(0)}" ry="${(r0*.34).toFixed(0)}" class="aorbit" transform="rotate(30)"/><ellipse rx="${r0.toFixed(0)}" ry="${(r0*.34).toFixed(0)}" class="aorbit" transform="rotate(-30)"/><circle r="${(r0*.18).toFixed(0)}" fill="url(#aP)"/></g>`); }
+  }
+  if(stage<=0){  // Quark: drei farbige Quarks leuchten im Kern
+    out.push(['#ef4444','#22c55e','#3b82f6'].map((c,i)=>`<circle cx="${(Math.cos(i*2.094-1.57)*16).toFixed(0)}" cy="${(Math.sin(i*2.094-1.57)*16).toFixed(0)}" r="70" fill="${c}" opacity=".07"/>`).join(''));
+  }
+  return out.join('');
 }
 function atomPlace(){  // feste Plaetze auf den Bahnen, die Grafik bewegt sich nicht (Wunsch ABI)
   ATOM.mv.forEach((m,i)=>{ const el=ATOM.els[i]; if(!el) return; const a=m.a0, x=m.rx*Math.cos(a), y=m.ry*Math.sin(a), c=Math.cos(m.rot), s=Math.sin(m.rot);

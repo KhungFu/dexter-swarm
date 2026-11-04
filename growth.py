@@ -19,7 +19,7 @@ STAGE_DEPTH = [2, 3, 4, 5, None]
 # Raenge der Agenten nach eigenen abgenommenen Lieferungen
 RANK_AT = [0, 5, 20, 60]
 
-# Seit 2026-11-04 gibt es nur noch die Welt "Kosmos" (Wunsch ABI): Sonne = oberste Leitung, Planeten = Abteilungen
+# Seit 2026-11-04 gibt es die Welten "Kosmos" und "Atom" (Wunsch ABI): Sonne = oberste Leitung, Planeten = Abteilungen
 # bzw. Vorarbeiter, Monde = Mitarbeiter. Fruehere Welten (guild, tycoon, gizmo) werden per world_ok auf Kosmos umgestellt.
 WORLDS = {
     "kosmos": {
@@ -31,6 +31,20 @@ WORLDS = {
                   "done": "erfüllt", "project": "Universum", "world": "Sternkarte", "points": "Sternenstaub"},
         "planets": ["Nova", "Orion", "Vega", "Lyra", "Atlas", "Kepler", "Rigel", "Sirius"],
         "colors": {"accent": "#f59e0b", "accent2": "#6366f1", "ground": "#0b1026", "ground_dark": "#070b1a"},
+        "explain": "Sonne = oberste Leitung, Planeten = Abteilungen, Monde = Mitarbeiter.",
+    },
+    # Wunsch ABI 2026-11-04: Atom als zweite Welt. Kern = oberste Leitung, jede Abteilung eine Elektronenschale,
+    # Mitarbeiter = Elektronen. Gleiche Punkte und Stufengrenzen wie Kosmos, nur andere Namen.
+    "atom": {
+        "name": "Atom", "tagline": "Vom Quark zur lebenden Zelle.",
+        "stages": [["✴️", "Quark"], ["⚛️", "Atom"], ["🧪", "Molekül"], ["💎", "Kristall"], ["🧬", "Zelle"]],
+        "ranks": [["·", "Neutrino"], ["⚡", "Elektron"], ["🔴", "Proton"], ["💠", "Nukleon"]],
+        "words": {"owner": "Forscher:in", "top": "Kern", "lead": "Schale", "member": "Elektron",
+                  "team": "Schale", "teams": "Schalen", "task": "Experiment", "tasks": "Experimente",
+                  "done": "gelungen", "project": "Element", "world": "Atommodell", "points": "Energie"},
+        "planets": ["Alpha", "Beta", "Gamma", "Delta", "Sigma", "Omega", "Lambda", "Theta"],
+        "colors": {"accent": "#22d3ee", "accent2": "#a855f7", "ground": "#061a24", "ground_dark": "#03101a"},
+        "explain": "Kern = oberste Leitung, jede Abteilung = eine Elektronenschale, Mitarbeiter = Elektronen.",
     },
 }
 

@@ -134,8 +134,9 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
 - Tests: `tests/` (pytest, `conftest.drain()` arbeitet die Queue synchron ab). Neue Funktionen dort mit abdecken.
 
 ## Weltall und Wachstum (Hyperstead)
-- `growth.py` (reine Daten + Rechnung): `WORLDS` hat seit 2026-11-04 nur noch `kosmos` (Wunsch ABI: Gilde/Tycoon/Gizmo-Stadt gestrichen,
-  alte Werte in `settings world:<pid>` faengt `world_ok` ab). Stufen Asteroid/Planet/Sonnensystem/Sternhaufen/Galaxie, Raenge Komet/Mond/Planet/Stern,
+- `growth.py` (reine Daten + Rechnung): `WORLDS` = `kosmos` (Std.) und `atom` (Wunsch ABI 2026-11-04: Quark/Atom/Molekuel/Kristall/Zelle,
+  Raenge Neutrino/Elektron/Proton/Nukleon, Energie, Experimente; je Welt `explain`). Gilde/Tycoon/Gizmo-Stadt gestrichen, alte Werte faengt `world_ok` ab.
+  UI `syncWorld`: Grafik Weltall -> PUT world kosmos, Atom -> atom (Organigramm/Bauplan behalten die Welt). `atomSky` = ruhiger Atom-Hintergrund je Stufe. Stufen Asteroid/Planet/Sonnensystem/Sternhaufen/Galaxie, Raenge Komet/Mond/Planet/Stern,
   Begriffe Sonne/Planet/Mond/Mission/Sternenstaub. `STAGE_POINTS`, `STAGE_TEAM`/`STAGE_DEPTH` (Grenzen nur fuers SELBST-Anwerben), `RANK_AT`, `POINTS`.
   Welt nur Oberflaeche: Agenten-Prompts nie mit Spielbegriffen (Test `test_prompts_ohne_spielbegriffe`).
 - app.py: `project_world` (`settings world:<pid>`), `growth_limits_on` (`growth_limits:<pid>`, Std. an), `project_points` aus dem Audit-Log

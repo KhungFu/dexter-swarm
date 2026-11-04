@@ -102,3 +102,11 @@ def test_sonne_und_galaxie_drehen_sich():
     assert 'class="rays rot"' in HTML and 'class="rot" data-period' in HTML
     place = HTML[HTML.index("function placeMovers("):HTML.index("function orbitTick(")]
     assert "MAP.spinners" in place
+
+
+def test_atom_ist_eigene_welt():
+    assert "async function syncWorld(" in HTML and "function atomSky(" in HTML
+    sync = HTML[HTML.index("async function syncWorld("):HTML.index("function markView(")]
+    assert "'atom'" in sync and "'kosmos'" in sync and "/world" in sync
+    sky = HTML[HTML.index("function atomSky("):HTML.index("function atomPlace(")]
+    assert "requestAnimationFrame" not in sky  # Atom bleibt ruhig
