@@ -426,6 +426,10 @@ textarea{resize:vertical;min-height:110px}
 .bub.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:3px}
 .bub.assistant{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:3px}
 .bub.wait{opacity:.6;font-style:italic}
+#livebar{position:fixed;left:12px;bottom:12px;z-index:40;display:none;max-width:calc(100vw - 24px);background:var(--panel2);border:1px solid var(--line);
+  border-radius:12px;padding:6px 10px;font-size:12px;color:var(--mute);box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:default}
+#livebar b{color:var(--fg,inherit)}
+#livebar div+div{margin-top:2px}
 #chatbox{position:relative}
 #chatbox.drop::after{content:'Dateien hier ablegen → input/';position:absolute;inset:0;display:grid;place-items:center;
   border:2px dashed var(--accent);border-radius:10px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--text);font-weight:600;pointer-events:none}
@@ -680,6 +684,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
 </div>
 
 <div id="ov"><div id="ovbox" role="dialog" aria-modal="true" aria-labelledby="ovtitle"><header><b id="ovtitle"></b><button class="icon-btn" id="ovhelp" title="Passendes Kapitel der Anleitung zu diesem Fenster öffnen" aria-label="Hilfe zu diesem Fenster" style="display:none">ⓘ</button><button class="icon-btn" id="ovclose" title="Schließen" aria-label="Schließen">✕</button></header><div id="ovbody"></div></div></div>
+<div id="livebar" title="Laufende KI-Anfragen. Langsame Modelle (Ollama auf dem Pi) brauchen oft viele Minuten; die Antwort kommt trotzdem an."></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="tipbox" role="tooltip"></div>
 <div id="helpbar">❓ Hilfe-Modus: tippe auf einen Knopf für die Erklärung, nochmal tippen führt ihn aus. <button class="btn sm" id="helpoff" title="Hilfe-Modus ausschalten">Aus</button></div>
@@ -720,6 +725,16 @@ async function api(path, method='GET', body){
   if(r.status===401){ location.href='/login'; throw new Error('Sitzung abgelaufen'); }
   if(!r.ok){ const t = await r.text(); toast(t.slice(0,300)||('Fehler '+r.status)); throw new Error(t); }
   return r.json();
+}
+const fmtDur = s => s<60 ? s+' s' : Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+' min';
+function renderLive(live){  // Hinweis unten links: welche KI gerade schreibt und wie lange schon
+  const el=$('#livebar'); if(!el) return;
+  live=live||[]; if(!live.length){ el.style.display='none'; el.innerHTML=''; return; }
+  const lab=id=>((S.providers||[]).find(p=>p.id===id)||{}).label||id;
+  el.innerHTML=live.slice(0,4).map(x=>'<div>⏳ <b>'+esc(x.agent||'Agent')+'</b> · '+esc(lab(x.provider))+' · '+fmtDur(x.secs)
+    +(x.provider==='ollama'?(x.chars?' · '+x.chars+' Zeichen':' · lädt Modell / liest Auftrag'):' · wartet auf Antwort')+'</div>').join('')
+    +(live.length>4?'<div>… und '+(live.length-4)+' weitere</div>':'');
+  el.style.display='block';
 }
 function toast(t){ const el=$('#toast'); el.textContent=t; el.style.display='block'; clearTimeout(toast.t); toast.t=setTimeout(()=>el.style.display='none',4500); }
 const fmt = ts => new Date(ts*1000).toLocaleString('de-AT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -763,6 +778,7 @@ async function refresh(force){
   const nm = S.graph.model_problems||0;
   const mb = $('#mdbadge'); mb.textContent = nm; mb.style.display = nm? '' : 'none';
   $('#schbadge').style.display = S.graph.closed ? '' : 'none';
+  renderLive(S.graph.live);
   sideDots();
   render(); renderGrowth(); loadGrowth(force);
   if(S.sel && S.tab==='tasks') loadTasks();
@@ -1181,6 +1197,24 @@ async function drawChat(a){
   const log=$('#chatlog'), att=[];  // att: {file, el, path, busy}
   const add=(role,text,cls='')=>{ const d=document.createElement('div'); d.className='bub '+role+' '+cls; d.innerHTML=role==='assistant'?miniMd(text):esc(text); log.appendChild(d); log.scrollTop=log.scrollHeight; return d; };
   (await api('/agents/'+a.id+'/chat')).forEach(m=>add(m.role,m.content));
+  async function waitJob(jid, w, ub, msg){  // Antwort laeuft im Hintergrund; alle 2,5 s nachfragen, Netzaussetzer abwarten
+    for(;;){
+      await new Promise(r=>setTimeout(r,2500));
+      if(!document.body.contains(w)) return null;  // Panel geschlossen: Antwort landet trotzdem im Verlauf
+      let j=null;
+      try{ const r=await fetch('/api/agents/'+a.id+'/chat/job?id='+encodeURIComponent(jid)); if(r.status===401){ location.href='/login'; return null; } if(!r.ok) continue; j=await r.json(); }
+      catch(e){ continue; }
+      if(!j){ w.remove(); return null; }
+      if(j.done){
+        if(j.error){ w.remove(); if(ub) ub.remove(); toast(j.error); if(!$('#chatin').value) $('#chatin').value=msg||''; return null; }
+        w.className='bub assistant'; w.innerHTML=miniMd(j.reply); log.scrollTop=log.scrollHeight; return j;
+      }
+      w.textContent='schreibt … '+fmtDur(j.secs)+(j.chars?' · '+j.chars+' Zeichen':' · liest deine Nachricht')
+        +(j.secs>60?' (langsames Modell, die Antwort kommt trotzdem an)':'');
+    }
+  }
+  try{ const j=await api('/agents/'+a.id+'/chat/job'); if(j && !j.done){ $('#chatsend').disabled=true;
+    const ub=add('user',j.message), w=add('assistant','schreibt …','wait'); waitJob(j.job,w,ub,j.message).then(()=>{ $('#chatsend').disabled=false; }); } }catch(e){}
   function attach(files){
     if(!S.pid){ toast('Erst ein Projekt wählen.'); return; }
     for(const f of files){
@@ -1219,6 +1253,9 @@ async function drawChat(a){
     inp.value=''; const ub=add('user',shown); const w=add('assistant','denkt nach …','wait'); $('#chatsend').disabled=true;
     try{
       const r=await api('/agents/'+a.id+'/chat','POST',{message:msg,files});
+      if(r.job){ att.splice(0).forEach(x=>x.el.remove()); $('#chatpick').innerHTML='';
+        if((r.files||[]).length>files.length) ub.textContent='📎 '+r.files.join(', ')+(msg?'\n\n':'')+msg;
+        w.textContent='schreibt …'; await waitJob(r.job,w,ub,msg); $('#chatsend').disabled=false; inp.focus(); return; }
       w.className='bub assistant'; w.innerHTML=miniMd(r.reply);
       if((r.files||[]).length>files.length) ub.textContent='📎 '+r.files.join(', ')+(msg?'\n\n':'')+msg;
       att.splice(0).forEach(x=>x.el.remove()); $('#chatpick').innerHTML='';

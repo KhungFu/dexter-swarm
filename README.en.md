@@ -185,6 +185,7 @@ This list is extended with every change to the program. Each row says what the s
 | `.env` | Hyperstead starts without keys and without a password, reachable only from this computer. With `HOST=0.0.0.0` the start is aborted as long as `APP_TOKEN` is empty. | `./install.sh` (Pi) or `install.ps1` (Windows) creates it with a random password. |
 | `data.db` | Is created new and empty. Companies, tasks and posts are gone. | Back it up first (see Operations). Only copy back from a backup. |
 | API key in `.env` | The provider is reported as FEHLT in the self-test and the agents do not use it. If it is set but invalid: FEHLER with HTTP 401. | Enter the key, or switch the line off with `#`. |
+| Ollama not reachable or model too big | The task fails with „Ollama nicht erreichbar“ or „Zu wenig RAM für dieses Modell“; a missing model reports „`ollama pull …`“. If Ollama delivers nothing for `OLLAMA_TIMEOUT` seconds, the request stops with this hint, without repetition. | `systemctl status ollama`, pull a smaller model (`ollama pull qwen2.5:1.5b`) and choose it in the agent, or raise `OLLAMA_TIMEOUT`. |
 | `SDCPP_URL` (with `IMAGE_PROVIDER=sdcpp`) | Image requests fail with „SDCPP_URL fehlt“ (SDCPP_URL missing). With `IMAGE_FALLBACK=pollinations` a free replacement image without references is made, with a note in the result. | Add the line to `.env`, restart Hyperstead. |
 | Image computer not reachable (laptop off, firewall, wrong IP) | As above: error „Bildrechner … nicht erreichbar“ (not reachable), with the fallback a replacement image. | Switch on the laptop, start `bildrechner-start.bat`, check the IP and the firewall. |
 | `sd-server.exe` (Windows, image computer) | `bildrechner-start.bat` shows „sd-server.exe fehlt“ (missing) and starts nothing. | Run `deploy\windows\bildrechner-einrichten.ps1`. |
@@ -620,10 +621,21 @@ web search, reading pages, image search and image generator, SSRF protection, ev
 
 ## Ollama (local models)
 
-Provider „Ollama (lokal)“: no key needed, the model list comes directly from Ollama (`ollama pull qwen2.5:3b`). In the dialog „Firma aus Vorlage“
+Provider „Ollama (lokal)“: no key needed, the model list comes directly from Ollama (`ollama pull qwen2.5:1.5b`). In the dialog „Firma aus Vorlage“
 there are the buttons „Alles lokal“ (everything local) and „Nur Mitarbeiter lokal“ (only employees local); otherwise you choose Ollama per agent. If Ollama runs on another computer
 (e.g. the laptop), set `OLLAMA_URL` to its address. Small models (3B) are slow on the Pi and often keep the tool protocol
 poorly; for bosses a strong model, locally rather for simple employees or the chat.
+
+**Long answers (Pi):** Hyperstead asks Ollama with streaming. As long as the model is writing, nothing is cut off, even if the answer takes an hour.
+`OLLAMA_TIMEOUT` (default 1800 s) is only the waiting time **without new data**, e.g. while Ollama loads the model and reads the task;
+`OLLAMA_MAX_TIME` (default 7200 s, 0 = no limit) limits the total time. An aborted Ollama request is not repeated.
+While an AI is writing, the dashboard shows „⏳ Agent · Ollama · 4:12 min · 380 Zeichen“ at the bottom left. The chat waits in the background,
+you can close the window; the answer is in the history afterwards.
+
+**Little RAM (≈ 2 GB free):** `qwen2.5:3b` needs about 2.5 GB with context and does not fit. `qwen2.5:1.5b` fits well
+(download ≈ 1 GB, in RAM ≈ 1.3–1.6 GB, understands German, Turkish and English); even smaller `gemma3:1b` (≈ 0.8 GB download, ≈ 1.1 GB RAM).
+For Ollama itself (`sudo systemctl edit ollama`): `Environment="OLLAMA_CONTEXT_LENGTH=4096"`, `"OLLAMA_NUM_PARALLEL=1"`, `"OLLAMA_MAX_LOADED_MODELS=1"`.
+On a Pi 4 expect a few words per second and several minutes before the first word (long system prompts).
 
 ## Claude and ChatGPT via your subscription (CLI instead of API key)
 

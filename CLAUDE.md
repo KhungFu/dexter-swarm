@@ -28,6 +28,10 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
 - Projektordner: `projects.folder` (Slug des Namens), `proj_dir(pid)` überall statt `WORKSPACE/<id>`; `assign_folder` bei Neuanlage, `migrate_folders` benennt alte Nummernordner um. Löschen eines Projekts lässt den Ordner stehen, ein gleichnamiges neues Projekt übernimmt ihn.
 - Veröffentlichen: `site_start/site_stop` starten je Projekt einen `ThreadingHTTPServer` (`PCL_SITE_HOST`, Ports ab `PCL_SITE_PORT_BASE`), liefert `site_root(pid)` = `www/` im Projektordner (existiert er nicht: Rückfall auf den Projektordner ohne `input/`), nie Dotfiles/Symlinks nach außen; Einstellung `site:<pid>`, Start in `start_sites()`. Recht `publish` → Aktion `publish` erzeugt Freigabe (`approvals.kind='publish'`), Klick startet die Seite. API `/api/projects/<id>/site`.
 
+- Ollama (`_call_ollama`/`_ollama_stream`): immer Streaming (OpenAI-SSE), `OLLAMA_TIMEOUT` = Wartezeit ohne neue Daten (1800), `OLLAMA_MAX_TIME`
+  = Gesamtzeit (7200, 0 = aus), keine Wiederholung. `call_llm` traegt jede laufende Anfrage in `LLM_LIVE` ein (`live_list`, im Graph als `live`,
+  Dashboard `#livebar`). Chat mit echten Modellen laeuft als Hintergrund-Job (`CHAT_JOBS`, `GET /api/agents/<id>/chat/job`), mock antwortet sofort.
+
 ## Werkzeuge der Agenten
 - `run_with_tools` (app.py): Modell antwortet mit `{"tools":[...]}` → Server führt `agent_tools.run_tool` aus → nächste Runde, max. `MAX_TOOL_STEPS`, danach erzwungene Endantwort. Ältere Ergebnisse werden gekürzt (kleine Kontextfenster).
 - `copy_files` (Recht `write_files`): kopiert/verschiebt Datei oder Ordner im Projektordner (z. B. `site/`→`www/`), nie nach `input/`/Dotordner, Limits 500 Dateien/100 MB. Das Teamlisting im Prompt (`build_system`) nennt die Rechte jedes Mitarbeiters; `publish` per Agent verlangt `www/index.html`. CLI-Anbieter haben keine eigenen Werkzeuge (Arbeitsordner `workspace/.cli-run/`), Dateien entstehen über die Server-Werkzeuge.
