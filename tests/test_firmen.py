@@ -60,7 +60,7 @@ def test_oberflaeche_stadt_und_kosmos():
     for b in ('id="hubClassic"', 'data-hubworld="stadt"', 'data-hubworld="kosmos"'):
         assert b in bar
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", bar))
-    assert 'id="btnHub"' in html and 'data-view="hub"' in html
+    assert 'data-view="hub"' in html
     assert "stadt:()=>hubCity()" in html and "kosmos:()=>hubCosmos()" in html
     assert "{id:'firmen'" in html and "'/firms'" in html
 
@@ -91,3 +91,19 @@ def test_oberflaeche_zusammenarbeit():
     dlg = html[html.index("async function showFirmLinks("):html.index("$('#hubLink').onclick")]
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", dlg))
     assert "'/firms/links'" in dlg and 'id="hubLink"' in html and "['Zusammenarbeit','firmen']" in html
+
+
+def test_projekte_menue_neu_und_ansichten():
+    """Projekte: anlegen (leer oder Vorlage) in einem Fenster, Ansicht Klassisch/Stadt/Kosmos als Oberpunkt."""
+    import os
+    import re
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    side = html[html.index('<div class="side-h"><span>Projekte'):html.index('id="projlist"')]
+    for b in ('id="btnNewProj"', 'data-pview="classic"', 'data-pview="stadt"', 'data-pview="kosmos"'):
+        assert b in side
+    assert "＋ Neues Projekt" in side and 'id="btnHub"' not in html and 'id="btnTplProj"' not in html
+    assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", side))
+    dlg = html[html.index("async function newProjectDialog("):html.index("toast('Firma gegründet.')")]
+    assert "'/projects','POST'" in dlg and "/templates" in dlg and "/projects/from_template" in dlg
+    menu = html[html.index('id="gViewMenu"'):html.index('id="gTheme"')]
+    assert menu.index("Alle Projekte") < menu.index('data-hubworld="stadt"') < menu.index("Dieses Projekt") < menu.index('data-view="world"')

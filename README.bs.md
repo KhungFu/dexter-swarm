@@ -343,7 +343,7 @@ gotovi (najviše `PCL_MAX_TOOL_STEPS`). Prava po agentu: **pretraga interneta**,
 Sve što se napravi nalazi se pod `workspace/<id-projekta>/`. U bočnoj traci **📁 Dateien** prikazuje fajlove, otvara `index.html`
 kao web stranicu (izolovan sandbox) i preuzima sve kao ZIP. Link sadrži tajni ključ.
 
-**Šabloni firmi** (🏢 pored „Projekte“): *Web agencija*, *Računovodstvo/poreska kancelarija*, *Uvoz/izvoz trgovina* prave projekat,
+**Šabloni firmi** („＋ Neues Projekt“ ispod „Projekte“): *Web agencija*, *Računovodstvo/poreska kancelarija*, *Uvoz/izvoz trgovina* prave projekat,
 organigram, radna uputstva i prava u potpunosti. Vlastite firme: napišite cilj projekta („vi ste …“, zemlja,
 djelatnost), podesite agente i prava. Agenti dobijaju datum i cilj projekta i trebaju prvo istražiti stvari koje se mijenjaju (zakoni,
 cijene) i navesti izvore.
