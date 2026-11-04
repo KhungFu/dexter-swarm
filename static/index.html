@@ -121,7 +121,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* Welt-Ansicht: Sonnensystem (immer dunkler Weltraum, auch im hellen Aussehen) */
 #map{position:absolute;left:0;top:0;overflow:visible;display:none}
 #app.view-world #map{display:block}
-#app.view-world #edges,#app.view-world #nodes,#app.view-world #palette{display:none}
+#app.view-world #edges,#app.view-world #nodes{display:none}
 #app.view-world #vp,#app.view-atom #vp{background:radial-gradient(ellipse at 50% 45%,#0c1222,#05070e 60%,#020308) !important;background-size:100% 100% !important;background-position:0 0 !important}
 #app.view-atom #vp{background:radial-gradient(ellipse at 50% 45%,#0b2230,#04121b 60%,#02080d) !important}
 #map .star{opacity:.75}
@@ -161,7 +161,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* Atom (Molekül: Kugelgröße = Ebene, Stäbe = Vorgesetzte) */
 #atomsvg{position:absolute;left:0;top:0;overflow:visible;display:none}
 #app.view-atom #atomsvg{display:block}
-#app.view-atom #edges,#app.view-atom #nodes,#app.view-atom #palette{display:none}
+#app.view-atom #edges,#app.view-atom #nodes{display:none}
 #atomsvg .aorbit{fill:none;stroke:#7dd3fc;stroke-opacity:.28;stroke-width:1.4}
 #atomsvg .abond{stroke:#cbd5e1;stroke-width:7;stroke-linecap:round;opacity:.75}
 #atomsvg .abond2{stroke:#fff;stroke-width:2;stroke-linecap:round;opacity:.55}
@@ -184,7 +184,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 #atomsvg .nlbl{font:700 15px system-ui,sans-serif;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:#020617;stroke-width:4px}
 #orgReset{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:5;display:none}
 #app.view-org #orgReset:not([hidden]){display:block}
-#app.view-org #edges,#app.view-org #nodes,#app.view-org #palette{display:none}
+#app.view-org #edges,#app.view-org #nodes{display:none}
+/* Agenten-Leiste ist in jeder Grafik da (Wunsch ABI 2026-11-04); Hinweis und Ordnen passen sich an */
+#palette .hint-org,#palette .hint-hub{display:none}#app.view-org #palette .hint-plan,#app.view-hub #palette .hint-plan{display:none}#app.view-org #palette .hint-org,#app.view-hub #palette .hint-hub{display:inline}#app.view-hub #palette .pal-order{display:none}
 /* Grafik-Auswahl (aufklappbar) */
 .vpick{position:relative}
 #gViewBtn{white-space:nowrap}
@@ -313,7 +315,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubsvg .ship:not(.live){opacity:.6}
 #app.view-hub #hubsvg{display:block}
 #app.view-hub #hubbar{display:block}
-#app.view-hub #edges,#app.view-hub #nodes,#app.view-hub #palette,#app.view-hub #empty,#app.view-hub #map,#app.view-hub #orgsvg,#app.view-hub #atomsvg,#app.view-hub #wlist,#app.view-hub #bcard{display:none !important}
+#app.view-hub #edges,#app.view-hub #nodes,#app.view-hub #empty,#app.view-hub #map,#app.view-hub #orgsvg,#app.view-hub #atomsvg,#app.view-hub #wlist,#app.view-hub #bcard{display:none !important}
 #app.view-hub #vp{background:radial-gradient(ellipse at 50% 35%,#101a3a,#060a1a 60%,#02040b) !important;background-size:100% 100% !important;background-position:0 0 !important}
 #app.view-hub .zoom{top:auto;bottom:12px}
 #hubsvg .hstar{fill:#dbe6ff}
@@ -495,7 +497,7 @@ a.btn.pri{color:#fff}
   #pname{flex:1 1 120px;min-width:0}
   #pgoal{flex:1 1 100%;order:3}
   #palette{flex-wrap:nowrap;overflow-x:auto;padding:6px 10px;-webkit-overflow-scrolling:touch}
-  #palette>span:first-child,.hint{display:none}
+  #palette>span:first-child,#palette .hint{display:none !important}
   .pal{white-space:nowrap;flex:none}
   .side-btn{padding:11px 10px}
   .btn{padding:9px 13px}
@@ -993,19 +995,24 @@ async function connectAsk(childId, bossId){  // Verbinden immer mit Rueckfrage, 
   PAL.forEach(([k,label])=>{
     const b=document.createElement('div'); b.className='pal'; b.textContent=label; b.draggable=true; b.title='Neuen Agenten „'+label.replace(/^\S+\s/,'')+'“ anlegen: antippen oder auf die Fläche ziehen';
     b.addEventListener('dragstart',e=>e.dataTransfer.setData('text/tpl',k));
-    b.onclick=()=>{ const r=$('#vp').getBoundingClientRect(); const w=toWorld(r.left+r.width/2-W/2*V.s, r.top+r.height/3); addAgent(k,w.x,w.y); };
+    b.onclick=()=>{ if(VIEW!=='plan'){ addAgent(k); return; } const r=$('#vp').getBoundingClientRect(); const w=toWorld(r.left+r.width/2-W/2*V.s, r.top+r.height/3); addAgent(k,w.x,w.y); };
     pal.appendChild(b);
   });
-  const ob=document.createElement('div'); ob.className='pal'; ob.textContent='🗂 Ordnen'; ob.title='Alle Agenten als Organigramm anordnen'; ob.onclick=()=>autoLayout(); pal.appendChild(ob);
-  const h=document.createElement('span'); h.className='hint'; h.textContent='Unterer Punkt am Knoten → auf anderen Knoten ziehen = verbinden. Linie anklicken = trennen.'; pal.appendChild(h);
+  const ob=document.createElement('div'); ob.className='pal pal-order'; ob.textContent='🗂 Ordnen'; ob.title='Ordnen: im Bauplan alle Agenten als Organigramm anordnen, im Organigramm von Hand verschobene Karten zurücksetzen';
+  ob.onclick=()=>{ if(VIEW==='org'){ delete ORG.off[orgOffKey()]; orgSaveOff(); ORG.sig=''; drawOrg(); fit(); } else autoLayout(); }; pal.appendChild(ob);
+  [['hint-plan','Unterer Punkt am Knoten → auf anderen Knoten ziehen = verbinden. Linie anklicken = trennen.'],
+   ['hint-org','Neue Agenten stehen zuerst ohne Chef. Karte auf eine andere ziehen = unterstellen.'],
+   ['hint-hub','Neue Agenten kommen in das Projekt, das oben steht.']].forEach(([c,t])=>{ const h=document.createElement('span'); h.className='hint '+c; h.textContent=t; pal.appendChild(h); });
 })();
 $('#vp').addEventListener('dragover',e=>e.preventDefault());
 $('#vp').addEventListener('drop',e=>{
   e.preventDefault(); const k=e.dataTransfer.getData('text/tpl'); if(!k) return;
+  if(VIEW!=='plan'){ addAgent(k); return; }  // ausserhalb des Bauplans gilt die Fallstelle nicht als Bauplan-Position
   const w=toWorld(e.clientX,e.clientY); addAgent(k,w.x-W/2,w.y-H/2);
 });
 async function addAgent(k,x,y){
   if(!S.pid){ toast('Erst ein Projekt wählen oder anlegen.'); return; }
+  if(x==null){ const ag=(S.graph&&S.graph.agents)||[]; x=ag.length?Math.max(...ag.map(a=>a.x||0))+260:80; y=ag.length?Math.min(...ag.map(a=>a.y||0)):80; }  // Bauplan-Platz rechts neben allen anderen
   const t=TPL[k]; const prov=(S.providers.find(p=>p.configured&&p.id!=='mock')||{id:'mock'}).id;
   const r=await api('/projects/'+S.pid+'/agents','POST',{name:t.name,role:t.role,x:Math.round(x),y:Math.round(y),provider:prov,system_prompt:t.prompt,perms:t.perms});
   await refresh(true); selectAgent(r.id);
@@ -1897,6 +1904,7 @@ const HELP=[
 <li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: eine Etage je Hierarchie-Ebene, so tief wie die Firma ist: ganz oben in der Chefetage die Leitung, darunter die Abteilungsleitungen, dann jede weitere Ebene. Jede Person sitzt in ihrem eigenen Raum in der Farbe ihrer Abteilung; hat eine Abteilung auf einer Ebene 4 Leute, gibt es dort 4 Räume. Mit Erfolg wächst das Gebäude: ab Stufe 2 Anbau und Dachgarten, ab Stufe 3 Antenne, ab Stufe 4 Hubschrauberlandeplatz. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
 <li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
 <li><b>← Alle Firmen</b> oder Esc führt wieder hinaus.</li>
+<li><b>Agent hinzufügen:</b> Die Leiste unter der Wachstumsleiste ist in jeder Grafik da. Ein neuer Agent kommt in das Projekt, das oben steht.</li>
 <li><b>🤝 Zusammenarbeit:</b> Oben (oder 🤝 im Infofenster einer Firma) verbindest du zwei Firmen als Partner, mit „Lösen“ trennst du sie wieder. Nur Partner bekommen in der Stadt eine Straße, auf der Lieferwagen fahren, und im Kosmos fliegen Raumschiffe zwischen ihren Sonnen. Ruhen beide Firmen, ist nur ein langsames Fahrzeug unterwegs und die Straße bleibt dunkel. Arbeiten sie, leuchtet die Straße und es wird mehr Verkehr. Firmen ohne Partnerschaft bleiben unverbunden. Die Agenten merken davon nichts.</li>
 <li><b>🔍 Suche:</b> oben Firma oder Agent eintippen (Name oder Rolle). Ein Treffer zoomt in die Firma und zeigt den Agenten in seiner Abteilung.</li></ul>`},
  {id:'hilfe',t:'❓ Hilfe-Modus und Hinweise',h:`<p>Fast jeder Knopf hat eine kurze Erklärung. Am PC erscheint sie, wenn du mit der Maus darauf zeigst.</p>
