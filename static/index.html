@@ -278,7 +278,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubsvg .planet:focus,#hubsvg .sunbody:focus{outline:none}
 #hubsvg .pring{fill:none;stroke:var(--dc);stroke-opacity:.5;stroke-width:1.5}
 #hubsvg .planet.sel .pring,#hubsvg .planet:hover .pring,#hubsvg .planet:focus-visible .pring{stroke:#fff;stroke-opacity:1;stroke-width:2.5}
-#hubsvg .horb.on{stroke-opacity:.8;stroke-width:2}
+#hubsvg .horb.on{stroke-opacity:1;stroke-width:2.6}
 #hubsvg .sunbody.sel .hsun,#hubsvg .sunbody:focus-visible .hsun{stroke:#fff;stroke-width:3}
 #hubsvg .moon.sel circle:first-child{fill:#fff}
 #hubsvg .pico{font:800 15px system-ui,sans-serif;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:rgba(0,0,0,.35);stroke-width:3px;pointer-events:none}
@@ -288,10 +288,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubLink{background:rgba(10,16,34,.9);border-color:#2b3a5c;color:#e2e8f0;white-space:nowrap}
 #app.hub-in #hubLink{display:none}
 #hubcard #hubCardLink{padding:1px 7px;margin-left:4px;background:#16223f;border-color:#2b3a5c;color:#e2e8f0}
-#hubsvg .road .rw{fill:none;stroke:#111a30;stroke-width:22;stroke-linejoin:round;stroke-linecap:round}
-#hubsvg .road .rl{fill:none;stroke:#22d3ee;stroke-opacity:.25;stroke-width:2;stroke-dasharray:12 10}
-#hubsvg .road.live .rw{stroke:#14213f}
-#hubsvg .road.live .rl{stroke-opacity:.8;filter:url(#hubGlow)}
+#hubsvg .road path{fill:none;stroke-linejoin:round;stroke-linecap:round}
+#hubsvg .road .rg{stroke:#f59e0b;stroke-width:34;stroke-opacity:.12;filter:url(#hubBlur)}
+#hubsvg .road .re{stroke:#f59e0b;stroke-width:27;stroke-opacity:.55}
+#hubsvg .road .rw{stroke:#111a30;stroke-width:23}
+#hubsvg .road .rl{stroke:#fde68a;stroke-opacity:.35;stroke-width:1.6;stroke-dasharray:12 10;stroke-linecap:butt}
+#hubsvg .road.live .re{stroke-opacity:.95;filter:url(#hubGlow)}#hubsvg .road.live .rg{stroke-opacity:.3}
+#hubsvg .road.live .rl{stroke-opacity:.8}
 #hubsvg .veh{pointer-events:none}
 #hubsvg .van .hl{fill:#fef08a;filter:url(#hubGlow)}
 #hubsvg .ship .trail{fill:#7dd3fc;opacity:.25}
@@ -306,8 +309,23 @@ button,input,select,textarea{font:inherit;color:inherit}
 #app.view-hub .zoom{top:auto;bottom:12px}
 #hubsvg .hstar{fill:#dbe6ff}
 #hubsvg .hneb{opacity:.09;filter:blur(40px)}
-#hubsvg .ground{fill:#070d1f;stroke:#1b2a4d;stroke-width:1.5}
-#hubsvg .grid{stroke:#14223f;stroke-width:1}
+#hubsvg .ground{fill:#0a1124}
+#hubsvg .groundedge{fill:none;stroke:#3b82f6;stroke-opacity:.35;stroke-width:1.5;filter:url(#hubGlow)}
+#hubsvg .walk{fill:#16223f;opacity:.6}
+#hubsvg .bedge{stroke:var(--hc);stroke-width:1.6;filter:url(#hubGlow);opacity:.85}
+#hubsvg .bridge{fill:#0b1430;stroke:var(--hc);stroke-width:1}
+#hubsvg .sdisc{fill:none;stroke:var(--hc);stroke-width:2.2;stroke-opacity:.8;filter:url(#hubGlow)}
+#hubsvg .sdisc.back{stroke-opacity:.35}
+#hubsvg .sroute{fill:none;stroke:#7dd3fc;stroke-opacity:.18;stroke-width:1.2;stroke-dasharray:3 7}
+#hubsvg .pdisc{fill:var(--dc);fill-opacity:.12;stroke:var(--dc);stroke-width:2;stroke-opacity:.7;filter:url(#hubGlow)}
+#hubsvg .clamp{fill:#fde68a;opacity:.25}#hubsvg .clamp.on{opacity:.8;filter:url(#hubGlow)}
+#hubsvg .mull{stroke:#93c5fd;stroke-opacity:.12;stroke-width:2;pointer-events:none}
+#hubsvg .swin{fill:#13213f;pointer-events:none}#hubsvg .swin.on{fill:#fbbf24;opacity:.45}
+#hubsvg .onode{cursor:pointer}#hubsvg .onode:focus{outline:none}
+#hubsvg .oring{fill:#0b1430;stroke:var(--dc);stroke-width:2.5;filter:url(#hubGlow)}
+#hubsvg .onode:hover .oring,#hubsvg .onode:focus-visible .oring,#hubsvg .onode.sel .oring{stroke:#fff;fill:#15275a}
+#hubsvg .oico{font-size:22px;text-anchor:middle;pointer-events:none}
+#hubsvg .oline{fill:none;stroke:#38bdf8;stroke-opacity:.7;stroke-width:2;filter:url(#hubGlow)}
 #hubsvg .plot{fill:#0f1a33;stroke:#22345c;stroke-width:1}
 #hubsvg .plotside{fill:#0a1226}
 #hubsvg .plotside.r{fill:#070d1c}
@@ -321,14 +339,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubsvg .mast{stroke:var(--hc);stroke-width:2}
 #hubsvg .beam{stroke:var(--hc);stroke-opacity:.45;stroke-width:1.2;stroke-dasharray:2 3}
 #hubsvg .badge .bring{fill:#0b1430;stroke:var(--hc);stroke-width:2;filter:url(#hubGlow)}
-#hubsvg .badge text{font-size:15px;text-anchor:middle}
+#hubsvg .badge text{font-size:17px;text-anchor:middle}
 #hubsvg .firm{cursor:pointer}
 #hubsvg .firm:focus{outline:none}
 #hubsvg .firm:hover .roofedge,#hubsvg .firm:focus-visible .roofedge,#hubsvg .firm.sel .roofedge{stroke:#fff}
 #hubsvg .firm:hover .plotedge,#hubsvg .firm:focus-visible .plotedge,#hubsvg .firm.sel .plotedge{stroke-opacity:1;stroke-width:2.5}
 #hubsvg .hhit{fill:transparent}
-#hubsvg .horb{fill:none;stroke:var(--hc);stroke-opacity:.28;stroke-width:1.1}
-#hubsvg .sys:hover .horb,#hubsvg .sys:focus-visible .horb,#hubsvg .sys.sel .horb{stroke-opacity:.7}
+#hubsvg .horb{fill:none;stroke:var(--hc);stroke-opacity:.5;stroke-width:1.3}
+#hubsvg .orbs{filter:url(#hubGlow)}
+#hubsvg .horb.in{stroke-opacity:.55;stroke-width:1.8;filter:url(#hubGlow)}
+#hubsvg .sys:hover .horb,#hubsvg .sys:focus-visible .horb,#hubsvg .sys.sel .horb{stroke-opacity:.95}
 #hubsvg .sys.sel .hsun,#hubsvg .sys:focus-visible .hsun{stroke:#fff;stroke-width:2}
 #hubsvg .hsun.on{animation:hubPulse 2.4s ease-in-out infinite}
 #hubsvg .hrun{fill:none;stroke:#38bdf8;stroke-width:2;filter:url(#hubGlow)}
@@ -1861,7 +1881,7 @@ const HELP=[
 <li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie links unter „Projekte“ mit 🏙 Stadt oder 🌌 Kosmos, oder in der Grafik-Auswahl oben unter „Alle Projekte · modern“. Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt und 🌌 Kosmos um.</li>
 <li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Leuchtende Fenster heißen: dort wird gerade gearbeitet.</li>
 <li><b>🌌 Kosmos:</b> Jede Firma ist ein Sonnensystem. Die Sonne ist die Leitung, die Planeten sind die Abteilungen (größer = mehr Agenten). Ein leuchtender Ring heißt: diese Abteilung arbeitet gerade. Zwischen den Systemen gibt es keine Linien.</li>
-<li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude von innen: unten (EG) die Leitung, darüber eine Etage je Abteilung, die Agenten an ihren Tischen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
+<li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: ganz oben in der Chefetage die Leitung, darunter eine Etage je Abteilung, die Agenten an ihren Tischen. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
 <li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
 <li><b>← Alle Firmen</b> oder Esc führt wieder hinaus.</li>
 <li><b>🤝 Zusammenarbeit:</b> Oben (oder 🤝 im Infofenster einer Firma) verbindest du zwei Firmen als Partner, mit „Lösen“ trennst du sie wieder. Nur Partner bekommen in der Stadt eine Straße, auf der Lieferwagen fahren, und im Kosmos fliegen Raumschiffe zwischen ihren Sonnen. Ruhen beide Firmen, ist nur ein langsames Fahrzeug unterwegs und die Straße bleibt dunkel. Arbeiten sie, leuchtet die Straße und es wird mehr Verkehr. Firmen ohne Partnerschaft bleiben unverbunden. Die Agenten merken davon nichts.</li>
@@ -2528,7 +2548,7 @@ const HUB = {world:'stadt', d:null, box:null, sig:'', sel:null, inside:null, dep
 const HUB_DRAW = {stadt:()=>hubCity(), kosmos:()=>hubCosmos()};
 try{ HUB.world=localStorage.getItem('hs-hubworld')||'stadt'; HUB.back=localStorage.getItem('hs-hubback')||'world'; }catch(e){}
 if(!HUB_DRAW[HUB.world]) HUB.world='stadt';
-const HUB_FLOORS=[1,2,3,5,7], HUB_FH=14, HUB_TW=170, HUB_TH=85, HUB_GAP=.85;
+const HUB_FH=14, HUB_TW=170, HUB_TH=85, HUB_GAP=.85;
 async function loadFirms(force){
   if(VIEW!=='hub') return;
   if(!force && Date.now()-HUB.at<4500) return;
@@ -2566,87 +2586,122 @@ const HUB_DEFS=`<defs><filter id="hubBlur" x="-60%" y="-60%" width="220%" height
   <filter id="hubGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   <radialGradient id="hubPl" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient></defs>`;
 
-/* Stadt: isometrisch, jede Firma ein Gebäude auf eigenem Grundstück. Straßen gibt es nur zwischen Partnern (kommt mit der Zusammenarbeit). */
+/* Stadt: isometrisch wie ein Aufbauspiel. Jede Firma hat ein eigenes Gebäude mit eigenem Baustil (Turm, Zwillingstürme,
+   Bürohaus, Campus), Farbe je Firma, Höhe nach Wachstumsstufe, Fenster leuchten nach echter Arbeit. Straßen nur zwischen Partnern. */
 const iso=(u,v,h=0)=>[(u-v)*HUB_TW/2, (u+v)*HUB_TH/2-h];
 function isoRect(u0,v0,u1,v1,h=0){ return pts([iso(u0,v0,h),iso(u1,v0,h),iso(u1,v1,h),iso(u0,v1,h)]); }
+const HUB_STYLES=['turm','buero','zwilling','campus'];
+function hubStyle(f){ return HUB_STYLES[((f.id|0)*5+1)%HUB_STYLES.length]; }
+function hubDepIcon(a){  // Symbol je Abteilung aus Name und Rolle (wie im Referenzbild: Laptop, Diagramm, Headset …)
+  const s=((a&&a.name||'')+' '+(a&&a.role||'')).toLowerCase();
+  const M=[[/entwick|techni|tech|code|program|web|it\b|software|dev/,'💻'],[/market|social|werbung|kampagne|seo/,'📣'],[/vertrieb|sales|verkauf|angebot/,'📈'],
+    [/support|kunden|service|hilfe/,'🎧'],[/kreativ|design|bild|grafik|creative|art/,'🎨'],[/text|autor|redakt|copy|schreib|lektor/,'✍️'],
+    [/finanz|buchhalt|controll|steuer|rechnung|kosten/,'💶'],[/recht|zoll|compliance|jurist/,'⚖️'],[/logistik|liefer|versand|lager/,'🚚'],
+    [/recherch|research|analys|archiv|quelle/,'🔎'],[/video|film|anim|schnitt|kamera|regie|render/,'🎬'],[/ton|sprech|audio|stimme|musik/,'🎙️'],
+    [/einkauf|sourcing|beschaff/,'🛒'],[/satz|layout|druck/,'📐'],[/denk|philosoph|strateg|idee/,'💡'],[/personal|hr\b|team/,'👥']];
+  const m=M.find(([r])=>r.test(s)); return m?m[1]:'👥';
+}
+function isoBox(u0,v0,u1,v1,z,h,col,lit,RND,o={}){  // Quader mit zwei sichtbaren Seiten, Fenstern und Dach
+  const L=[iso(u0,v1,z),iso(u1,v1,z),iso(u1,v1,z+h),iso(u0,v1,z+h)], R=[iso(u1,v1,z),iso(u1,v0,z),iso(u1,v0,z+h),iso(u1,v1,z+h)];
+  const T=[iso(u0,v0,z+h),iso(u1,v0,z+h),iso(u1,v1,z+h),iso(u0,v1,z+h)], fl=Math.max(1,Math.round(h/HUB_FH));
+  const win=(A,B,len)=>{ if(o.plain) return ''; const cols=Math.max(2,Math.round(len*(o.glass?9:7))); let s='';
+    for(let r=0;r<fl;r++) for(let k=0;k<cols;k++){
+      const s0=(k+(o.glass?.1:.2))/cols, s1=(k+(o.glass?.9:.8))/cols, y0=3+r*(h/fl), y1=y0+h/fl-(o.glass?3:6), on=RND()<lit;
+      const P=(t,y)=>[A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t-y];
+      s+=`<polygon class="win${on?' on':''}" points="${pts([P(s0,y0),P(s1,y0),P(s1,y1),P(s0,y1)])}"${on?` fill="${RND()<.65?(RND()<.5?'#fde68a':'#fbbf24'):shade(col,.55)}"`:''}/>`; }
+    return s; };
+  const lenL=u1-u0, lenR=v1-v0, top=iso(u1,v1,z+h), bot=iso(u1,v1,z);
+  return `<polygon class="bl" points="${pts(L)}" fill="${shade(col,o.dark?-.85:-.74)}"/><polygon class="br" points="${pts(R)}" fill="${shade(col,o.dark?-.9:-.84)}"/>
+    ${win(L[0],L[1],lenL)}${win(R[0],R[1],lenR)}
+    <line class="bedge" x1="${bot[0]}" y1="${bot[1]}" x2="${top[0]}" y2="${top[1]}"/>
+    <polygon class="roof" points="${pts(T)}" fill="${o.crown?shade(col,-.2):shade(col,-.6)}"${o.crown?' filter="url(#hubGlow)"':''}/><polygon class="roofedge" points="${pts(T)}"/>`;
+}
+function hubTree(x,y,s=1){
+  return `<ellipse cx="${x}" cy="${y}" rx="${7*s}" ry="${3*s}" fill="#000" opacity=".4"/><path d="M${x},${y} v${-7*s}" stroke="#3f2d1d" stroke-width="${2*s}"/>
+    <circle cx="${x}" cy="${y-13*s}" r="${8*s}" fill="#166534"/><circle cx="${x-2*s}" cy="${y-15*s}" r="${4.5*s}" fill="#22c55e" opacity=".55"/>`;
+}
 function hubBuilding(f,u0,v0){
-  const u1=u0+1, v1=v0+1, st=Math.max(0,Math.min(4,f.stage|0)), floors=HUB_FLOORS[st], m=[.3,.24,.2,.17,.14][st];
-  const a=u0+m, b=v0+m, c=u1-m, d=v1-m, h=floors*HUB_FH+8, col=hubColor(f), busy=f.busy>0;
-  const L=[iso(a,d),iso(c,d),iso(c,d,h),iso(a,d,h)], Rr=[iso(c,b),iso(c,d),iso(c,d,h),iso(c,b,h)], top=[iso(a,b,h),iso(c,b,h),iso(c,d,h),iso(a,d,h)];
-  const lit=Math.min(1,(f.busy||0)/Math.max(1,f.agents.length)*1.5+(busy?.25:.08)), RND=rnd(f.id*97+3);
-  const win=(A,B,cols)=>{ let o=''; for(let fl=0; fl<floors; fl++) for(let k=0;k<cols;k++){
-      const s0=(k+.2)/cols, s1=(k+.8)/cols, y0=5+fl*HUB_FH+2, y1=y0+HUB_FH-6, on=RND()<lit;
-      const P=(s,y)=>[A[0]+(B[0]-A[0])*s, A[1]+(B[1]-A[1])*s-y];
-      o+=`<polygon class="win${on?' on':''}" points="${pts([P(s0,y0),P(s1,y0),P(s1,y1),P(s0,y1)])}"${on?` fill="${RND()<.6?'#fde68a':shade(col,.55)}"`:''}/>`; }
-    return o; };
-  const cols=Math.max(2,Math.round((c-a)*5)), [tx,ty]=iso((a+c)/2,(b+d)/2,h), [cx,cy]=iso(.5+u0,.5+v0);
-  const trees=[[u0+.1,v0+.12],[u1-.1,v0+.1],[u0+.1,v1-.12]].map(([u,v])=>{ const [x,y]=iso(u,v); return `<ellipse cx="${x}" cy="${y}" rx="6" ry="3" fill="#000" opacity=".35"/><path d="M${x},${y} v-6" stroke="#3f2d1d" stroke-width="2"/><circle cx="${x}" cy="${y-12}" r="7" fill="#15803d" stroke="#22c55e" stroke-width="1"/>`; }).join('');
-  const lamps=[[u0+.04,v1-.04],[u1-.04,v1-.04],[u1-.04,v0+.04]].map(([u,v])=>{ const [x,y]=iso(u,v); return `<circle cx="${x}" cy="${y-1}" r="2.4" class="lamp"/>`; }).join('');
-  const bh=st>=3?20+st*4:12, [bx,by]=[tx,ty-bh-22];
+  const u1=u0+1, v1=v0+1, st=Math.max(0,Math.min(4,f.stage|0)), col=hubColor(f), busy=f.busy>0, RND=rnd(f.id*97+3), sty=hubStyle(f);
+  const lit=Math.min(.95,.28+(f.busy||0)/Math.max(1,f.agents.length)*1.3+(busy?.2:0)), FH=HUB_FH;
+  let body='', topZ=0, crown=null, bu=.5, bv=.5;
+  const B=(a,b,c,d,z,h,o)=>{ body+=isoBox(u0+a,v0+b,u0+c,v0+d,z,h,col,lit,RND,o); return z+h; };
+  if(sty==='turm'){ const p=B(.18,.18,.82,.82,0,FH*1.3,{dark:true}); const h1=B(.3,.3,.7,.7,p,FH*(5+st*2),{glass:true}); topZ=B(.37,.37,.63,.63,h1,FH*1.5,{glass:true,crown:true}); crown=1; }
+  else if(sty==='zwilling'){ const fl=3+st*2; bu=.27; bv=.55; B(.12,.4,.42,.7,0,FH*(fl+3),{glass:true}); B(.52,.14,.84,.44,0,FH*(fl+1)); B(.5,.56,.86,.86,0,FH*2,{dark:true}); topZ=FH*(fl+3); }
+  else if(sty==='buero'){ const h=B(.14,.18,.86,.82,0,FH*(3+st*2)); B(.24,.28,.44,.48,h,11,{plain:true}); B(.54,.5,.7,.66,h,7,{plain:true}); topZ=h+11; }
+  else { const h=B(.1,.12,.9,.88,0,FH*(2+st)); body+=`<polygon points="${isoRect(u0+.22,v0+.25,u0+.78,v0+.75,h+.5)}" fill="${col}" opacity=".55" filter="url(#hubGlow)"/>
+      <polygon points="${isoRect(u0+.3,v0+.33,u0+.7,v0+.67,h+.5)}" fill="${shade(col,.5)}" opacity=".5"/>`; topZ=h; }
+  HUB.zmax=Math.max(HUB.zmax||0, topZ+(crown?52:40));
+  const [tx,ty]=iso(u0+bu,v0+bv,topZ), [cx,cy]=iso(u0+.5,v0+.5), bx=tx, by=ty-(crown?52:40);
+  const trees=[[u0+.08,v0+.1],[u1-.08,v0+.08],[u0+.08,v1-.1],[u1-.1,v1-.3]].map(([u,v])=>hubTree(...iso(u,v),.85)).join('');
+  const lamps=[[u0+.04,v1-.04],[u1-.04,v1-.04],[u1-.04,v0+.04],[u0+.5,v1-.03]].map(([u,v])=>{ const [x,y]=iso(u,v); return `<line x1="${x}" y1="${y}" x2="${x}" y2="${y-9}" stroke="#475569" stroke-width="1.2"/><circle cx="${x}" cy="${y-10}" r="2.4" class="lamp"/>`; }).join('');
   return `<g class="firm${HUB.sel===f.id?' sel':''}" data-firm="${f.id}" tabindex="0" role="button" style="--hc:${col}" aria-label="${esc(f.name)}: ${esc(f.stage_name||'')}, ${f.agents.length} Agenten${busy?', arbeitet gerade':''}">
-    <title>${esc(f.name)} – ${esc(f.icon||'')} ${esc(f.stage_name||'')} · ${f.agents.length} Agenten · ${busy?f.busy+' Aufgaben laufen':'gerade ruhig'}</title>
-    <polygon points="${isoRect(u0,v0,u1,v1)}" transform="translate(0,9)" fill="#020617" opacity=".7"/>
-    <polygon class="plotside" points="${pts([iso(u0,v1),iso(u1,v1),[iso(u1,v1)[0],iso(u1,v1)[1]+8],[iso(u0,v1)[0],iso(u0,v1)[1]+8]])}"/>
-    <polygon class="plotside r" points="${pts([iso(u1,v0),iso(u1,v1),[iso(u1,v1)[0],iso(u1,v1)[1]+8],[iso(u1,v0)[0],iso(u1,v0)[1]+8]])}"/>
-    <polygon class="plot" points="${isoRect(u0,v0,u1,v1)}"/><polygon class="plotedge" points="${isoRect(u0+.03,v0+.03,u1-.03,v1-.03)}"/>
-    <ellipse cx="${cx}" cy="${cy}" rx="${HUB_TW*.32}" ry="${HUB_TH*.32}" fill="${col}" opacity="${busy?.4:.18}" filter="url(#hubBlur)"/>
-    ${trees}${lamps}
-    <polygon class="bl" points="${pts(L)}" fill="${shade(col,-.78)}"/><polygon class="br" points="${pts(Rr)}" fill="${shade(col,-.86)}"/>
-    ${win(L[0],L[1],cols)}${win(Rr[0],Rr[1],cols)}
-    <polygon class="roof" points="${pts(top)}" fill="${shade(col,-.6)}"/>
-    <polygon class="roofedge" points="${pts(top)}"/>
-    ${st>=3?`<line x1="${tx}" y1="${ty}" x2="${tx}" y2="${ty-bh+4}" class="mast"/>`:''}
-    <line x1="${bx}" y1="${by+15}" x2="${tx}" y2="${ty-(st>=3?bh-4:0)}" class="beam"/>
-    <g class="badge" transform="translate(${bx},${by})"><circle r="15" class="bring"/><text y="5.5">${esc(f.icon||'🏢')}</text></g></g>`
-    + `\u0000<g class="lbls"><text class="hlbl" x="${bx}" y="${by-38}">${esc(short(f.name,24))}</text>
-    <text class="hlbl2" x="${bx}" y="${by-23}">${esc(f.stage_name||'')} · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`;
+    <title>${esc(f.name)} – ${esc(f.icon||'')} ${esc(f.stage_name||'')} · ${f.agents.length} Agenten · ${busy?f.busy+' Aufgaben laufen':'gerade ruhig'}\nAntippen: hineingehen</title>
+    <polygon points="${isoRect(u0,v0,u1,v1)}" transform="translate(0,12)" fill="#01030a" opacity=".75"/>
+    <polygon class="plotside" points="${pts([iso(u0,v1),iso(u1,v1),[iso(u1,v1)[0],iso(u1,v1)[1]+10],[iso(u0,v1)[0],iso(u0,v1)[1]+10]])}"/>
+    <polygon class="plotside r" points="${pts([iso(u1,v0),iso(u1,v1),[iso(u1,v1)[0],iso(u1,v1)[1]+10],[iso(u1,v0)[0],iso(u1,v0)[1]+10]])}"/>
+    <polygon class="plot" points="${isoRect(u0,v0,u1,v1)}"/><polygon class="walk" points="${isoRect(u0+.06,v0+.06,u1-.06,v1-.06)}"/>
+    <polygon class="plotedge" points="${isoRect(u0+.02,v0+.02,u1-.02,v1-.02)}"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${HUB_TW*.36}" ry="${HUB_TH*.36}" fill="${col}" opacity="${busy?.45:.22}" filter="url(#hubBlur)"/>
+    ${trees}${lamps}${body}
+    ${crown?`<line x1="${tx}" y1="${ty}" x2="${tx}" y2="${ty-18}" class="mast"/><circle cx="${tx}" cy="${ty-19}" r="2.2" fill="#f87171" filter="url(#hubGlow)"/>`:''}
+    <line x1="${bx}" y1="${by+18}" x2="${tx}" y2="${ty-(crown?20:2)}" class="beam"/>
+    <g class="badge" transform="translate(${bx},${by})"><circle r="21" fill="${col}" opacity=".35" filter="url(#hubBlur)"/><circle r="18" class="bring"/><text y="6">${esc(f.icon||'🏢')}</text></g></g>`
+    + `\u0000<g class="lbls"><text class="hlbl" x="${bx}" y="${by-30}">${esc(short(f.name,24))}</text>
+    <text class="hlbl2" x="${bx}" y="${by-15}">${esc(f.stage_name||'')} · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`;
 }
 function hubCity(){
   const F=HUB.d.firms, C=Math.max(1, innerWidth<=820 ? Math.min(2,F.length) : Math.ceil(Math.sqrt(F.length))), Rn=Math.ceil(F.length/C), S=1+HUB_GAP, at={};
   const lots=F.map((f,k)=>{ const i=k%C, j=Math.floor(k/C); at[f.id]=[i*S, j*S]; return {f,i,j}; }).sort((p,q)=>(p.i+p.j)-(q.i+q.j));
   const U=C*S-HUB_GAP, V=Rn*S-HUB_GAP;
-  const ground=`<polygon class="ground" points="${isoRect(-.5,-.5,U+.5,V+.5)}"/>`+
-    Array.from({length:C+1},(_,i)=>`<line class="grid" x1="${iso(i*S-HUB_GAP/2,-.5)[0]}" y1="${iso(i*S-HUB_GAP/2,-.5)[1]}" x2="${iso(i*S-HUB_GAP/2,V+.5)[0]}" y2="${iso(i*S-HUB_GAP/2,V+.5)[1]}"/>`).join('')+
-    Array.from({length:Rn+1},(_,j)=>`<line class="grid" x1="${iso(-.5,j*S-HUB_GAP/2)[0]}" y1="${iso(-.5,j*S-HUB_GAP/2)[1]}" x2="${iso(U+.5,j*S-HUB_GAP/2)[0]}" y2="${iso(U+.5,j*S-HUB_GAP/2)[1]}"/>`).join('');
-  HUB.at_city=at;
-  const top=iso(0,0)[1]-HUB_FLOORS[4]*HUB_FH-90, b={x0:iso(-.5,V+.5)[0]-40, x1:iso(U+.5,-.5)[0]+40, y0:top, y1:iso(U+.5,V+.5)[1]+60};
+  const ground=`<polygon points="${isoRect(-.6,-.6,U+.6,V+.6)}" transform="translate(0,16)" fill="#01030a" opacity=".8"/>
+    <polygon class="ground" points="${isoRect(-.6,-.6,U+.6,V+.6)}"/><polygon class="groundedge" points="${isoRect(-.6,-.6,U+.6,V+.6)}"/>`;
+  HUB.at_city=at; HUB.zmax=0;
+  const parts=lots.map(({f})=>hubBuilding(f,...at[f.id]).split('\u0000'));
+  const top=iso(0,0)[1]-HUB.zmax-60, b={x0:iso(-.6,V+.6)[0]-40, x1:iso(U+.6,-.6)[0]+40, y0:top, y1:iso(U+.6,V+.6)[1]+60};
   HUB.box=b; HUB.mv=[];
   const RD=hubCityRoads(at);
-  return HUB_DEFS+`<g>${hubStars({x0:b.x0-400,x1:b.x1+400,y0:b.y0-300,y1:b.y1+300}, 17)}</g>`+ground+RD.roads+RD.veh+(()=>{ const parts=lots.map(({f})=>hubBuilding(f,...at[f.id]).split('\u0000')); return parts.map(x=>x[0]).join('')+parts.map(x=>x[1]).join(''); })();
+  return HUB_DEFS+`<g>${hubStars({x0:b.x0-400,x1:b.x1+400,y0:b.y0-300,y1:b.y1+300}, 17)}</g>`+ground+RD.roads+RD.veh+parts.map(x=>x[0]).join('')+parts.map(x=>x[1]).join('');
 }
 
 /* Kosmos: jede Firma ein eigenes Sonnensystem, Sonne = Leitung, Planeten = Abteilungen. Keine Linien zwischen den Systemen. */
+function hubSunSvg(id, col, sr, on, cls){  // leuchtende Sonne mit Korona und schräger Scheibe (wie im Referenzbild)
+  return `<radialGradient id="${id}" cx="40%" cy="38%" r="65%"><stop offset="0" stop-color="#fffbe6"/><stop offset=".35" stop-color="${shade(col,.45)}"/><stop offset=".75" stop-color="${col}"/><stop offset="1" stop-color="${shade(col,-.45)}"/></radialGradient>
+    <circle r="${sr*3.4}" fill="${col}" opacity="${on?.34:.2}" filter="url(#hubBlur)"/><circle r="${sr*1.8}" fill="${shade(col,.3)}" opacity=".35" filter="url(#hubBlur)"/>
+    <ellipse class="sdisc back" rx="${(sr*1.9).toFixed(1)}" ry="${(sr*.5).toFixed(1)}"/>
+    <circle r="${sr}" fill="url(#${id})" class="hsun${on?' on':''}${cls?' '+cls:''}"/>
+    <path class="sdisc" d="M${(-sr*1.9).toFixed(1)},0 A${(sr*1.9).toFixed(1)},${(sr*.5).toFixed(1)} 0 0 0 ${(sr*1.9).toFixed(1)},0"/>`;
+}
 function hubSystem(f, x, y){
   const T=hubTeams(f), col=hubColor(f), st=Math.max(0,Math.min(4,f.stage|0)), sr=18+st*5, busy=f.busy>0, RND=rnd(f.id*131+7);
-  const n=T.deps.length, orbits=[], planets=[];
+  const n=T.deps.length, orbits=[], planets=[], big=T.deps.reduce((m,d,i)=>d.members.length>(T.deps[m]||{members:[]}).members.length?i:m,0);
   T.deps.forEach((d,i)=>{
-    const r=sr+26+i*20, a0=RND()*.6+i*2.4, w=(.25+RND()*.2)/(1+i*.35)*(i%2?1:1), pr=Math.min(11, 5+Math.sqrt(d.members.length)*2.2);
-    const pc=COLORS[(i+2)%COLORS.length];
+    const r=sr+30+i*22, a0=RND()*.6+i*2.4, w=(.25+RND()*.2)/(1+i*.35), pr=Math.min(11, 5+Math.sqrt(d.members.length)*2.2), pc=hubDepColor(i);
     orbits.push(`<ellipse class="horb" rx="${r}" ry="${(r*.42).toFixed(1)}"/>`);
     HUB.mv.push({f:f.id, rx:r, ry:r*.42, a0, w, cx:x, cy:y});
     planets.push(`<g class="hpl"><title>${esc(d.lead.name)}: ${d.members.length} Agenten${d.busy?' · '+d.busy+' Aufgaben laufen':''}</title>
-      <circle r="${pr*2}" fill="${pc}" opacity="${d.busy?.35:.15}" filter="url(#hubBlur)"/><circle r="${pr}" fill="${pc}"/><circle r="${pr}" fill="url(#hubPl)"/>
+      <circle r="${pr*2.2}" fill="${pc}" opacity="${d.busy?.4:.2}" filter="url(#hubBlur)"/><circle r="${pr}" fill="${pc}"/><circle r="${pr}" fill="url(#hubPl)"/>
+      ${i===big&&n>1?`<ellipse rx="${pr*1.9}" ry="${pr*.5}" fill="none" stroke="${shade(pc,.4)}" stroke-width="1.6" opacity=".8" transform="rotate(-18)"/>`:''}
       ${d.busy?`<circle r="${pr+3.5}" class="hrun"/>`:''}</g>`);
   });
-  const R=sr+26+Math.max(0,n-1)*20+14;
+  const R=sr+30+Math.max(0,n-1)*22+14;
   return {R, svg:`<g class="firm sys${HUB.sel===f.id?' sel':''}" data-firm="${f.id}" tabindex="0" role="button" transform="translate(${x},${y})" style="--hc:${col}" aria-label="${esc(f.name)}: ${esc(f.stage_name||'')}, ${n} Abteilungen, ${f.agents.length} Agenten${busy?', arbeitet gerade':''}">
-    <title>${esc(f.name)} – ${esc(f.icon||'')} ${esc(f.stage_name||'')} · ${n} Abteilungen · ${f.agents.length} Agenten · ${busy?f.busy+' Aufgaben laufen':'gerade ruhig'}</title>
-    <circle r="${R}" class="hhit"/>${orbits.join('')}
-    <circle r="${sr*3}" fill="${col}" opacity="${busy?.32:.18}" filter="url(#hubBlur)"/>
-    <radialGradient id="hubSun${f.id}" cx="40%" cy="38%" r="65%"><stop offset="0" stop-color="#fffbe6"/><stop offset=".4" stop-color="${shade(col,.25)}"/><stop offset="1" stop-color="${shade(col,-.55)}"/></radialGradient>
-    <circle r="${sr}" fill="url(#hubSun${f.id})" class="hsun${busy?' on':''}"/>
+    <title>${esc(f.name)} – ${esc(f.icon||'')} ${esc(f.stage_name||'')} · ${n} Abteilungen · ${f.agents.length} Agenten · ${busy?f.busy+' Aufgaben laufen':'gerade ruhig'}\nAntippen: hineinzoomen</title>
+    <circle r="${R}" class="hhit"/><g class="orbs">${orbits.join('')}</g>
+    ${hubSunSvg('hubSun'+f.id, col, sr, busy)}
     ${planets.join('')}
+    <line x1="0" y1="${-sr-6}" x2="0" y2="${-sr-26}" class="beam"/>
+    <g class="badge" transform="translate(0,${-sr-44})"><circle r="21" fill="${col}" opacity=".35" filter="url(#hubBlur)"/><circle r="17" class="bring"/><text y="6">${esc(f.icon||'☀️')}</text></g>
     <text class="hlbl" y="${R*.42+34}">${esc(short(f.name,26))}</text>
-    <text class="hlbl2" y="${R*.42+54}">${esc(f.icon||'')} ${esc(f.stage_name||'')} · ${n} 🪐 · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`};
+    <text class="hlbl2" y="${R*.42+54}">${esc(f.stage_name||'')} · ${n} 🪐 · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`};
 }
 function hubCosmos(){
   const F=HUB.d.firms; HUB.mv=[];
-  const sys=F.map(f=>({f, R:28+Math.max(0,hubTeams(f).deps.length)*20+40}));
+  const sys=F.map(f=>({f, R:30+Math.max(0,hubTeams(f).deps.length)*22+44}));
   const cell=Math.max(260, ...sys.map(s=>s.R*2+60)), vr=$('#vp').getBoundingClientRect(), C=Math.max(1,Math.min(F.length,Math.ceil(Math.sqrt(F.length*Math.max(.4,vr.width/Math.max(1,vr.height)))))), out=[], RND=rnd(4242);
-  sys.forEach((s,k)=>{ const i=k%C, j=Math.floor(k/C), x=i*cell+(j%2?cell/2:0)+(RND()-.5)*cell*.25, y=j*cell*.62+(RND()-.5)*cell*.12; s.x=x; s.y=y; });
+  sys.forEach((s,k)=>{ const i=k%C, j=Math.floor(k/C), x=i*cell+(j%2?cell/2:0)+(RND()-.5)*cell*.25, y=j*cell*.82+(RND()-.5)*cell*.1; s.x=x; s.y=y; });
   sys.forEach(s=>out.push(hubSystem(s.f, s.x, s.y).svg));
   const pos={}; sys.forEach(s=>pos[s.f.id]=[s.x,s.y]); out.push(hubCosmosRoutes(pos));
-  const xs=sys.map(s=>s.x), ys=sys.map(s=>s.y), b={x0:Math.min(...xs)-cell/2, x1:Math.max(...xs)+cell/2, y0:Math.min(...ys)-cell*.35, y1:Math.max(...ys)+cell*.45};
+  const xs=sys.map(s=>s.x), ys=sys.map(s=>s.y), b={x0:Math.min(...xs)-cell/2, x1:Math.max(...xs)+cell/2, y0:Math.min(...ys)-cell*.5, y1:Math.max(...ys)+cell*.45};
   HUB.box=b;
   return HUB_DEFS+`<g>${hubStars({x0:b.x0-600,x1:b.x1+600,y0:b.y0-400,y1:b.y1+400}, 99)}</g>`+out.join('');
 }
@@ -2664,73 +2719,108 @@ function hubTick(now){
 }
 function startHub(){ if(!HUB.raf && hubMoving()) HUB.raf=requestAnimationFrame(hubTick); }
 document.addEventListener('visibilitychange', startHub);
-/* Innen (Phase 2): Klick auf eine Firma zoomt hinein. Stadt = Querschnitt durchs Gebäude (eine Etage je Abteilung),
-   Kosmos = das Sonnensystem groß (ein Planet je Abteilung, Monde = Agenten). Links die Liste der Abteilungen. */
 function hubDepColor(i){ return i<0 ? '#f59e0b' : COLORS[(i+2)%COLORS.length]; }
+function hubOrgChart(T, x0, yTop){  // kleines Organigramm neben dem Gebäude: Leitung oben, Abteilungen darunter, alles anklickbar
+  const n=T.deps.length, gap=82, w=Math.max(1,n)*gap, cx=x0+w/2, y1=yTop+40, y2=y1+120, o=[];
+  const node=(x,y,dep,icon,label,sub,dc)=>`<g class="onode${HUB.dep===dep?' sel':''}" data-dep="${dep}" tabindex="0" role="button" transform="translate(${x},${y})" style="--dc:${dc}" aria-label="${esc(label)}">
+    <title>${esc(label)}${sub?' – '+esc(sub):''}\nAntippen: öffnen</title><circle r="34" fill="${dc}" opacity=".22" filter="url(#hubBlur)"/>
+    <circle r="27" class="oring"/><text class="oico" y="8">${icon}</text><text class="plbl" y="46">${esc(short(label,13))}</text></g>`;
+  if(n){ const yb=(y1+y2)/2;
+    o.push(`<path class="oline" d="M${cx},${y1+27} V${yb} M${x0+gap/2},${yb} H${x0+w-gap/2}"/>`);
+    T.deps.forEach((d,i)=>o.push(`<path class="oline" d="M${x0+gap/2+i*gap},${yb} V${y2-27}"/>`)); }
+  o.push(node(cx,y1,-1,'👑','Leitung',T.roots.map(r=>r.name).join(', '),hubDepColor(-1)));
+  T.deps.forEach((d,i)=>o.push(node(x0+gap/2+i*gap,y2,i,hubDepIcon(d.lead),d.lead.name,d.lead.role,hubDepColor(i))));
+  return {svg:o.join(''), w, h:y2+60-yTop};
+}
+/* Innen: Klick auf eine Firma zoomt hinein. Stadt = aufgeschnittenes Gebäude, die Leitung ganz oben in der Chefetage,
+   darunter eine Etage je Abteilung; rechts das Organigramm. Kosmos = das Sonnensystem groß (Planet je Abteilung, Monde = Agenten). */
 function hubInsideCity(f){
   const T=hubTeams(f), col=hubColor(f);
   const floors=[{dep:-1, name:'Leitung', sub:T.roots.map(r=>r.role||r.name).join(', '), people:T.roots}];
   T.deps.forEach((d,i)=>floors.push({dep:i, name:d.lead.name, sub:d.lead.role||'', people:d.members}));
-  const PW=78, PER=9, maxP=Math.max(1,...floors.map(x=>Math.min(PER,x.people.length)));
-  const Wd=Math.max(620, 210+maxP*PW), fh=fl=>Math.ceil(Math.max(1,fl.people.length)/PER)*100+20, H=floors.reduce((s,fl)=>s+fh(fl),0);
-  const out=[]; let y=0;
-  out.push(`<rect x="-14" y="${-H-14}" width="${Wd+28}" height="${H+14}" rx="6" fill="#050a18" stroke="${col}" stroke-width="2" filter="url(#hubGlow)"/>`);
+  const PW=78, PER=9, maxP=Math.max(1,...floors.map(x=>Math.min(PER,x.people.length))), N=floors.length;
+  const Wd=Math.max(620, 210+maxP*PW), fh=fl=>Math.ceil(Math.max(1,fl.people.length)/PER)*100+20, H=floors.reduce((s,fl)=>s+fh(fl),0), DX=70, DY=-40;
+  const out=[], side=[]; let y=-H;
+  out.push(`<linearGradient id="hubRoom" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1226"/><stop offset=".55" stop-color="#2a1f12"/><stop offset="1" stop-color="#5b3b12"/></linearGradient>
+    <linearGradient id="hubGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd" stop-opacity=".10"/><stop offset=".5" stop-color="#93c5fd" stop-opacity="0"/><stop offset="1" stop-color="#93c5fd" stop-opacity=".06"/></linearGradient>`);
+  // Boden mit Platz, Bäumen und Schatten
+  out.push(`<polygon points="${pts([[-150,0],[Wd+150,0],[Wd+150+DX,DY],[-150+DX,DY]])}" fill="#0b1328" stroke="${col}" stroke-opacity=".35"/>
+    <polygon points="${pts([[-150,0],[Wd+150,0],[Wd+150,14],[-150,14]])}" fill="#070c1c"/>
+    <polygon points="${pts([[0,0],[Wd+DX,DY],[Wd+DX+40,DY+14],[40,14]])}" fill="#000" opacity=".35"/>`);
+  // rechte Seitenwand (Tiefe) und Dach
+  out.push(`<polygon points="${pts([[Wd,-H],[Wd+DX,-H+DY],[Wd+DX,DY],[Wd,0]])}" fill="${shade(col,-.86)}" stroke="${col}" stroke-opacity=".6"/>
+    <polygon points="${pts([[0,-H],[DX,-H+DY],[Wd+DX,-H+DY],[Wd,-H]])}" fill="${shade(col,-.62)}" stroke="${col}" stroke-width="2" filter="url(#hubGlow)"/>`);
   floors.forEach((fl,n)=>{
-    const h=fh(fl), top=-(y+h), dc=hubDepColor(fl.dep), on=HUB.dep===fl.dep;
-    out.push(`<g class="floor${on?' sel':''}" data-dep="${fl.dep}" tabindex="0" role="button" aria-label="${n===0?'Erdgeschoss':n+'. Stock'}: ${esc(fl.name)}, ${fl.people.length} Agenten">
+    const h=fh(fl), top=y, dc=hubDepColor(fl.dep), on=HUB.dep===fl.dep, lvl=N-1-n, work=fl.people.reduce((s,a)=>s+(a.busy||0),0);
+    const lbl = fl.dep===-1 ? 'Chefetage' : (lvl===0?'EG':lvl+'. OG');
+    for(let k=0;k<3;k++){ const yy=top+12+k*(h-24)/3; side.push(`<polygon class="swin${work||k===1?' on':''}" points="${pts([[Wd+10,yy+DY*10/DX],[Wd+DX-10,yy+DY*(DX-10)/DX],[Wd+DX-10,yy+DY*(DX-10)/DX+(h-24)/3-8],[Wd+10,yy+DY*10/DX+(h-24)/3-8]])}"/>`); }
+    out.push(`<g class="floor${on?' sel':''}" data-dep="${fl.dep}" tabindex="0" role="button" aria-label="${lbl}: ${esc(fl.name)}, ${fl.people.length} Agenten">
       <title>${esc(fl.name)}${fl.sub?' – '+esc(fl.sub):''} · ${fl.people.length} Agenten\nAntippen: Abteilung öffnen</title>
       <rect class="fbg" x="0" y="${top}" width="${Wd}" height="${h}" style="--dc:${dc}"/>
+      <rect x="0" y="${top}" width="${Wd}" height="${h}" fill="url(#hubRoom)" opacity="${work?.85:.45}"/>
+      ${Array.from({length:Math.floor(Wd/150)},(_,k)=>`<ellipse cx="${110+k*150}" cy="${top+6}" rx="26" ry="3" class="clamp${work?' on':''}"/>`).join('')}
       <rect x="0" y="${top}" width="5" height="${h}" fill="${dc}"/>
-      <line x1="0" y1="${top+h}" x2="${Wd}" y2="${top+h}" stroke="${col}" stroke-opacity=".6" stroke-width="1.5"/>
-      <text class="flbl" x="18" y="${top+26}">${n===0?'EG':n+'. OG'} · ${esc(short(fl.name,17))}</text>
-      <text class="flbl2" x="18" y="${top+44}">${esc(short(fl.sub,26))}</text>
-      <text class="flbl2" x="18" y="${top+62}">${fl.people.length} 👤${fl.people.some(a=>a.busy)?' · ⚙ '+fl.people.reduce((s,a)=>s+(a.busy||0),0):''}</text>`);
+      <rect x="0" y="${top+h-5}" width="${Wd}" height="5" fill="${shade(col,-.5)}"/><line x1="0" y1="${top+h-5}" x2="${Wd}" y2="${top+h-5}" stroke="${col}" stroke-opacity=".8" stroke-width="1.5" filter="url(#hubGlow)"/>
+      <text class="flbl" x="18" y="${top+28}">${fl.dep===-1?'👑':hubDepIcon(T.deps[fl.dep].lead)} ${lbl} · ${esc(short(fl.name,15))}</text>
+      <text class="flbl2" x="18" y="${top+46}">${esc(short(fl.sub,26))}</text>
+      <text class="flbl2" x="18" y="${top+64}">${fl.people.length} 👤${work?' · ⚙ '+work:''}</text>`);
     fl.people.forEach((a,k)=>{
-      const cx=200+(k%PER)*PW+PW/2, base=top+((k/PER)|0)*100+96, busy=a.busy>0, me=HUB.agent===a.id;
+      const cx=200+(k%PER)*PW+PW/2, base=top+((k/PER)|0)*100+92, busy=a.busy>0, me=HUB.agent===a.id;
       out.push(`<g class="pers${me?' sel':''}" data-agent="${a.id}" data-dep="${fl.dep}"><title>${esc(a.name)} – ${esc(a.role||'')}${busy?' · arbeitet gerade ('+a.busy+')':' · bereit'}</title>
         <ellipse cx="${cx}" cy="${base-1}" rx="26" ry="4" fill="#000" opacity=".35"/>
-        <rect x="${cx-24}" y="${base-28}" width="48" height="5" rx="2" fill="#334155"/><rect x="${cx-2}" y="${base-23}" width="4" height="22" fill="#1e293b"/>
+        <rect x="${cx-24}" y="${base-28}" width="48" height="5" rx="2" fill="#5b4630"/><rect x="${cx-2}" y="${base-23}" width="4" height="22" fill="#3b2f22"/>
         <rect x="${cx-17}" y="${base-47}" width="22" height="15" rx="2" class="screen${busy?' on':''}" fill="${busy?'#22d3ee':'#1e293b'}" stroke="#475569"/>
         <circle cx="${cx+15}" cy="${base-55}" r="6" fill="${me?'#fff':'none'}" stroke="#e2e8f0" stroke-width="2.2"/>
         <path d="M${cx+15},${base-49} v14 M${cx+15},${base-43} l-9,5 M${cx+15},${base-43} l7,6 M${cx+15},${base-35} l-5,13 M${cx+15},${base-35} l5,13" stroke="#e2e8f0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        ${busy?`<circle cx="${cx+24}" cy="${base-62}" r="4" fill="#38bdf8" filter="url(#hubGlow)"/>`:''}
+        <circle cx="${cx+24}" cy="${base-64}" r="3.5" fill="${busy?'#38bdf8':'#22c55e'}"${busy?' filter="url(#hubGlow)"':''}/>
         <text class="plbl" x="${cx}" y="${base+14}">${esc(short(a.name,12))}</text></g>`);
     });
     out.push('</g>'); y+=h;
   });
-  out.push(`<rect x="-30" y="${-H-34}" width="${Wd+60}" height="20" rx="4" fill="${col}" opacity=".9"/><text class="sign" x="${Wd/2}" y="${-H-46}">${esc(f.icon||'')} ${esc(f.name)}</text>`);
-  out.push(`<rect x="-120" y="0" width="${Wd+240}" height="12" fill="#0f172a" stroke="#1e293b"/>`);
+  // Glasfront über allen Etagen, Säulen, Seitenfenster, Dachaufbau mit Firmenlicht
+  out.push(`<rect x="0" y="${-H}" width="${Wd}" height="${H}" fill="url(#hubGlass)" pointer-events="none"/>
+    ${Array.from({length:Math.floor(Wd/120)+1},(_,k)=>`<line x1="${k*120}" y1="${-H}" x2="${k*120}" y2="0" class="mull"/>`).join('')}
+    <rect x="-3" y="${-H}" width="${Wd+6}" height="${H}" fill="none" stroke="${col}" stroke-width="2.5" filter="url(#hubGlow)" pointer-events="none"/>
+    ${side.join('')}`);
+  const rx=Wd*.62, rw=Math.min(180,Wd*.25);
+  out.push(`<polygon points="${pts([[rx,-H+DY*.5],[rx+rw,-H+DY*.5],[rx+rw,-H+DY*.5-34],[rx,-H+DY*.5-34]])}" fill="${shade(col,-.78)}" stroke="${col}" stroke-opacity=".7"/>
+    <polygon points="${pts([[rx,-H+DY*.5-34],[rx+30,-H+DY*.5-52],[rx+rw+30,-H+DY*.5-52],[rx+rw,-H+DY*.5-34]])}" fill="${col}" opacity=".7" filter="url(#hubGlow)"/>
+    <text class="sign" x="${Wd*.3}" y="${-H+DY*.5-14}">${esc(f.icon||'')} ${esc(short(f.name,28))}</text>
+    ${hubTree(-60,4,1.4)}${hubTree(-110,8,1.1)}${hubTree(Wd+DX+40,DY+6,1.3)}${hubTree(Wd+110,6,1.2)}`);
+  const OC=hubOrgChart(T, Wd+DX+120, -H+DY);
+  out.push(OC.svg);
   if(!f.agents.length) out.push(`<text class="flbl" x="${Wd/2}" y="-50" text-anchor="middle">Noch niemand eingestellt. „📐 Firma öffnen“ führt zum Bauplan.</text>`);
-  HUB.box={x0:-140, x1:Wd+140, y0:-H-90, y1:40}; HUB.mv=[];
+  HUB.box={x0:-170, x1:Wd+DX+120+OC.w+60, y0:-H+DY-90, y1:40}; HUB.mv=[];
   return HUB_DEFS+out.join('');
 }
 function hubInsideCosmos(f){
-  const T=hubTeams(f), col=hubColor(f), st=Math.max(0,Math.min(4,f.stage|0)), sr=46+st*6, out=[], pl=[];
+  const T=hubTeams(f), col=hubColor(f), st=Math.max(0,Math.min(4,f.stage|0)), sr=48+st*6, out=[], pl=[];
   const busyRoot=T.roots.some(a=>a.busy), RND=rnd(f.id*17+1);
   T.deps.forEach((d,i)=>{
-    const r=sr+110+i*92, ry=r*.42, a=RND()*.5+i*2.4, x=r*Math.cos(a), y=ry*Math.sin(a), pr=16+Math.min(14,Math.sqrt(d.members.length)*4), dc=hubDepColor(i), on=HUB.dep===i;
-    out.push(`<ellipse class="horb${on?' on':''}" rx="${r}" ry="${ry.toFixed(1)}" style="--hc:${dc}"/>`);
-    const moons=d.members.filter(a=>a.id!==d.lead.id).map((a,k,arr)=>{ const ma=k*2*Math.PI/Math.max(1,arr.length)+.4, mr=pr+16+(k%2)*8, mx=mr*Math.cos(ma), my=mr*.7*Math.sin(ma);
+    const r=sr+100+i*72, ry=r*.42, a=RND()*.5+i*2.4, x=r*Math.cos(a), y=ry*Math.sin(a), pr=24+Math.min(14,Math.sqrt(d.members.length)*4), dc=hubDepColor(i), on=HUB.dep===i;
+    out.push(`<ellipse class="horb in${on?' on':''}" rx="${r}" ry="${ry.toFixed(1)}" style="--hc:${dc}"/>`);
+    const moons=d.members.filter(a=>a.id!==d.lead.id).map((a,k,arr)=>{ const ma=k*2*Math.PI/Math.max(1,arr.length)+.4, mr=pr+20+(k%2)*8, mx=mr*1.25*Math.cos(ma), my=mr*.6*Math.sin(ma);
       return `<g class="moon${HUB.agent===a.id?' sel':''}" data-agent="${a.id}" data-dep="${i}" transform="translate(${mx.toFixed(1)},${my.toFixed(1)})"><title>${esc(a.name)} – ${esc(a.role||'')}${a.busy?' · arbeitet':' · bereit'}</title>
-        <circle r="5.5" fill="${a.busy?'#7dd3fc':'#cbd5e1'}"/><circle r="5.5" fill="url(#hubPl)"/>${a.busy?'<circle r="8.5" class="hrun"/>':''}</g>`; }).join('');
-    pl.push(`<g class="planet${on?' sel':''}" data-dep="${i}" tabindex="0" role="button" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" aria-label="Abteilung ${esc(d.lead.name)}, ${d.members.length} Agenten">
+        <circle r="6" fill="${a.busy?'#7dd3fc':'#cbd5e1'}"/><circle r="6" fill="url(#hubPl)"/>${a.busy?'<circle r="9" class="hrun"/>':''}</g>`; }).join('');
+    pl.push(`<g class="planet${on?' sel':''}" data-dep="${i}" tabindex="0" role="button" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" style="--dc:${dc}" aria-label="Abteilung ${esc(d.lead.name)}, ${d.members.length} Agenten">
       <title>${esc(d.lead.name)} – ${esc(d.lead.role||'')} · ${d.members.length} Agenten${d.busy?' · ⚙ '+d.busy:''}\nAntippen: Abteilung öffnen</title>
-      <circle r="${pr*2.2}" fill="${dc}" opacity="${d.busy?.32:.14}" filter="url(#hubBlur)"/>
-      <circle r="${pr}" fill="${dc}"/><circle r="${pr}" fill="url(#hubPl)"/><circle r="${pr+5}" class="pring" style="--dc:${dc}"/>
+      <circle r="${pr*2.3}" fill="${dc}" opacity="${d.busy?.35:.18}" filter="url(#hubBlur)"/>
+      <ellipse class="pdisc" cy="${pr*.55}" rx="${pr*1.75}" ry="${pr*.55}"/>
+      <circle r="${pr}" fill="${shade(dc,-.35)}"/><circle r="${pr}" fill="url(#hubPl)"/><circle r="${pr+4}" class="pring"/>
       ${d.busy?`<circle r="${pr+9}" class="hrun"/>`:''}
-      <text class="pico" y="5">${esc(initials(d.lead.name))}</text>${moons}
+      <text class="pico" y="${(pr*.32).toFixed(1)}" style="font-size:${Math.round(pr*.95)}px">${hubDepIcon(d.lead)}</text>${moons}
       <text class="hlbl" y="${pr+44}">${esc(short(d.lead.name,20))}</text>
       <text class="hlbl2" y="${pr+60}">${d.members.length} 👤${d.busy?' · ⚙ '+d.busy:''}</text></g>`);
   });
-  const R=sr+110+Math.max(0,T.deps.length-1)*92+60;
-  const sun=`<g class="sunbody${HUB.dep===-1?' sel':''}" data-dep="-1" tabindex="0" role="button" aria-label="Leitung: ${esc(T.roots.map(r=>r.name).join(', '))}">
+  const R=sr+100+Math.max(0,T.deps.length-1)*72+70;
+  const sun=`<g class="sunbody${HUB.dep===-1?' sel':''}" data-dep="-1" tabindex="0" role="button" style="--hc:${col}" aria-label="Leitung: ${esc(T.roots.map(r=>r.name).join(', '))}">
     <title>Leitung: ${esc(T.roots.map(r=>r.name).join(', ')||'noch niemand')}\nAntippen: Leitung öffnen</title>
-    <radialGradient id="hubSunIn" cx="40%" cy="38%" r="65%"><stop offset="0" stop-color="#fffbe6"/><stop offset=".4" stop-color="${shade(col,.25)}"/><stop offset="1" stop-color="${shade(col,-.55)}"/></radialGradient>
-    <circle r="${sr*3.2}" fill="${col}" opacity="${busyRoot?.3:.18}" filter="url(#hubBlur)"/><circle r="${sr}" fill="url(#hubSunIn)" class="hsun${busyRoot?' on':''}"/>
-    <text class="hlbl" y="${sr+26}">${esc(short(T.roots.map(r=>r.name).join(' · ')||f.name,30))}</text></g>`;
-  HUB.box={x0:-R, x1:R, y0:-R*.42-90, y1:R*.42+110}; HUB.mv=[];
+    ${hubSunSvg('hubSunIn', col, sr, busyRoot)}
+    <text class="hlbl" y="${-sr-58}">👑 Leitung</text>
+    <text class="hlbl2" y="${-sr-40}">${esc(short(T.roots.map(r=>r.name).join(' · ')||f.name,34))}</text></g>`;
+  HUB.box={x0:-R, x1:R, y0:-R*.42-130, y1:R*.42+110}; HUB.mv=[];
   return HUB_DEFS+`<g>${hubStars({x0:-R-500,x1:R+500,y0:-R-300,y1:R+300}, f.id*7)}</g>`+out.join('')+sun+pl.join('')
-    +`<text class="sign" y="${-R*.42-50}">${esc(f.icon||'')} ${esc(f.name)}</text>`;
+    +`<text class="sign" y="${-R*.42-100}">${esc(f.icon||'')} ${esc(f.name)}</text>`;
 }
 function hubDepsList(f){
   const T=hubTeams(f), item=(dep,label,sub,dc)=>`<button class="hd${HUB.dep===dep?' on':''}" data-dep="${dep===null?'':dep}" title="${dep===null?'Übersicht über die ganze Firma':'Abteilung '+esc(label)+' öffnen'}"><span class="hdd" style="background:${dc}"></span>${esc(short(label,20))}<small>${sub}</small></button>`;
@@ -2762,15 +2852,23 @@ function hubTraffic(l){
   return {fa, fb, act, n: act ? Math.min(5, 1+Math.ceil(act/3)+(both?1:0)) : 1, sp: act ? 1.25 : .55, live: act>0};
 }
 function hubPolyLen(p){ let s=0; for(let k=1;k<p.length;k++) s+=Math.hypot(p[k][0]-p[k-1][0],p[k][1]-p[k-1][1]); return s; }
+function hubRoadPath(A,B){  // Straße nur durch die Gassen zwischen den Grundstücken, nie quer über ein anderes Grundstück
+  const G=HUB_GAP, S=1+G, [ua,va]=A, [ub,vb]=B, ia=Math.round(ua/S), ja=Math.round(va/S), ib=Math.round(ub/S), jb=Math.round(vb/S);
+  if(ja===jb && Math.abs(ia-ib)===1){ const l=ia<ib; return [[l?ua+1:ua, va+.5],[l?ub:ub+1, vb+.5]]; }
+  if(ia===ib && Math.abs(ja-jb)===1){ const l=ja<jb; return [[ua+.5, l?va+1:va],[ub+.5, l?vb:vb+1]]; }
+  if(ja===jb){ const rc=va+1+G/2; return [[ua+.5,va+1],[ua+.5,rc],[ub+.5,rc],[ub+.5,vb+1]]; }
+  if(ia===ib){ const cc=ua+1+G/2; return [[ua+1,va+.5],[cc,va+.5],[cc,vb+.5],[ub+1,vb+.5]]; }
+  const down=jb>ja, rc=down?va+1+G/2:va-G/2, right=ib>ia, cc=right?ub-G/2:ub+1+G/2;
+  return [[ua+.5,down?va+1:va],[ua+.5,rc],[cc,rc],[cc,vb+.5],[right?ub:ub+1, vb+.5]];
+}
 function hubCityRoads(at){
   const out=[], veh=[]; HUB.tr=[];
   HUB.d.links.forEach((l,n)=>{
-    const T=hubTraffic(l); if(!T) return;
-    const [ua,va]=at[l.a], [ub,vb]=at[l.b], la=va+1+HUB_GAP/2, lb=vb+1+HUB_GAP/2, cu=ub-HUB_GAP/2;
-    const P=[[ua+.5,va+1],[ua+.5,la],[cu,la],[cu,lb],[ub+.5,lb],[ub+.5,vb+1]].filter((p,k,a)=>!k||p[0]!==a[k-1][0]||p[1]!==a[k-1][1]).map(([u,v])=>iso(u,v));
+    const T=hubTraffic(l); if(!T || !at[l.a] || !at[l.b]) return;
+    const P=hubRoadPath(at[l.a], at[l.b]).map(([u,v])=>iso(u,v));
     const d='M'+P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
     out.push(`<g class="road${T.live?' live':''}"><title>Zusammenarbeit: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}${l.note?' – '+esc(l.note):''}${T.live?' · aktiv':' · gerade ruhig'}</title>
-      <path class="rw" d="${d}"/><path class="rl" d="${d}"/></g>`);
+      <path class="rg" d="${d}"/><path class="re" d="${d}"/><path class="rw" d="${d}"/><path class="rl" d="${d}"/></g>`);
     for(let k=0;k<T.n;k++){ HUB.tr.push({p:P, len:hubPolyLen(P), sp:T.sp*(1+.12*(k%3)), o:k/T.n+n*.13, iso:true});
       veh.push(`<g class="veh van"><title>Lieferung: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}</title>
         <g class="vb"><ellipse rx="10" ry="4" cy="3" fill="#000" opacity=".4"/><polygon points="-10,-2 0,-7 10,-2 0,3" fill="#e2e8f0"/><polygon points="-10,-2 0,3 0,8 -10,3" fill="#94a3b8"/><polygon points="0,3 10,-2 10,3 0,8" fill="#64748b"/><circle cx="9" cy="1" r="2.2" class="hl"/></g></g>`); }
@@ -2784,6 +2882,7 @@ function hubCosmosRoutes(pos){
     const mx=(A[0]+B[0])/2, my=(A[1]+B[1])/2, dx=B[0]-A[0], dy=B[1]-A[1], L=Math.hypot(dx,dy)||1, bend=L*.18*(n%2?1:-1);
     const cx=mx-dy/L*bend, cy=my+dx/L*bend, P=[];
     for(let k=0;k<=32;k++){ const t=k/32, u=1-t; P.push([u*u*A[0]+2*u*t*cx+t*t*B[0], u*u*A[1]+2*u*t*cy+t*t*B[1]]); }
+    if(T.live) veh.unshift(`<path class="sroute" d="M${P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L')}"><title>Aktive Zusammenarbeit: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}</title></path>`);
     for(let k=0;k<T.n;k++){ HUB.tr.push({p:P, len:hubPolyLen(P), sp:T.sp*1.8*(1+.15*(k%3)), o:k/T.n+n*.21, ship:true});
       veh.push(`<g class="veh ship${T.live?' live':''}"><title>Zusammenarbeit: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}${l.note?' – '+esc(l.note):''}${T.live?' · aktiv':' · gerade ruhig'}</title>
         <g class="sb"><path class="trail" d="M-6,0 L-34,-3 L-34,3 Z"/><path d="M11,0 L-6,-6 L-3,0 L-6,6 Z" fill="#e2e8f0" stroke="#7dd3fc" stroke-width="1"/><circle cx="-5" r="2.4" class="flame"/></g></g>`); }

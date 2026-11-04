@@ -342,6 +342,8 @@ Ajanlar turlar halinde çalışır: araç ister, sunucu çalıştırır ve sonu�
 Üretilen her şey `workspace/<proje-kimliği>/` altında durur. Kenar çubuğunda **📁 Dateien** (dosyalar) dosyaları gösterir, `index.html` dosyasını
 bir web sayfası olarak açar (yalıtılmış sandbox) ve her şeyi ZIP olarak indirir. Bağlantı gizli bir anahtar içerir.
 
+**Projeler ve görünümler:** Kenar çubuğunda „Projekte“ altında en üstte üç görünüm vardır: 📐 Klassisch · 🏙 Stadt · 🌌 Kosmos; ardından „＋ Neues Projekt“ (tek pencere: boş proje veya şablondan hazır şirket) ve proje listesi gelir. Sağ üstteki grafik menüsü de aynı şekilde gruplanmıştır: „Alle Projekte · modern“ (şehir, kozmos) ve „Dieses Projekt · klassisch“. Şehirde her şirket kendine özgü bir binadır; içine girildiğinde yönetim en üst katta, altında her departman için bir kat ve sağda organizasyon şeması görünür. Kozmosta her şirket bir güneş sistemidir (güneş = yönetim, gezegenler = departmanlar).
+
 **Şirket şablonları** („Projekte“ altında „＋ Neues Projekt“): *Web ajansı*, *Muhasebe/Mali müşavirlik*, *İthalat/İhracat ticareti* proje, organizasyon şeması, çalışma talimatları ve hakları eksiksiz oluşturur. Kendi şirketleriniz: proje hedefini yazın („siz bir …sınız“, ülke, sektör), ajanları ve hakları ayarlayın. Ajanlar tarihi ve proje hedefini alır; değişken bilgileri (yasalar, fiyatlar) önce araştırmalı ve kaynak göstermelidir.
 
 **Araç güvenliği:** Sayfa çağrıları yalnızca genel adreslerle sınırlıdır (localhost, yerel ağ, Tailscale,

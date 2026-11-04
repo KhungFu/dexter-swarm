@@ -343,6 +343,8 @@ gotovi (najviše `PCL_MAX_TOOL_STEPS`). Prava po agentu: **pretraga interneta**,
 Sve što se napravi nalazi se pod `workspace/<id-projekta>/`. U bočnoj traci **📁 Dateien** prikazuje fajlove, otvara `index.html`
 kao web stranicu (izolovan sandbox) i preuzima sve kao ZIP. Link sadrži tajni ključ.
 
+**Projekti i prikazi:** U bočnoj traci pod „Projekte“ na vrhu su tri prikaza 📐 Klassisch · 🏙 Stadt · 🌌 Kosmos, zatim „＋ Neues Projekt“ (jedan prozor: prazan projekat ili gotova firma iz šablona) i lista projekata. Meni grafika gore desno je isto podijeljen: „Alle Projekte · modern“ (grad, kosmos) i „Dieses Projekt · klassisch“. U gradu je svaka firma zgrada vlastitog stila; kad je otvoriš, uprava je na najvišem spratu, ispod je po jedan sprat za svaki odjel, a desno organigram. U kosmosu je svaka firma sunčev sistem (sunce = uprava, planete = odjeli).
+
 **Šabloni firmi** („＋ Neues Projekt“ ispod „Projekte“): *Web agencija*, *Računovodstvo/poreska kancelarija*, *Uvoz/izvoz trgovina* prave projekat,
 organigram, radna uputstva i prava u potpunosti. Vlastite firme: napišite cilj projekta („vi ste …“, zemlja,
 djelatnost), podesite agente i prava. Agenti dobijaju datum i cilj projekta i trebaju prvo istražiti stvari koje se mijenjaju (zakoni,
