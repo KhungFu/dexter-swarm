@@ -164,7 +164,7 @@ def test_stadt_lichter_und_atom_molekuel():
     box = html[html.index("function isoBox("):html.index("function hubBuilding(")]
     assert 'style="fill:' in box  # CSS .win überdeckt sonst das fill-Attribut
     atom = html[html.index("const ATOM"):html.index("/* ---------- Start")]
-    assert "function atomLayout(" in atom and 'class="abond"' in atom
+    assert "function molLayout(" in atom and "function molStyle(" in atom and 'class="abond"' in atom
     assert "aorbit\" rx" not in atom.split("function atomSky(")[0]  # keine Elektronenbahnen mehr
     assert "requestAnimationFrame" not in atom
 
@@ -201,3 +201,16 @@ def test_firmenlogo_hochladen_zeigen_entfernen(client):
 def test_logo_bytes_erkennung():
     assert A.logo_kind(b"RIFF\0\0\0\0WEBPVP8 ") == "webp"
     assert A.logo_kind(b"GIF89a") is None and A.logo_kind(b"") is None
+
+
+def test_molekuel_welt_jede_firma_anders():
+    """Wunsch ABI 2026-11-04: jede Firma ein eigenes Molekül (Saat = Projekt-ID), Partner per Bindung vernetzt."""
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    assert "molekuel:()=>hubMolecules()" in html and 'data-hubworld="molekuel"' in html
+    mol = html[html.index("function hubMolecules("):html.index("function hubPlace(")]
+    assert "molStyle(f.id" in mol and "hubMolBonds(pos)" in mol and "HUB.d.links" in mol and "function hubInsideMol(" in mol
+    assert "requestAnimationFrame" not in mol  # Moleküle stehen still, nur Funken laufen über die Haupt-Animation
+    style = html[html.index("function molStyle("):html.index("function molLayout(")]
+    for k in ("spread", "bond", "squash", "turn", "mid", "small"):
+        assert k + ":" in style
+    assert "molStyle(S.pid" in html  # Atom-Ansicht nutzt dasselbe Molekül der Firma
