@@ -129,23 +129,6 @@ Meldet `git pull` „local changes would be overwritten“, hast du eine Datei i
 `git stash` legt die Änderung beiseite, danach `git pull` wiederholen. Deine Daten (`data.db`, `workspace/`, `.env`)
 sind davon nie betroffen, Git kennt sie nicht.
 
-### Umstellung von PaperclipLite auf Hyperstead (einmal)
-
-Das Programm heißt jetzt **Hyperstead**. Daten, `.env`, Ordner und alle `PCL_*`-Einstellungen bleiben, wie sie sind.
-Nur der Dienst und die Startdatei haben neue Namen.
-
-- **Pi:** `cd ~/paperclip-lite && git remote set-url origin https://github.com/KhungFu/hyperstead.git && git pull && ./install.sh --service`. Der Installer stoppt den alten Dienst
-  `paperclip-lite`, entfernt ihn und startet `hyperstead`. Ab dann gelten die Befehle mit `hyperstead`.
-- **Windows:** `git pull`, danach `deploy\windows\hyperstead-start.bat` starten. Alte Verknüpfungen auf
-  `paperclip-start.bat` funktionieren weiter, die Datei ruft jetzt `hyperstead-start.bat` auf.
-- **GitHub-Adresse:** Das Repo heißt jetzt `KhungFu/hyperstead`. GitHub leitet die alte Adresse weiter, trotzdem
-  einmal im Programmordner umstellen (Pi und Windows gleich): `git remote set-url origin https://github.com/KhungFu/hyperstead.git`.
-  Im Pi-Befehl oben ist das schon enthalten.
-- **Ordner:** Bestehende Installationen dürfen im Ordner `paperclip-lite` bleiben. Steht in dieser Anleitung
-  `~/hyperstead` bzw. `$HOME\hyperstead`, nimm dann `~/paperclip-lite` bzw. `$HOME\paperclip-lite`.
-  Neue Installationen landen im Ordner `hyperstead`.
-- Cloud-Upload: neue Projekte laden standardmäßig nach `Hyperstead/<Projekt>`. Selbst eingestellte Zielordner bleiben.
-
 ### Automatisch starten
 
 - **Pi:** `./install.sh --service` richtet den Dienst ein, er startet dann bei jedem Hochfahren von selbst.

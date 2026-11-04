@@ -130,23 +130,6 @@ If `git pull` says „local changes would be overwritten“, you changed a file 
 `git stash` sets the change aside, then repeat `git pull`. Your data (`data.db`, `workspace/`, `.env`)
 is never affected, because Git does not know them.
 
-### Switching from PaperclipLite to Hyperstead (once)
-
-The program is now called **Hyperstead**. Data, `.env`, folders and all `PCL_*` settings stay as they are.
-Only the service and the start file have new names.
-
-- **Pi:** `cd ~/paperclip-lite && git remote set-url origin https://github.com/KhungFu/hyperstead.git && git pull && ./install.sh --service`. The installer stops the old service
-  `paperclip-lite`, removes it and starts `hyperstead`. From then on use the commands with `hyperstead`.
-- **Windows:** `git pull`, then start `deploy\windows\hyperstead-start.bat`. Old shortcuts to
-  `paperclip-start.bat` keep working, the file now calls `hyperstead-start.bat`.
-- **GitHub address:** The repo is now called `KhungFu/hyperstead`. GitHub redirects the old address, still
-  switch it once in the program folder (same on Pi and Windows): `git remote set-url origin https://github.com/KhungFu/hyperstead.git`.
-  The Pi command above already includes this.
-- **Folder:** Existing installations may stay in the folder `paperclip-lite`. Where this guide says
-  `~/hyperstead` or `$HOME\hyperstead`, use `~/paperclip-lite` or `$HOME\paperclip-lite` instead.
-  New installations go into the folder `hyperstead`.
-- Cloud upload: new projects upload to `Hyperstead/<project>` by default. Target folders you set yourself stay.
-
 ### Start automatically
 
 - **Pi:** `./install.sh --service` sets up the service; it then starts by itself at every boot.

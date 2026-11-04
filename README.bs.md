@@ -130,23 +130,6 @@ Ako `git pull` javi „local changes would be overwritten“, sami ste promijeni
 `git stash` odlaže promjenu na stranu, zatim ponovite `git pull`. Vaši podaci (`data.db`, `workspace/`, `.env`)
 nikada nisu ugroženi, jer ih Git ne poznaje.
 
-### Prelazak sa PaperclipLite na Hyperstead (jednom)
-
-Program se sada zove **Hyperstead**. Podaci, `.env`, folderi i sva `PCL_*` podešavanja ostaju kakvi jesu.
-Samo servis i fajl za pokretanje imaju nova imena.
-
-- **Pi:** `cd ~/paperclip-lite && git remote set-url origin https://github.com/KhungFu/hyperstead.git && git pull && ./install.sh --service`. Instaler zaustavlja stari servis
-  `paperclip-lite`, uklanja ga i pokreće `hyperstead`. Od tada koristite komande sa `hyperstead`.
-- **Windows:** `git pull`, zatim pokrenite `deploy\windows\hyperstead-start.bat`. Stare prečice na
-  `paperclip-start.bat` i dalje rade, fajl sada poziva `hyperstead-start.bat`.
-- **GitHub adresa:** Repo se sada zove `KhungFu/hyperstead`. GitHub preusmjerava staru adresu, ipak je
-  jednom promijenite u folderu programa (isto na Pi-ju i Windowsu): `git remote set-url origin https://github.com/KhungFu/hyperstead.git`.
-  Komanda za Pi iznad to već sadrži.
-- **Folder:** Postojeće instalacije mogu ostati u folderu `paperclip-lite`. Gdje u ovom uputstvu piše
-  `~/hyperstead` odnosno `$HOME\hyperstead`, koristite `~/paperclip-lite` odnosno `$HOME\paperclip-lite`.
-  Nove instalacije idu u folder `hyperstead`.
-- Otpremanje u oblak: novi projekti po zadanim postavkama otpremaju u `Hyperstead/<projekat>`. Ciljni folderi koje ste sami podesili ostaju.
-
 ### Automatsko pokretanje
 
 - **Pi:** `./install.sh --service` podešava servis; on se onda sam pokreće pri svakom podizanju sistema.

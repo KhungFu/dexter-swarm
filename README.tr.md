@@ -129,23 +129,6 @@ sudo systemctl restart hyperstead
 `git stash` değişikliği kenara koyar, ardından `git pull` komutunu tekrarlayın. Verileriniz (`data.db`, `workspace/`, `.env`)
 bundan asla etkilenmez, çünkü Git bunları bilmez.
 
-### PaperclipLite'tan Hyperstead'e geçiş (bir kez)
-
-Programın adı artık **Hyperstead**. Veriler, `.env`, klasörler ve tüm `PCL_*` ayarları olduğu gibi kalır.
-Yalnızca servisin ve başlatma dosyasının adı değişti.
-
-- **Pi:** `cd ~/paperclip-lite && git remote set-url origin https://github.com/KhungFu/hyperstead.git && git pull && ./install.sh --service`. Kurulum betiği eski `paperclip-lite`
-  servisini durdurur, kaldırır ve `hyperstead` servisini başlatır. Bundan sonra komutları `hyperstead` ile kullanın.
-- **Windows:** `git pull`, ardından `deploy\windows\hyperstead-start.bat` dosyasını başlatın. `paperclip-start.bat`
-  için eski kısayollar çalışmaya devam eder, dosya artık `hyperstead-start.bat` dosyasını çağırır.
-- **GitHub adresi:** Reponun adı artık `KhungFu/hyperstead`. GitHub eski adresi yönlendirir, yine de
-  program klasöründe bir kez değiştirin (Pi ve Windows'ta aynı): `git remote set-url origin https://github.com/KhungFu/hyperstead.git`.
-  Yukarıdaki Pi komutu bunu zaten içerir.
-- **Klasör:** Mevcut kurulumlar `paperclip-lite` klasöründe kalabilir. Bu kılavuzda `~/hyperstead` veya
-  `$HOME\hyperstead` yazıyorsa, bunun yerine `~/paperclip-lite` veya `$HOME\paperclip-lite` kullanın.
-  Yeni kurulumlar `hyperstead` klasörüne gider.
-- Bulut yükleme: yeni projeler varsayılan olarak `Hyperstead/<proje>` klasörüne yükler. Kendi belirlediğiniz hedef klasörler kalır.
-
 ### Otomatik başlatma
 
 - **Pi:** `./install.sh --service` hizmeti kurar; böylece her açılışta kendiliğinden başlar.
