@@ -55,3 +55,6 @@ Alle Schritte gebaut (2026-11-04): #8/#9 Plan und Daten, #13 Phase 1, #15 Phase 
 3. Phase 1: Stadt und Kosmos als Übersicht, Umschalter Klassisch / Stadt / Kosmos, Hilfetexte.
 4. Phase 2: Hineinzoomen, Abteilungen öffnen (Etagen bzw. Planeten, Liste), Infofenster, Suche.
 5. Phase 3: Zusammenarbeit: Straßen, Lieferwagen und Raumschiffe nach echter Aktivität, README.
+6. Nachschliff nach Wunsch ABI (2026-11-04): #17 Projekte als Oberpunkt, #18 Grafik nach Referenzbild, #19 alles dreht sich und Namen lesbar,
+   #20 Gebäude nach Hierarchie (Etage je Ebene, Raum je Person), #21 Lichter bei Arbeit und Atom als Molekül, danach Firmenlogo
+   (Upload im Infofenster, Schild auf dem Dach bzw. in der Sonne).

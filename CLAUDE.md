@@ -197,6 +197,9 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   Fahrzeug), Stadt `hubCityRoads`/`hubRoadPath` (Strasse nur durch die Gassen zwischen den Grundstuecken, orange Leuchtkanten, Fahrzeuge vor den Gebaeuden gezeichnet), Kosmos
   `hubCosmosRoutes` (Bogen zwischen den Sonnen, nur Raumschiffe; zarte Spur `.sroute` nur bei aktiver Zusammenarbeit). Abteilungssymbole `hubDepIcon` (Stichwoerter aus Name/Rolle). Canva-Bilder kommen in der Cloud-Sitzung nur als 200-px-Vorschau an, darum alles SVG. `HUB.tr` + `.veh`, `hubAlong` hin und zurueck, `hubPlaceTraffic`
   (Schiffe drehen in Flugrichtung). Dialog `showFirmLinks(pid)` (🤝 `#hubLink` oben, `#hubCardLink` im Infofenster).
+- Firmenlogo (Wunsch ABI 2026-11-04): `/api/projects/<id>/logo` GET/POST/DELETE, nur PNG/JPEG/WebP nach Magic Bytes (`logo_kind`, kein SVG), `LOGO_MAX` 2 MB,
+  Datei `.logo.<art>` im Projektordner (Dotdatei = fuer Agenten/Webseite/ZIP unsichtbar), GET mit CSP sandbox. `firms_overview` liefert `logo` = mtime (Cache-Brecher).
+  UI `hubLogo(f,x,y,groesse,rund)` (Schild auf dem Dach, in der Sonne, innen am Dachaufbau), Knoepfe `#hubLogoUp`/`#hubLogoDel` im Infofenster, `hubLogoPick`.
 
 ## Verbindungen (Webhooks)
 - Tabelle `connections` (Besitzer legt URL/Methode/Kopfzeilen fest, `${ENV}` in Kopfzeilen aus .env, `confirm`, `on_post`). Recht `connect`

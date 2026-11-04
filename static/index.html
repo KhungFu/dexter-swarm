@@ -290,7 +290,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 @media (max-width:820px){#hubSearch{width:170px}#hubdeps{left:6px;right:6px;top:auto;bottom:8px;width:auto;flex-direction:row;overflow-x:auto;max-height:none;padding:6px}#hubdeps .hd{white-space:nowrap}#hubdeps .hd small{margin-left:6px}#app.hub-in #hubcard.on~*{}#app.hub-in #hubcard{bottom:62px}}
 #hubLink{background:rgba(10,16,34,.9);border-color:#2b3a5c;color:#e2e8f0;white-space:nowrap}
 #app.hub-in #hubLink{display:none}
-#hubcard #hubCardLink{padding:1px 7px;margin-left:4px;background:#16223f;border-color:#2b3a5c;color:#e2e8f0}
+#hubcard .hc-logo{display:flex;align-items:center;gap:6px}#hubcard .hc-logo img{width:40px;height:40px;object-fit:contain;background:#fff;border-radius:8px}
+#hubcard #hubCardLink,#hubcard #hubLogoUp,#hubcard #hubLogoDel{padding:1px 7px;margin-left:4px;background:#16223f;border-color:#2b3a5c;color:#e2e8f0}
 #hubsvg .road path{fill:none;stroke-linejoin:round;stroke-linecap:round}
 #hubsvg .road .rg{stroke:#f59e0b;stroke-width:34;stroke-opacity:.12;filter:url(#hubBlur)}
 #hubsvg .road .re{stroke:#f59e0b;stroke-width:27;stroke-opacity:.55}
@@ -346,6 +347,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubsvg .roof{stroke:var(--hc);stroke-width:1.2;stroke-linejoin:round}
 #hubsvg .roofedge{fill:none;stroke:var(--hc);stroke-width:2;filter:url(#hubGlow)}
 #hubsvg .win{fill:#13213f}
+#hubsvg .hlogo-bg{fill:var(--hc,#38bdf8);opacity:.85;filter:url(#hubGlow)}
 #hubsvg .win.on{filter:url(#hubGlow)}
 #hubsvg .mast{stroke:var(--hc);stroke-width:2}
 #hubsvg .beam{stroke:var(--hc);stroke-opacity:.45;stroke-width:1.2;stroke-dasharray:2 3}
@@ -1892,6 +1894,7 @@ const HELP=[
 <ul><li><b>📐 Klassisch:</b> die sachlichen Ansichten einer Firma (Organigramm, Bauplan, Weltall, Atom). Hier verwaltest und stellst du ein.</li>
 <li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie links unter „Projekte“ mit 🏙 Stadt oder 🌌 Kosmos, oder in der Grafik-Auswahl oben unter „Alle Projekte · modern“. Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt und 🌌 Kosmos um.</li>
 <li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Arbeitet eine Firma gerade, gehen bei ihr die Lichter an; ruhige Firmen sind fast dunkel.</li>
+<li><b>🖼 Logo:</b> Im Infofenster einer Firma kannst du unter „Logo“ ein eigenes Logo hochladen (PNG, JPEG oder WebP, höchstens 2 MB). In der Stadt steht es als Schild auf dem Dach, im Kosmos mitten in der Sonne. ✕ entfernt es wieder.</li>
 <li><b>🌌 Kosmos:</b> Jede Firma ist ein Sonnensystem. Die Sonne ist die Leitung, die Planeten sind die Abteilungen (größer = mehr Agenten). Ein leuchtender Ring heißt: diese Abteilung arbeitet gerade. Zwischen den Systemen gibt es keine Linien.</li>
 <li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude aufgeschnitten: eine Etage je Hierarchie-Ebene, so tief wie die Firma ist: ganz oben in der Chefetage die Leitung, darunter die Abteilungsleitungen, dann jede weitere Ebene. Jede Person sitzt in ihrem eigenen Raum in der Farbe ihrer Abteilung; hat eine Abteilung auf einer Ebene 4 Leute, gibt es dort 4 Räume. Mit Erfolg wächst das Gebäude: ab Stufe 2 Anbau und Dachgarten, ab Stufe 3 Antenne, ab Stufe 4 Hubschrauberlandeplatz. Rechts daneben steht das Organigramm (Leitung oben, Abteilungen darunter), jeder Kreis lässt sich antippen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
 <li><b>Abteilung öffnen:</b> Links (auf dem Handy unten) steht die Liste der Abteilungen. Eine Abteilung, Etage oder ein Planet antippen zeigt rechts ihr Team mit Rolle, Zustand und laufenden Aufgaben. Ein Name darin öffnet den Agenten in der klassischen Ansicht mit Aufgaben, Chat und Einstellungen. Was du dort änderst, siehst du danach auch in Stadt und Kosmos.</li>
@@ -2632,6 +2635,12 @@ function hubTree(x,y,s=1){
   return `<ellipse cx="${x}" cy="${y}" rx="${7*s}" ry="${3*s}" fill="#000" opacity=".4"/><path d="M${x},${y} v${-7*s}" stroke="#3f2d1d" stroke-width="${2*s}"/>
     <circle cx="${x}" cy="${y-13*s}" r="${8*s}" fill="#166534"/><circle cx="${x-2*s}" cy="${y-15*s}" r="${4.5*s}" fill="#22c55e" opacity=".55"/>`;
 }
+function hubLogo(f,x,y,sz,round){  // hochgeladenes Firmenlogo (PNG/JPEG/WebP) als Schild oder in der Sonne, weißer Grund für durchsichtige Logos
+  if(!f.logo) return ''; const id='hlg'+f.id+(round?'r':'q')+Math.round(sz), h=sz/2, url=`/api/projects/${f.id}/logo?v=${f.logo}`;
+  const shape=o=>round?`<circle cx="${x}" cy="${y}" r="${h+o}"`:`<rect x="${x-h-o}" y="${y-h-o}" width="${sz+2*o}" height="${sz+2*o}" rx="${(sz*.18+o).toFixed(1)}"`;
+  return `<g class="hlogo" pointer-events="none"><clipPath id="${id}">${shape(0)}/></clipPath>${shape(3)} class="hlogo-bg"/>${shape(0)} fill="#fff"/>
+    <image href="${url}" x="${x-h}" y="${y-h}" width="${sz}" height="${sz}" preserveAspectRatio="xMidYMid ${round?'slice':'meet'}" clip-path="url(#${id})"/></g>`;
+}
 function hubBuilding(f,u0,v0){
   const u1=u0+1, v1=v0+1, st=Math.max(0,Math.min(4,f.stage|0)), col=hubColor(f), busy=f.busy>0, RND=rnd(f.id*97+3), sty=hubStyle(f);
   const lit=busy?Math.min(.95,.62+(f.busy||0)/Math.max(1,f.agents.length)*.9):.07, FH=HUB_FH;  // Lichter an, wenn die Firma arbeitet; ruhig = fast dunkel
@@ -2646,7 +2655,7 @@ function hubBuilding(f,u0,v0){
       <polygon points="${isoRect(u0+.3,v0+.33,u0+.7,v0+.67,h+.5)}" fill="${shade(col,.5)}" opacity=".5"/>`; topZ=h; }
   if(st>=3 && !crown){ const [lx,ly]=iso(u0+bu,v0+bv,topZ); body+=`<ellipse cx="${lx}" cy="${ly}" rx="16" ry="8" fill="none" stroke="${shade(col,.4)}" stroke-width="2" filter="url(#hubGlow)"/><circle cx="${lx}" cy="${ly-14}" r="3" fill="#f87171" filter="url(#hubGlow)"/><line x1="${lx}" y1="${ly}" x2="${lx}" y2="${ly-12}" class="mast"/>`; }
   HUB.zmax=Math.max(HUB.zmax||0, topZ+(crown?24:6)+40);
-  const [tx,ty]=iso(u0+bu,v0+bv,topZ), [cx,cy]=iso(u0+.5,v0+.5), bx=tx, by=ty-(crown?24:6);
+  const LG=f.logo?34:0, [tx,ty]=iso(u0+bu,v0+bv,topZ), [cx,cy]=iso(u0+.5,v0+.5), bx=tx, by=ty-(crown?24:6)-(LG?LG+14:0);
   const trees=[[u0+.08,v0+.1],[u1-.08,v0+.08],[u0+.08,v1-.1],[u1-.1,v1-.3]].map(([u,v])=>hubTree(...iso(u,v),.85)).join('');
   const lamps=[[u0+.04,v1-.04],[u1-.04,v1-.04],[u1-.04,v0+.04],[u0+.5,v1-.03]].map(([u,v])=>{ const [x,y]=iso(u,v); return `<line x1="${x}" y1="${y}" x2="${x}" y2="${y-9}" stroke="#475569" stroke-width="1.2"/><circle cx="${x}" cy="${y-10}" r="2.4" class="lamp"/>`; }).join('');
   return `<g class="firm${busy?' work':''}${HUB.sel===f.id?' sel':''}" data-firm="${f.id}" tabindex="0" role="button" style="--hc:${col}" aria-label="${esc(f.name)}: ${esc(f.stage_name||'')}, ${f.agents.length} Agenten${busy?', arbeitet gerade':''}">
@@ -2659,6 +2668,7 @@ function hubBuilding(f,u0,v0){
     <ellipse cx="${cx}" cy="${cy}" rx="${HUB_TW*.36}" ry="${HUB_TH*.36}" fill="${col}" opacity="${busy?.45:.22}" filter="url(#hubBlur)"/>
     ${trees}${lamps}${body}
     ${crown?`<line x1="${tx}" y1="${ty}" x2="${tx}" y2="${ty-18}" class="mast"/><circle cx="${tx}" cy="${ty-19}" r="2.2" fill="#f87171" filter="url(#hubGlow)"/>`:''}
+    ${LG?`<line x1="${tx}" y1="${ty-(crown?20:0)}" x2="${tx}" y2="${ty-(crown?24:6)-8}" class="mast"/>${hubLogo(f, tx, ty-(crown?24:6)-8-LG/2, LG)}`:''}
     </g>`
     + `\u0000<g class="lbls"><text class="hlbl" x="${bx}" y="${by-6}" dy="-1.05em">${esc(short(f.name,24))}</text>
     <text class="hlbl2" x="${bx}" y="${by-6}">${esc(f.stage_name||'')} · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`;
@@ -2702,7 +2712,7 @@ function hubSystem(f, x, y){
   return {R, svg:`<g class="firm sys${HUB.sel===f.id?' sel':''}" data-firm="${f.id}" tabindex="0" role="button" transform="translate(${x},${y})" style="--hc:${col}" aria-label="${esc(f.name)}: ${esc(f.stage_name||'')}, ${n} Abteilungen, ${f.agents.length} Agenten${busy?', arbeitet gerade':''}">
     <title>${esc(f.name)} – ${esc(f.icon||'')} ${esc(f.stage_name||'')} · ${n} Abteilungen · ${f.agents.length} Agenten · ${busy?f.busy+' Aufgaben laufen':'gerade ruhig'}\nAntippen: hineinzoomen</title>
     <circle r="${R}" class="hhit"/><g class="orbs">${orbits.join('')}</g>
-    ${hubSunSvg('hubSun'+f.id, col, sr, busy)}
+    ${hubSunSvg('hubSun'+f.id, col, sr, busy)}${hubLogo(f, 0, 0, Math.round(sr*1.15), true)}
     ${planets.join('')}
     <text class="hlbl" y="${R*.42+34}">${esc(short(f.name,26))}</text>
     <text class="hlbl2" y="${R*.42+34}" dy="1.45em">${esc(f.stage_name||'')} · ${n} 🪐 · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`};
@@ -2816,7 +2826,7 @@ function hubInsideCity(f){
   const ry=-H+DY*.5, rx=Wd*.6, rw=Math.min(180,Wd*.25);
   out.push(`<polygon points="${pts([[rx,ry],[rx+rw,ry],[rx+rw,ry-34],[rx,ry-34]])}" fill="${shade(col,-.78)}" stroke="${col}" stroke-opacity=".7"/>
     <polygon points="${pts([[rx,ry-34],[rx+30,ry-52],[rx+rw+30,ry-52],[rx+rw,ry-34]])}" fill="${col}" opacity=".7" filter="url(#hubGlow)"/>
-    <text class="sign" x="${Wd*.28}" y="${ry-14}">${esc(short(f.name,28))}</text>`);
+    <text class="sign" x="${Wd*.28}" y="${ry-14}">${esc(short(f.name,28))}</text>${hubLogo(f, rx+rw/2, ry-17, 28)}`);
   if(st>=2) out.push([0,1,2,3].map(k=>hubTree(Wd*.08+k*34+DX*.3,ry+6,.8)).join(''));
   if(st>=3) out.push(`<line x1="${rx+rw*.5+15}" y1="${ry-52}" x2="${rx+rw*.5+15}" y2="${ry-110}" class="mast" style="--hc:${col}"/><circle cx="${rx+rw*.5+15}" cy="${ry-112}" r="3" fill="#f87171" filter="url(#hubGlow)"/>`);
   if(st>=4) out.push(`<ellipse cx="${Wd*.82+DX*.5}" cy="${ry}" rx="44" ry="12" fill="#0b1430" stroke="${col}" stroke-width="2" filter="url(#hubGlow)"/><text class="flbl" x="${Wd*.82+DX*.5}" y="${ry+5}" text-anchor="middle">H</text>`);
@@ -2851,7 +2861,7 @@ function hubInsideCosmos(f){
   const R=sr+100+Math.max(0,T.deps.length-1)*72+70;
   const sun=`<g class="sunbody${HUB.dep===-1?' sel':''}" data-dep="-1" tabindex="0" role="button" style="--hc:${col}" aria-label="Leitung: ${esc(T.roots.map(r=>r.name).join(', '))}">
     <title>Leitung: ${esc(T.roots.map(r=>r.name).join(', ')||'noch niemand')}\nAntippen: Leitung öffnen</title>
-    ${hubSunSvg('hubSunIn', col, sr, busyRoot)}
+    ${hubSunSvg('hubSunIn', col, sr, busyRoot)}${hubLogo(f, 0, 0, Math.round(sr*1.1), true)}
     <text class="hlbl" y="${-sr-26}" dy="-1.05em">👑 Leitung</text>
     <text class="hlbl2" y="${-sr-26}">${esc(short(T.roots.map(r=>r.name).join(' · ')||f.name,34))}</text></g>`;
   HUB.box={x0:-R, x1:R, y0:-R*.42-130, y1:R*.42+110};
@@ -2983,6 +2993,8 @@ function hubCardFill(){
       ${f.goal?`<div class="hc-goal">${esc(short(f.goal,160))}</div>`:''}
       <div class="hc-h">Leitung</div><div class="hc-list">${T.roots.map(a=>hubAgRow(f,a)).join('')||'<i>noch niemand</i>'}</div>
       <div class="hc-h">Abteilungen</div><div class="hc-list">${T.deps.map((d,i)=>`<button class="hc-ag" data-dep="${i}" data-firm="${f.id}" title="Abteilung ${esc(d.lead.name)} öffnen"><span class="dot ${d.busy?'run':''}"></span><span class="hc-n">${esc(d.lead.name)}<small>${esc(d.lead.role||'')}</small></span><small>${d.members.length} 👤${d.busy?' · ⚙ '+d.busy:''}</small></button>`).join('')||'<i>keine</i>'}</div>
+      <div class="hc-h">Logo</div><div class="hc-goal hc-logo">${f.logo?`<img src="/api/projects/${f.id}/logo?v=${f.logo}" alt="Logo ${esc(f.name)}">`:'noch keins'}
+        <button class="btn sm" id="hubLogoUp" title="Logo der Firma hochladen (PNG, JPEG oder WebP, höchstens 2 MB); erscheint in Stadt und Kosmos">🖼 ${f.logo?'Ändern':'Hochladen'}</button>${f.logo?`<button class="btn sm" id="hubLogoDel" title="Logo dieser Firma entfernen">✕</button>`:''}</div>
       <div class="hc-h">Arbeitet zusammen mit</div><div class="hc-goal">${f.partners.length?f.partners.map(p=>esc(name(p))).join(', '):'noch mit niemandem'} <button class="btn sm" id="hubCardLink" title="Partnerschaft dieser Firma mit einer anderen anlegen oder lösen">🤝</button></div>`;
   }
   h+=`<div class="hc-btns">${HUB.inside?'':`<button class="btn sm" id="hubEnter" title="In die Firma hineinzoomen und die Abteilungen sehen">🔍 Hineingehen</button>`}<button class="btn sm" id="hubOpen" title="Diese Firma in der klassischen Ansicht öffnen (Organigramm, Bauplan …) und dort verwalten">📐 Firma öffnen</button></div>`;
@@ -2991,6 +3003,18 @@ function hubCardFill(){
   $('#hubOpen').onclick=()=>hubOpenFirm(f.id);
   if($('#hubEnter')) $('#hubEnter').onclick=()=>hubEnter(f.id);
   if($('#hubCardLink')) $('#hubCardLink').onclick=()=>showFirmLinks(f.id);
+  if($('#hubLogoUp')) $('#hubLogoUp').onclick=()=>hubLogoPick(f.id);
+  if($('#hubLogoDel')) $('#hubLogoDel').onclick=async()=>{ if(!confirm('Logo von „'+f.name+'“ entfernen?')) return; await api('/projects/'+f.id+'/logo','DELETE'); toast('Logo entfernt'); loadFirms(true); };
+}
+function hubLogoPick(pid){  // Datei wählen und hochladen, danach zeichnen Stadt und Kosmos neu
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/png,image/jpeg,image/webp';
+  inp.onchange=async()=>{ const file=inp.files[0]; if(!file) return;
+    if(file.size>2*1024*1024) return toast('Logo zu groß (höchstens 2 MB)');
+    const fd=new FormData(); fd.append('file', file);
+    const r=await fetch('/api/projects/'+pid+'/logo',{method:'POST',headers:{'X-PCL':'1'},body:fd});
+    if(!r.ok) return toast((await r.text()).replace(/<[^>]+>/g,' ').trim().slice(0,200)||'Hochladen fehlgeschlagen');
+    toast('Logo gespeichert'); loadFirms(true); };
+  inp.click();
 }
 async function hubOpenFirm(pid, agent){
   hideHubCard(); HUB.inside=null; HUB.dep=null; HUB.agent=null; $('#app').classList.remove('hub-in');

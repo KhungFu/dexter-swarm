@@ -33,7 +33,7 @@ import cloud_upload as cloud
 import werkstatt as W
 import company_templates
 import growth as G
-from flask import Flask, Response, abort, jsonify, redirect, request, send_from_directory
+from flask import Flask, Response, abort, jsonify, redirect, request, send_file, send_from_directory
 
 BASE = Path(__file__).resolve().parent
 
@@ -3766,8 +3766,90 @@ def firms_overview():
         agents = [{"id": a["id"], "name": a["name"], "role": a["role"], "parent_id": a["parent_id"], "busy": b.get(a["id"], 0)}
                   for a in q("SELECT id, name, role, parent_id FROM agents WHERE project_id=? ORDER BY id", (pid,))]
         partners = sorted({(l["b"] if l["a"] == pid else l["a"]) for l in links if pid in (l["a"], l["b"])})
-        out.append({**p, **stage, "agents": agents, "busy": sum(b.values()), "partners": partners})
+        out.append({**p, **stage, "agents": agents, "busy": sum(b.values()), "partners": partners, "logo": logo_version(pid)})
     return {"firms": out, "links": links}
+
+
+LOGO_MAX = 2 * 1024 * 1024  # Firmenlogo: nur PNG/JPEG/WebP (kein SVG = kein Skript), hoechstens 2 MB
+LOGO_TYPES = {"png": "image/png", "jpg": "image/jpeg", "webp": "image/webp"}
+
+
+def logo_kind(data):
+    """Bildart an den ersten Bytes erkennen, nie am Dateinamen."""
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "png"
+    if data[:3] == b"\xff\xd8\xff":
+        return "jpg"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "webp"
+    return None
+
+
+def logo_file(pid):
+    """Gespeichertes Logo (versteckte Datei .logo.<art> im Projektordner) oder None."""
+    for ext in LOGO_TYPES:
+        f = proj_dir(pid) / f".logo.{ext}"
+        if f.is_file():
+            return f
+    return None
+
+
+def logo_save(pid, data):
+    kind = logo_kind(data or b"")
+    if not kind:
+        raise ValueError("Nur PNG, JPEG oder WebP erlaubt")
+    if len(data) > LOGO_MAX:
+        raise ValueError("Logo zu gross (max. 2 MB)")
+    d = proj_dir(pid)
+    d.mkdir(parents=True, exist_ok=True)
+    logo_remove(pid)
+    (d / f".logo.{kind}").write_bytes(data)
+    return kind
+
+
+def logo_remove(pid):
+    for ext in LOGO_TYPES:
+        (proj_dir(pid) / f".logo.{ext}").unlink(missing_ok=True)
+
+
+def logo_version(pid):
+    f = logo_file(pid)
+    return int(f.stat().st_mtime) if f else 0
+
+
+@app.get("/api/projects/<int:pid>/logo")
+def api_logo_get(pid):
+    f = logo_file(pid) if q1("SELECT 1 FROM projects WHERE id=?", (pid,)) else None
+    if not f:
+        abort(404)
+    resp = send_file(f, mimetype=LOGO_TYPES[f.suffix[1:]], max_age=0)
+    resp.headers["Content-Security-Policy"] = "sandbox; default-src 'none'"
+    return resp
+
+
+@app.post("/api/projects/<int:pid>/logo")
+def api_logo_post(pid):
+    if not q1("SELECT 1 FROM projects WHERE id=?", (pid,)):
+        abort(404)
+    f = request.files.get("file")
+    if not f:
+        abort(400, "Keine Datei")
+    data = f.read(LOGO_MAX + 1)
+    try:
+        kind = logo_save(pid, data)
+    except ValueError as e:
+        abort(400, str(e))
+    log("logo_set", kind, pid)
+    return jsonify({"ok": True, "logo": logo_version(pid)})
+
+
+@app.delete("/api/projects/<int:pid>/logo")
+def api_logo_delete(pid):
+    if not q1("SELECT 1 FROM projects WHERE id=?", (pid,)):
+        abort(404)
+    logo_remove(pid)
+    log("logo_removed", "", pid)
+    return jsonify({"ok": True})
 
 
 @app.get("/api/firms")
