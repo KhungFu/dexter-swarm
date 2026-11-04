@@ -267,10 +267,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubsvg .floor:nth-of-type(even) .fbg{fill:#0d1830}
 #hubsvg .floor:hover .fbg,#hubsvg .floor:focus-visible .fbg{fill:#132245}
 #hubsvg .floor.sel .fbg{fill:#15275a;stroke:var(--dc);stroke-width:2}
-#hubsvg .flbl{font:700 15px system-ui,sans-serif;fill:#e2e8f0}
-#hubsvg .flbl2{font:12px system-ui,sans-serif;fill:#94a3b8}
-#hubsvg .plbl{font:11.5px system-ui,sans-serif;fill:#cbd5e1;text-anchor:middle}
-#hubsvg .sign{font:800 20px system-ui,sans-serif;fill:#f8fafc;text-anchor:middle;letter-spacing:.04em;paint-order:stroke;stroke:#050914;stroke-width:5px}
+#hubsvg .flbl{font:700 calc(15px * var(--lz,1)) system-ui,sans-serif;fill:#e2e8f0}
+#hubsvg .flbl2{font:calc(12px * var(--lz,1)) system-ui,sans-serif;fill:#94a3b8}
+#hubsvg .plbl{font:calc(12.5px * var(--lz,1)) system-ui,sans-serif;fill:#cbd5e1;text-anchor:middle}
+#hubsvg .sign{font:800 calc(20px * var(--lz,1)) system-ui,sans-serif;fill:#f8fafc;text-anchor:middle;letter-spacing:.04em;paint-order:stroke;stroke:#050914;stroke-width:5px}
 #hubsvg .pers{cursor:pointer}
 #hubsvg .pers.sel .screen{stroke:#fff;stroke-width:2.5}
 #hubsvg .screen.on{animation:hubPulse 1.6s ease-in-out infinite}
@@ -353,11 +353,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 #hubsvg .hsun.on{animation:hubPulse 2.4s ease-in-out infinite}
 #hubsvg .hrun{fill:none;stroke:#38bdf8;stroke-width:2;filter:url(#hubGlow)}
 @keyframes hubPulse{50%{filter:brightness(1.25)}}
-#hubsvg .hlbl{font:700 14px system-ui,sans-serif;fill:#e2e8f0;text-anchor:middle;paint-order:stroke;stroke:#050914;stroke-width:4px;stroke-linejoin:round}
-#hubsvg .hlbl2{font:11.5px system-ui,sans-serif;fill:#94a3b8;text-anchor:middle;paint-order:stroke;stroke:#050914;stroke-width:3px;stroke-linejoin:round}
+#hubsvg .hlbl{font:700 calc(15px * var(--lz,1)) system-ui,sans-serif;fill:#e2e8f0;text-anchor:middle;paint-order:stroke;stroke:#050914;stroke-width:4px;stroke-linejoin:round}
+#hubsvg .hlbl2{font:calc(12px * var(--lz,1)) system-ui,sans-serif;fill:#94a3b8;text-anchor:middle;paint-order:stroke;stroke:#050914;stroke-width:3px;stroke-linejoin:round}
 @media (prefers-reduced-motion: reduce){#hubsvg .hsun.on{animation:none}}
 :root[data-motion="off"] #hubsvg .hsun.on{animation:none}
-@media (max-width:820px){#app[data-hubworld="kosmos"] #hubsvg .hlbl{font-size:24px;stroke-width:6px}#app[data-hubworld="kosmos"] #hubsvg .hlbl2{font-size:17px}#hubbar{top:8px}#hubbar .seg button{padding:7px 10px;font-size:13px}#hubcard{top:auto;bottom:10px;right:10px;max-height:55%}}
+@media (max-width:820px){#hubbar{top:8px}#hubbar .seg button{padding:7px 10px;font-size:13px}#hubcard{top:auto;bottom:10px;right:10px;max-height:55%}}
 #wlist{position:absolute;inset:0;overflow:auto;padding:10px;display:none;z-index:4}
 #app.view-world.narrow #wlist{display:block}
 #app.view-world.narrow #map,#app.view-world.narrow .zoom{display:none}
@@ -844,6 +844,7 @@ async function uploadFile(f,dir){
 /* ---------- Ansicht (Pan/Zoom) ---------- */
 function applyView(){
   $('#world').style.transform = `translate(${V.x}px,${V.y}px) scale(${V.s})`;
+  $('#world').style.setProperty('--lz', Math.min(2, Math.max(1, .9/V.s)).toFixed(2));  // Beschriftungen bleiben beim Herauszoomen lesbar
   const vp=$('#vp'); vp.style.backgroundSize=`${24*V.s}px ${24*V.s}px`; vp.style.backgroundPosition=`${V.x}px ${V.y}px`;
 }
 function toWorld(cx,cy){ const r=$('#vp').getBoundingClientRect(); return {x:(cx-r.left-V.x)/V.s, y:(cy-r.top-V.y)/V.s}; }
@@ -2383,9 +2384,9 @@ function placeMovers(t){
   for(const m of MAP.movers){ const a=m.a0+t*m.w; m.el.setAttribute('transform',`translate(${(m.r*Math.cos(a)).toFixed(1)},${(m.r*Math.sin(a)*(m.k||1)).toFixed(1)})`); if(m.shade) m.shade.setAttribute('transform',`rotate(${shadeDeg(a).toFixed(0)})`); if(m.spin) m.spin.setAttribute('transform',`translate(${(-((t*m.sv)%m.sw)).toFixed(1)},0)`); } }
 function orbitTick(now){
   MAP.raf=0;
-  if(VIEW!=='world' || !(MAP.movers.length || (MAP.spinners||[]).length) || document.hidden || motionOff() || $('#app').classList.contains('narrow')) return;
+  if(VIEW!=='world' || !(MAP.movers.length || (MAP.spinners||[]).length) || document.hidden || motionOff()) return;
   if(MAP.hold){ MAP.off=(MAP.off||0)+(now-(MAP.last||now)); MAP.last=now; }  // Maus auf einem Himmelskoerper: alles haelt an, damit man ihn treffen kann
-  else if(now-MAP.last>40){ MAP.off=MAP.off||0; MAP.last=now; placeMovers((now-MAP.off)/1000); }
+  else if(now-MAP.last>($('#app').classList.contains('narrow')?66:40)){ MAP.off=MAP.off||0; MAP.last=now; placeMovers((now-MAP.off)/1000); }
   MAP.raf=requestAnimationFrame(orbitTick);
 }
 function startOrbit(){ if(!MAP.raf) MAP.raf=requestAnimationFrame(orbitTick); }
@@ -2630,8 +2631,8 @@ function hubBuilding(f,u0,v0){
   else if(sty==='buero'){ const h=B(.14,.18,.86,.82,0,FH*(3+st*2)); B(.24,.28,.44,.48,h,11,{plain:true}); B(.54,.5,.7,.66,h,7,{plain:true}); topZ=h+11; }
   else { const h=B(.1,.12,.9,.88,0,FH*(2+st)); body+=`<polygon points="${isoRect(u0+.22,v0+.25,u0+.78,v0+.75,h+.5)}" fill="${col}" opacity=".55" filter="url(#hubGlow)"/>
       <polygon points="${isoRect(u0+.3,v0+.33,u0+.7,v0+.67,h+.5)}" fill="${shade(col,.5)}" opacity=".5"/>`; topZ=h; }
-  HUB.zmax=Math.max(HUB.zmax||0, topZ+(crown?52:40));
-  const [tx,ty]=iso(u0+bu,v0+bv,topZ), [cx,cy]=iso(u0+.5,v0+.5), bx=tx, by=ty-(crown?52:40);
+  HUB.zmax=Math.max(HUB.zmax||0, topZ+(crown?24:6)+40);
+  const [tx,ty]=iso(u0+bu,v0+bv,topZ), [cx,cy]=iso(u0+.5,v0+.5), bx=tx, by=ty-(crown?24:6);
   const trees=[[u0+.08,v0+.1],[u1-.08,v0+.08],[u0+.08,v1-.1],[u1-.1,v1-.3]].map(([u,v])=>hubTree(...iso(u,v),.85)).join('');
   const lamps=[[u0+.04,v1-.04],[u1-.04,v1-.04],[u1-.04,v0+.04],[u0+.5,v1-.03]].map(([u,v])=>{ const [x,y]=iso(u,v); return `<line x1="${x}" y1="${y}" x2="${x}" y2="${y-9}" stroke="#475569" stroke-width="1.2"/><circle cx="${x}" cy="${y-10}" r="2.4" class="lamp"/>`; }).join('');
   return `<g class="firm${HUB.sel===f.id?' sel':''}" data-firm="${f.id}" tabindex="0" role="button" style="--hc:${col}" aria-label="${esc(f.name)}: ${esc(f.stage_name||'')}, ${f.agents.length} Agenten${busy?', arbeitet gerade':''}">
@@ -2644,10 +2645,9 @@ function hubBuilding(f,u0,v0){
     <ellipse cx="${cx}" cy="${cy}" rx="${HUB_TW*.36}" ry="${HUB_TH*.36}" fill="${col}" opacity="${busy?.45:.22}" filter="url(#hubBlur)"/>
     ${trees}${lamps}${body}
     ${crown?`<line x1="${tx}" y1="${ty}" x2="${tx}" y2="${ty-18}" class="mast"/><circle cx="${tx}" cy="${ty-19}" r="2.2" fill="#f87171" filter="url(#hubGlow)"/>`:''}
-    <line x1="${bx}" y1="${by+18}" x2="${tx}" y2="${ty-(crown?20:2)}" class="beam"/>
-    <g class="badge" transform="translate(${bx},${by})"><circle r="21" fill="${col}" opacity=".35" filter="url(#hubBlur)"/><circle r="18" class="bring"/><text y="6">${esc(f.icon||'🏢')}</text></g></g>`
-    + `\u0000<g class="lbls"><text class="hlbl" x="${bx}" y="${by-30}">${esc(short(f.name,24))}</text>
-    <text class="hlbl2" x="${bx}" y="${by-15}">${esc(f.stage_name||'')} · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`;
+    </g>`
+    + `\u0000<g class="lbls"><text class="hlbl" x="${bx}" y="${by-6}" dy="-1.05em">${esc(short(f.name,24))}</text>
+    <text class="hlbl2" x="${bx}" y="${by-6}">${esc(f.stage_name||'')} · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`;
 }
 function hubCity(){
   const F=HUB.d.firms, C=Math.max(1, innerWidth<=820 ? Math.min(2,F.length) : Math.ceil(Math.sqrt(F.length))), Rn=Math.ceil(F.length/C), S=1+HUB_GAP, at={};
@@ -2671,8 +2671,9 @@ function hubSunSvg(id, col, sr, on, cls){  // leuchtende Sonne mit Korona und sc
     <circle r="${sr}" fill="url(#${id})" class="hsun${on?' on':''}${cls?' '+cls:''}"/>
     <path class="sdisc" d="M${(-sr*1.9).toFixed(1)},0 A${(sr*1.9).toFixed(1)},${(sr*.5).toFixed(1)} 0 0 0 ${(sr*1.9).toFixed(1)},0"/>`;
 }
+function hubSunR(f){ const st=Math.max(0,Math.min(4,f.stage|0)); return Math.round(13+st*7+Math.min(14,Math.sqrt(f.agents.length)*2.6)); }  // wächst mit Stufe und Team
 function hubSystem(f, x, y){
-  const T=hubTeams(f), col=hubColor(f), st=Math.max(0,Math.min(4,f.stage|0)), sr=18+st*5, busy=f.busy>0, RND=rnd(f.id*131+7);
+  const T=hubTeams(f), col=hubColor(f), st=Math.max(0,Math.min(4,f.stage|0)), sr=hubSunR(f), busy=f.busy>0, RND=rnd(f.id*131+7);
   const n=T.deps.length, orbits=[], planets=[], big=T.deps.reduce((m,d,i)=>d.members.length>(T.deps[m]||{members:[]}).members.length?i:m,0);
   T.deps.forEach((d,i)=>{
     const r=sr+30+i*22, a0=RND()*.6+i*2.4, w=(.25+RND()*.2)/(1+i*.35), pr=Math.min(11, 5+Math.sqrt(d.members.length)*2.2), pc=hubDepColor(i);
@@ -2689,14 +2690,12 @@ function hubSystem(f, x, y){
     <circle r="${R}" class="hhit"/><g class="orbs">${orbits.join('')}</g>
     ${hubSunSvg('hubSun'+f.id, col, sr, busy)}
     ${planets.join('')}
-    <line x1="0" y1="${-sr-6}" x2="0" y2="${-sr-26}" class="beam"/>
-    <g class="badge" transform="translate(0,${-sr-44})"><circle r="21" fill="${col}" opacity=".35" filter="url(#hubBlur)"/><circle r="17" class="bring"/><text y="6">${esc(f.icon||'☀️')}</text></g>
     <text class="hlbl" y="${R*.42+34}">${esc(short(f.name,26))}</text>
-    <text class="hlbl2" y="${R*.42+54}">${esc(f.stage_name||'')} · ${n} 🪐 · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`};
+    <text class="hlbl2" y="${R*.42+34}" dy="1.45em">${esc(f.stage_name||'')} · ${n} 🪐 · ${f.agents.length} 👤${busy?' · ⚙ '+f.busy:''}</text></g>`};
 }
 function hubCosmos(){
   const F=HUB.d.firms; HUB.mv=[];
-  const sys=F.map(f=>({f, R:30+Math.max(0,hubTeams(f).deps.length)*22+44}));
+  const sys=F.map(f=>({f, R:hubSunR(f)+12+Math.max(0,hubTeams(f).deps.length)*22+44}));
   const cell=Math.max(260, ...sys.map(s=>s.R*2+60)), vr=$('#vp').getBoundingClientRect(), C=Math.max(1,Math.min(F.length,Math.ceil(Math.sqrt(F.length*Math.max(.4,vr.width/Math.max(1,vr.height)))))), out=[], RND=rnd(4242);
   sys.forEach((s,k)=>{ const i=k%C, j=Math.floor(k/C), x=i*cell+(j%2?cell/2:0)+(RND()-.5)*cell*.25, y=j*cell*.82+(RND()-.5)*cell*.1; s.x=x; s.y=y; });
   sys.forEach(s=>out.push(hubSystem(s.f, s.x, s.y).svg));
@@ -2711,14 +2710,18 @@ function hubPlace(t){
     el.setAttribute('transform',`translate(${(m.rx*Math.cos(a)).toFixed(1)},${(m.ry*Math.sin(a)).toFixed(1)})`);
     el.parentNode && (el.style.opacity = Math.sin(a)<-.2 ? .85 : 1); });
 }
-function hubMoving(){ return VIEW==='hub' && (HUB.mv.length || (HUB.tr||[]).length) && !document.hidden && !motionOff() && innerWidth>820; }
+function hubMoving(){ return VIEW==='hub' && (HUB.mv.length || (HUB.tr||[]).length) && !document.hidden && !motionOff(); }
 function hubTick(now){
   HUB.raf=0; if(!hubMoving()) return;
-  if(now-HUB.last>40){ HUB.last=now; hubPlace(now/1000); }
+  const step=innerWidth<=820?66:40;  // Handy: ~15 Bilder je Sekunde, schont den Akku
+  if(HUB.hold){ HUB.off=(HUB.off||0)+(now-(HUB.last||now)); HUB.last=now; }  // Maus/Finger auf einem Planeten: anhalten, damit man ihn trifft
+  else if(now-HUB.last>step){ HUB.off=HUB.off||0; HUB.last=now; hubPlace((now-HUB.off)/1000); }
   HUB.raf=requestAnimationFrame(hubTick);
 }
 function startHub(){ if(!HUB.raf && hubMoving()) HUB.raf=requestAnimationFrame(hubTick); }
 document.addEventListener('visibilitychange', startHub);
+$('#hubsvg').addEventListener('pointerover', e=>{ HUB.hold=!!(HUB.inside && e.target.closest('.planet,.moon,.sunbody')); });
+$('#hubsvg').addEventListener('pointerleave', ()=>{ HUB.hold=false; });
 function hubDepColor(i){ return i<0 ? '#f59e0b' : COLORS[(i+2)%COLORS.length]; }
 function hubOrgChart(T, x0, yTop){  // kleines Organigramm neben dem Gebäude: Leitung oben, Abteilungen darunter, alles anklickbar
   const n=T.deps.length, gap=82, w=Math.max(1,n)*gap, cx=x0+w/2, y1=yTop+40, y2=y1+120, o=[];
@@ -2785,7 +2788,7 @@ function hubInsideCity(f){
   const rx=Wd*.62, rw=Math.min(180,Wd*.25);
   out.push(`<polygon points="${pts([[rx,-H+DY*.5],[rx+rw,-H+DY*.5],[rx+rw,-H+DY*.5-34],[rx,-H+DY*.5-34]])}" fill="${shade(col,-.78)}" stroke="${col}" stroke-opacity=".7"/>
     <polygon points="${pts([[rx,-H+DY*.5-34],[rx+30,-H+DY*.5-52],[rx+rw+30,-H+DY*.5-52],[rx+rw,-H+DY*.5-34]])}" fill="${col}" opacity=".7" filter="url(#hubGlow)"/>
-    <text class="sign" x="${Wd*.3}" y="${-H+DY*.5-14}">${esc(f.icon||'')} ${esc(short(f.name,28))}</text>
+    <text class="sign" x="${Wd*.3}" y="${-H+DY*.5-14}">${esc(short(f.name,28))}</text>
     ${hubTree(-60,4,1.4)}${hubTree(-110,8,1.1)}${hubTree(Wd+DX+40,DY+6,1.3)}${hubTree(Wd+110,6,1.2)}`);
   const OC=hubOrgChart(T, Wd+DX+120, -H+DY);
   out.push(OC.svg);
@@ -2794,7 +2797,8 @@ function hubInsideCity(f){
   return HUB_DEFS+out.join('');
 }
 function hubInsideCosmos(f){
-  const T=hubTeams(f), col=hubColor(f), st=Math.max(0,Math.min(4,f.stage|0)), sr=48+st*6, out=[], pl=[];
+  HUB.mv=[];
+  const T=hubTeams(f), col=hubColor(f), sr=hubSunR(f)*2.2, out=[], pl=[];
   const busyRoot=T.roots.some(a=>a.busy), RND=rnd(f.id*17+1);
   T.deps.forEach((d,i)=>{
     const r=sr+100+i*72, ry=r*.42, a=RND()*.5+i*2.4, x=r*Math.cos(a), y=ry*Math.sin(a), pr=24+Math.min(14,Math.sqrt(d.members.length)*4), dc=hubDepColor(i), on=HUB.dep===i;
@@ -2802,7 +2806,8 @@ function hubInsideCosmos(f){
     const moons=d.members.filter(a=>a.id!==d.lead.id).map((a,k,arr)=>{ const ma=k*2*Math.PI/Math.max(1,arr.length)+.4, mr=pr+20+(k%2)*8, mx=mr*1.25*Math.cos(ma), my=mr*.6*Math.sin(ma);
       return `<g class="moon${HUB.agent===a.id?' sel':''}" data-agent="${a.id}" data-dep="${i}" transform="translate(${mx.toFixed(1)},${my.toFixed(1)})"><title>${esc(a.name)} – ${esc(a.role||'')}${a.busy?' · arbeitet':' · bereit'}</title>
         <circle r="6" fill="${a.busy?'#7dd3fc':'#cbd5e1'}"/><circle r="6" fill="url(#hubPl)"/>${a.busy?'<circle r="9" class="hrun"/>':''}</g>`; }).join('');
-    pl.push(`<g class="planet${on?' sel':''}" data-dep="${i}" tabindex="0" role="button" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" style="--dc:${dc}" aria-label="Abteilung ${esc(d.lead.name)}, ${d.members.length} Agenten">
+    HUB.mv.push({rx:r, ry, a0:a, w:.09/(1+i*.4)});
+    pl.push(`<g class="planet hpl${on?' sel':''}" data-dep="${i}" tabindex="0" role="button" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" style="--dc:${dc}" aria-label="Abteilung ${esc(d.lead.name)}, ${d.members.length} Agenten">
       <title>${esc(d.lead.name)} – ${esc(d.lead.role||'')} · ${d.members.length} Agenten${d.busy?' · ⚙ '+d.busy:''}\nAntippen: Abteilung öffnen</title>
       <circle r="${pr*2.3}" fill="${dc}" opacity="${d.busy?.35:.18}" filter="url(#hubBlur)"/>
       <ellipse class="pdisc" cy="${pr*.55}" rx="${pr*1.75}" ry="${pr*.55}"/>
@@ -2810,17 +2815,17 @@ function hubInsideCosmos(f){
       ${d.busy?`<circle r="${pr+9}" class="hrun"/>`:''}
       <text class="pico" y="${(pr*.32).toFixed(1)}" style="font-size:${Math.round(pr*.95)}px">${hubDepIcon(d.lead)}</text>${moons}
       <text class="hlbl" y="${pr+44}">${esc(short(d.lead.name,20))}</text>
-      <text class="hlbl2" y="${pr+60}">${d.members.length} 👤${d.busy?' · ⚙ '+d.busy:''}</text></g>`);
+      <text class="hlbl2" y="${pr+44}" dy="1.45em">${d.members.length} 👤${d.busy?' · ⚙ '+d.busy:''}</text></g>`);
   });
   const R=sr+100+Math.max(0,T.deps.length-1)*72+70;
   const sun=`<g class="sunbody${HUB.dep===-1?' sel':''}" data-dep="-1" tabindex="0" role="button" style="--hc:${col}" aria-label="Leitung: ${esc(T.roots.map(r=>r.name).join(', '))}">
     <title>Leitung: ${esc(T.roots.map(r=>r.name).join(', ')||'noch niemand')}\nAntippen: Leitung öffnen</title>
     ${hubSunSvg('hubSunIn', col, sr, busyRoot)}
-    <text class="hlbl" y="${-sr-58}">👑 Leitung</text>
-    <text class="hlbl2" y="${-sr-40}">${esc(short(T.roots.map(r=>r.name).join(' · ')||f.name,34))}</text></g>`;
-  HUB.box={x0:-R, x1:R, y0:-R*.42-130, y1:R*.42+110}; HUB.mv=[];
+    <text class="hlbl" y="${-sr-26}" dy="-1.05em">👑 Leitung</text>
+    <text class="hlbl2" y="${-sr-26}">${esc(short(T.roots.map(r=>r.name).join(' · ')||f.name,34))}</text></g>`;
+  HUB.box={x0:-R, x1:R, y0:-R*.42-130, y1:R*.42+110};
   return HUB_DEFS+`<g>${hubStars({x0:-R-500,x1:R+500,y0:-R-300,y1:R+300}, f.id*7)}</g>`+out.join('')+sun+pl.join('')
-    +`<text class="sign" y="${-R*.42-100}">${esc(f.icon||'')} ${esc(f.name)}</text>`;
+    +`<text class="sign" y="${-R*.42-100}">${esc(f.name)}</text>`;
 }
 function hubDepsList(f){
   const T=hubTeams(f), item=(dep,label,sub,dc)=>`<button class="hd${HUB.dep===dep?' on':''}" data-dep="${dep===null?'':dep}" title="${dep===null?'Übersicht über die ganze Firma':'Abteilung '+esc(label)+' öffnen'}"><span class="hdd" style="background:${dc}"></span>${esc(short(label,20))}<small>${sub}</small></button>`;
@@ -2885,7 +2890,7 @@ function hubCosmosRoutes(pos){
     if(T.live) veh.unshift(`<path class="sroute" d="M${P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L')}"><title>Aktive Zusammenarbeit: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}</title></path>`);
     for(let k=0;k<T.n;k++){ HUB.tr.push({p:P, len:hubPolyLen(P), sp:T.sp*1.8*(1+.15*(k%3)), o:k/T.n+n*.21, ship:true});
       veh.push(`<g class="veh ship${T.live?' live':''}"><title>Zusammenarbeit: ${esc(T.fa.name)} ↔ ${esc(T.fb.name)}${l.note?' – '+esc(l.note):''}${T.live?' · aktiv':' · gerade ruhig'}</title>
-        <g class="sb"><path class="trail" d="M-6,0 L-34,-3 L-34,3 Z"/><path d="M11,0 L-6,-6 L-3,0 L-6,6 Z" fill="#e2e8f0" stroke="#7dd3fc" stroke-width="1"/><circle cx="-5" r="2.4" class="flame"/></g></g>`); }
+        <g class="sb" transform="scale(1.7)"><path class="trail" d="M-6,0 L-40,-3.5 L-40,3.5 Z"/><path d="M12,0 L2,-3 L-6,-9 L-4,-3 L-7,0 L-4,3 L-6,9 L2,3 Z" fill="#e2e8f0" stroke="#7dd3fc" stroke-width="1"/><ellipse cx="4" rx="3" ry="1.6" fill="#38bdf8"/><circle cx="-7" r="2.6" class="flame"/></g></g>`); }
   });
   return veh.join('');
 }
