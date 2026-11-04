@@ -343,7 +343,7 @@ are finished (max. `PCL_MAX_TOOL_STEPS`). Rights per agent: **research the inter
 Everything created lies under `workspace/<project-id>/`. In the sidebar, **📁 Dateien** shows the files, opens `index.html`
 as a web page (isolated sandbox) and downloads everything as a ZIP. The link contains a secret key.
 
-**Company templates** (🏢 next to „Projekte“): *Web agency*, *Accounting/tax office*, *Import/export trade* create project,
+**Company templates** („＋ Neues Projekt“ under „Projekte“): *Web agency*, *Accounting/tax office*, *Import/export trade* create project,
 organisation chart, work instructions and rights completely. Your own companies: write a project goal („you are a …“, country,
 industry), set agents and rights. The agents receive the date and the project goal and should first research things that change (laws,
 prices) and name their sources.

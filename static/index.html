@@ -46,6 +46,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .side-grp[open]>summary::after{transform:rotate(90deg)}
 .side-grp>summary:hover{background:var(--panel2);color:var(--text)}
 .side-grp>.side-btn{padding-left:18px}
+.pviews{display:flex;gap:0;padding:2px 10px 6px}
+.pviews button{flex:1;background:var(--panel2);border:1px solid var(--line);padding:6px 2px;font-size:12px;cursor:pointer;color:var(--text);white-space:nowrap}
+.pviews button+button{border-left:0}.pviews button:first-child{border-radius:8px 0 0 8px}.pviews button:last-child{border-radius:0 8px 8px 0}
+.pviews button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.pnew{padding-bottom:0}.pnew .side-btn{border:1px dashed var(--line);color:var(--accent);font-weight:600;justify-content:center}
+.pnew .side-btn:hover{border-color:var(--accent)}
+.vmenu .vgrp{display:block;padding:8px 10px 3px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:700}
+.vmenu .vgrp+button,.vmenu .vsub{padding-left:18px}
+.vmenu hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
 .grp-dot{display:none;width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .side-grp:not([open]).has-badge .grp-dot{display:inline-block}
 :root[data-motion="off"] .side-grp>summary::after{transition:none}
@@ -552,7 +561,9 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       </details>
         <button class="side-btn" id="btnLogout" style="display:none" onclick="location.href='/logout'">🚪 Abmelden</button>
     </div>
-    <div class="side-h"><span>Projekte</span><span><button class="icon-btn" id="btnHub" title="Moderne Ansicht: alle Firmen auf einen Blick, als Stadt oder als Kosmos">🏙</button><button class="icon-btn" id="btnTplProj" title="Firma aus Vorlage (Webagentur, Buchhaltung, Handel …)">🏢</button><button class="icon-btn" id="btnNewProj" title="Neues Projekt">＋</button></span></div>
+    <div class="side-h"><span>Projekte</span><span><button class="icon-btn" id="btnNewProjTop" title="Neues Projekt anlegen: leer oder als fertige Firma aus einer Vorlage">＋</button></span></div>
+    <div class="side-sec pviews" role="group" aria-label="Ansicht der Projekte"><button data-pview="classic" title="Klassisch: das offene Projekt sachlich (Weltall, Organigramme, Atom, Bauplan)">📐 Klassisch</button><button data-pview="stadt" title="Stadt: alle Projekte als Gebäude, Straßen nur bei Zusammenarbeit">🏙 Stadt</button><button data-pview="kosmos" title="Kosmos: alle Projekte als Sonnensysteme, Raumschiffe nur bei Zusammenarbeit">🌌 Kosmos</button></div>
+    <div class="side-sec pnew"><button class="side-btn" id="btnNewProj" title="Neues Projekt anlegen: leer oder als fertige Firma aus einer Vorlage (Webagentur, Buchhaltung, Handel …)">＋ Neues Projekt</button></div>
     <div id="projlist" class="side-sec"></div>
   </aside>
 
@@ -570,15 +581,19 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="g-stats" id="gStats"></div>
       <div class="g-tools">
         <div class="vpick" id="gViews">
-          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Grafik wählen: Weltall, drei Organigramme, Atom oder Bauplan"><span id="gViewLbl">🌌 Weltall</span> ▾</button>
+          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Grafik wählen: alle Projekte als Stadt oder Kosmos, oder dieses Projekt klassisch (Weltall, Organigramme, Atom, Bauplan)"><span id="gViewLbl">🌌 Weltall</span> ▾</button>
           <div class="vmenu" id="gViewMenu" role="menu" aria-label="Grafik" hidden>
-            <button role="menuitemradio" data-view="world" title="Welt Weltall: Sonnensystem mit Sonne, Planeten und Monden, Stufen von Asteroid bis Galaxie">🌌 Weltall</button>
-            <button role="menuitemradio" data-view="org" data-org="baum" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
-            <button role="menuitemradio" data-view="org" data-org="gliederung" title="Organigramm als Gliederung, eine Zeile je Agent (gut fürs Handy)">➡ Organigramm: Gliederung</button>
-            <button role="menuitemradio" data-view="org" data-org="kreis" title="Organigramm als Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Organigramm: Kreis</button>
-            <button role="menuitemradio" data-view="atom" title="Welt Atom: die Leitung ist der Kern, jede Abteilung sitzt als Elektron auf ihrer Bahn (steht still), Stufen von Quark bis Zelle">⚛️ Atom</button>
-            <button role="menuitemradio" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
-            <button role="menuitemradio" data-view="hub" title="Moderne Ansicht: alle Firmen als Stadt oder Kosmos">🏙 Alle Firmen (modern)</button>
+            <span class="vgrp">Alle Projekte · modern</span>
+            <button role="menuitemradio" data-view="hub" data-hubworld="stadt" class="vsub" title="Alle Projekte als Stadt: jede Firma ein Gebäude, Straßen nur bei Zusammenarbeit">🏙 Stadt</button>
+            <button role="menuitemradio" data-view="hub" data-hubworld="kosmos" class="vsub" title="Alle Projekte als Kosmos: jede Firma ein Sonnensystem, Raumschiffe nur bei Zusammenarbeit">🌌 Kosmos</button>
+            <hr>
+            <span class="vgrp">Dieses Projekt · klassisch</span>
+            <button role="menuitemradio" data-view="world" class="vsub" title="Welt Weltall: Sonnensystem mit Sonne, Planeten und Monden, Stufen von Asteroid bis Galaxie">🌌 Weltall</button>
+            <button role="menuitemradio" data-view="org" data-org="baum" class="vsub" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
+            <button role="menuitemradio" data-view="org" data-org="gliederung" class="vsub" title="Organigramm als Gliederung, eine Zeile je Agent (gut fürs Handy)">➡ Organigramm: Gliederung</button>
+            <button role="menuitemradio" data-view="org" data-org="kreis" class="vsub" title="Organigramm als Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Organigramm: Kreis</button>
+            <button role="menuitemradio" data-view="atom" class="vsub" title="Welt Atom: die Leitung ist der Kern, jede Abteilung sitzt als Elektron auf ihrer Bahn (steht still), Stufen von Quark bis Zelle">⚛️ Atom</button>
+            <button role="menuitemradio" data-view="plan" class="vsub" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
           </div>
         </div>
         <button class="icon-btn" id="gTheme" title="Wechselt zwischen hellem und dunklem Aussehen (gilt für dieses Gerät)">🌓</button>
@@ -601,7 +616,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div id="bcard" role="dialog" aria-label="Himmelskörper"></div>
       <div id="wlist"></div>
       <button class="btn sm" id="orgReset" hidden title="Von Hand verschobene Karten in diesem Organigramm wieder ordnen">↺ Anordnung zurücksetzen</button>
-      <div class="empty" id="empty">Wähle links ein Projekt oder lege eins mit ＋ an.</div>
+      <div class="empty" id="empty">Wähle links ein Projekt oder lege eins mit „＋ Neues Projekt“ an.</div>
     </div>
   </section>
 
@@ -679,12 +694,7 @@ async function openProject(id){
   await loadProjects(); await refresh(true);
   fit();
 }
-$('#btnNewProj').onclick = async ()=>{
-  const name = prompt('Projektname:'); if(!name) return;
-  const goal = prompt('Ziel des Projekts (optional):','') || '';
-  const r = await api('/projects','POST',{name,goal});
-  await openProject(r.id);
-};
+$('#btnNewProj').onclick = $('#btnNewProjTop').onclick = ()=>newProjectDialog();
 $('#btnDelProj').onclick = async ()=>{
   if(!S.pid || !confirm('Projekt mit allen Agenten und Aufgaben löschen? (Audit-Log und die Dateien im Projektordner bleiben erhalten)')) return;
   await api('/projects/'+S.pid,'DELETE'); S.pid=null; S.graph=null; S.sel=null; closePanel();
@@ -1681,14 +1691,28 @@ async function wirePicker(id){
   }
   ps.onchange=load; load();
 }
-$('#btnTplProj').onclick=async()=>{
-  openOv('Firma aus Vorlage gründen'); const body=$('#ovbody');
+async function newProjectDialog(){
+  openOv('Neues Projekt anlegen (leer oder aus Vorlage)'); const body=$('#ovbody');
   const tpls=await api('/templates');
   const defProv=(S.providers.find(p=>p.configured&&p.id!=='mock'&&!p.id.endsWith('cli'))||{id:'mock'}).id;
-  body.innerHTML = `<div style="color:var(--mute);font-size:12px;margin-bottom:10px">Legt Projekt, Organigramm, Arbeitsanweisungen und Rechte komplett an. Danach kannst du alles ändern. Aufträge gibst du dem obersten Agenten (Post-Ansicht, Chat-Tab oder Telegram).</div>`
+  body.innerHTML = `<div class="task" style="padding:10px"><b>＋ Leeres Projekt</b>
+      <div style="color:var(--mute);font-size:12px;margin:4px 0">Ohne Agenten. Du stellst das Team danach im Bauplan selbst zusammen.</div>
+      <label>Name</label><input type="text" id="np_name" placeholder="z. B. Meine Firma">
+      <label>Ziel des Projekts (optional, alle Agenten kennen es)</label><textarea id="np_goal" style="min-height:60px"></textarea>
+      <div class="row"><button class="btn pri sm" id="np_go" title="Leeres Projekt mit diesem Namen anlegen und öffnen">Projekt anlegen</button></div></div>
+    <div class="hc-h" style="margin:14px 0 6px;font-weight:600">🏢 Oder fertige Firma aus Vorlage</div>
+    <div style="color:var(--mute);font-size:12px;margin-bottom:10px">Legt Projekt, Organigramm, Arbeitsanweisungen und Rechte komplett an. Danach kannst du alles ändern. Aufträge gibst du dem obersten Agenten (Post-Ansicht, Chat-Tab oder Telegram).</div>`
     + tpls.map(t=>`<div class="task" style="padding:10px"><b>${t.icon} ${esc(t.label)}</b> <span style="color:var(--mute);font-size:12px">· ${t.agents} Agenten</span>
         <div style="color:var(--mute);font-size:12px;margin:4px 0">${esc(t.desc)}</div>
         <div class="row"><button class="btn pri sm" data-tpl="${t.key}">Auswählen</button></div></div>`).join('');
+  setTimeout(()=>$('#np_name') && $('#np_name').focus(),30);
+  $('#np_go').onclick=async()=>{
+    const name=$('#np_name').value.trim(); if(!name){ $('#np_name').focus(); toast('Bitte einen Namen eingeben.'); return; }
+    $('#np_go').disabled=true;
+    const r=await api('/projects','POST',{name,goal:$('#np_goal').value.trim()});
+    $('#ov').classList.remove('on'); await openProject(r.id); toast('Projekt angelegt.');
+  };
+  $('#np_name').onkeydown=e=>{ if(e.key==='Enter') $('#np_go').click(); };
   body.querySelectorAll('[data-tpl]').forEach(b=>b.onclick=()=>{
     const t=tpls.find(x=>x.key===b.dataset.tpl);
     body.innerHTML = `<b>${t.icon} ${esc(t.label)}</b>
@@ -1711,7 +1735,7 @@ $('#btnTplProj').onclick=async()=>{
     };
     $('#tp_loc_all').onclick=()=>setLocal(['tp_lead','tp_team']);
     $('#tp_loc_team').onclick=()=>setLocal(['tp_team']);
-    $('#tp_back').onclick=()=>$('#btnTplProj').onclick();
+    $('#tp_back').onclick=()=>newProjectDialog();
     $('#tp_go').onclick=async()=>{
       $('#tp_go').disabled=true;
       const r=await api('/projects/from_template','POST',{template:t.key,name:$('#tp_name').value.trim()||t.label,goal:$('#tp_goal').value.trim()||undefined,
@@ -1773,7 +1797,7 @@ $('#btnOps').onclick=showOps;
 /* ---------- Anleitung (im Dashboard, offline) ---------- */
 const HELP=[
  {id:'start',t:'🚀 Erste Schritte',h:`<p>Hyperstead ist deine eigene KI-Firma. Du legst ein <b>Projekt</b> an, darin arbeiten <b>Agenten</b> (KI-Mitarbeiter) in einem Team: ein Chef oben, darunter Leitungen und Mitarbeiter.</p>
-<ul><li><b>Projekt anlegen:</b> In der Seitenleiste bei „Projekte“ auf ＋ (leer) oder 🏢 (fertige Firmenvorlage, z. B. Webagentur).</li>
+<ul><li><b>Projekt anlegen:</b> In der Seitenleiste bei „Projekte“ auf „＋ Neues Projekt“. Im Fenster wählst du ein leeres Projekt oder eine fertige Firmenvorlage (z. B. Webagentur).</li>
 <li><b>Agent anlegen:</b> In der Bauplan-Ansicht (📐) oben einen Baustein wie „👑 CEO“ oder „</> Entwickler“ antippen oder auf die Fläche ziehen. Jeder Agent braucht eine KI (Anbieter + Modell) in den Einstellungen.</li>
 <li><b>Auftrag geben:</b> Agent antippen → Reiter „Aufgaben“ → Auftrag beschreiben → „Aufgabe zuweisen“. Der Chef verteilt die Arbeit an sein Team, prüft die Berichte und liefert das Ergebnis in die 📬 Post.</li>
 <li><b>Ergebnis abholen:</b> 📬 Post öffnen. „✅ Erledigt“ schließt den Auftrag, „🔁 Überarbeiten…“ schickt ihn mit deinem Hinweis zurück.</li></ul>
@@ -1834,7 +1858,7 @@ const HELP=[
 <li><b>… nach einem Update etwas fehlt:</b> Die README hat die Tabelle „Was passiert, wenn etwas fehlt“ mit der Lösung für jede Datei und jeden Schlüssel.</li></ul>`},
  {id:'firmen',t:'🏙 Alle Firmen: klassisch und modern',h:`<p>Hyperstead hat zwei Ebenen. Beide zeigen dieselben echten Firmen, Abteilungen und Agenten, nur anders gezeichnet.</p>
 <ul><li><b>📐 Klassisch:</b> die sachlichen Ansichten einer Firma (Organigramm, Bauplan, Weltall, Atom). Hier verwaltest und stellst du ein.</li>
-<li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie mit 🏙 bei „Projekte“ oder in der Grafik-Auswahl mit „🏙 Alle Firmen (modern)“. Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt und 🌌 Kosmos um.</li>
+<li><b>Modern:</b> alle Firmen auf einmal. Du öffnest sie links unter „Projekte“ mit 🏙 Stadt oder 🌌 Kosmos, oder in der Grafik-Auswahl oben unter „Alle Projekte · modern“. Oben schaltest du zwischen 📐 Klassisch, 🏙 Stadt und 🌌 Kosmos um.</li>
 <li><b>🏙 Stadt:</b> Jede Firma ist ein Gebäude auf eigenem Grundstück. Je weiter sie gewachsen ist, desto höher das Haus. Leuchtende Fenster heißen: dort wird gerade gearbeitet.</li>
 <li><b>🌌 Kosmos:</b> Jede Firma ist ein Sonnensystem. Die Sonne ist die Leitung, die Planeten sind die Abteilungen (größer = mehr Agenten). Ein leuchtender Ring heißt: diese Abteilung arbeitet gerade. Zwischen den Systemen gibt es keine Linien.</li>
 <li><b>Hineingehen:</b> Eine Firma antippen zoomt hinein. In der Stadt siehst du das Gebäude von innen: unten (EG) die Leitung, darüber eine Etage je Abteilung, die Agenten an ihren Tischen. Ein leuchtender Bildschirm heißt: dieser Agent arbeitet gerade. Im Kosmos wird das Sonnensystem groß: die Sonne ist die Leitung, jeder Planet eine Abteilung, die Monde sind ihre Agenten.</li>
@@ -2101,11 +2125,19 @@ async function syncWorld(){  // Weltall und Atom sind zwei Welten: Stufen, Raeng
 function markView(){
   let lbl='';
   document.querySelectorAll('#gViewMenu [data-view]').forEach(b=>{
-    const on = b.dataset.view===VIEW && (VIEW!=='org' || b.dataset.org===ORG.style);
+    const on = b.dataset.view===VIEW && (VIEW!=='org' || b.dataset.org===ORG.style) && (VIEW!=='hub' || b.dataset.hubworld===HUB.world);
     b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if(on) lbl=b.textContent;
   });
   $('#gViewLbl').textContent = lbl || '🌌 Weltall';
+  document.querySelectorAll('.pviews [data-pview]').forEach(b=>{ const v=b.dataset.pview, on = VIEW==='hub' ? v===HUB.world : v==='classic';
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
 }
+document.querySelectorAll('.pviews [data-pview]').forEach(b=>b.onclick=()=>{ const v=b.dataset.pview;
+  if(v==='classic'){ if(VIEW==='hub') $('#hubClassic').click(); return; }
+  HUB.world=v; try{ localStorage.setItem('hs-hubworld', v); }catch(e){}
+  if(VIEW==='hub') hubWorld(v); else setView('hub');
+  $('#app').classList.remove('side-open');
+});
 function viewMenu(open){
   const m=$('#gViewMenu'); if(open===undefined) open=m.hidden; m.hidden=!open;
   $('#gViewBtn').setAttribute('aria-expanded', open);
@@ -2114,6 +2146,7 @@ function viewMenu(open){
 $('#gViewBtn').addEventListener('click', e=>{ e.stopPropagation(); viewMenu(); });
 $('#gViewMenu').addEventListener('click', e=>{ const b=e.target.closest('[data-view]'); if(!b) return;
   if(b.dataset.org){ ORG.style=b.dataset.org; try{ localStorage.setItem('hs-org', ORG.style); }catch(err){} }
+  if(b.dataset.hubworld){ HUB.world=b.dataset.hubworld; try{ localStorage.setItem('hs-hubworld', HUB.world); }catch(err){} }
   viewMenu(false); setView(b.dataset.view); $('#gViewBtn').focus(); });
 $('#gViewMenu').addEventListener('keydown', e=>{
   const items=[...$('#gViewMenu').querySelectorAll('button')], i=items.indexOf(document.activeElement);
@@ -2503,9 +2536,9 @@ async function loadFirms(force){
   try{ HUB.d = await api('/firms'); }catch(e){ return; }
   drawHub();
 }
-function hubWorld(w){ HUB.world=w; HUB.agent=null; try{ localStorage.setItem('hs-hubworld', w); }catch(e){} HUB.sig=''; hideHubCard(); drawHub(); fit(); }
+function hubWorld(w){ HUB.world=w; HUB.agent=null; try{ localStorage.setItem('hs-hubworld', w); }catch(e){} HUB.sig=''; hideHubCard(); drawHub(); fit(); markView(); }
 function hubMark(){
-  document.querySelectorAll('[data-hubworld]').forEach(b=>{ const on=b.dataset.hubworld===HUB.world; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
+  document.querySelectorAll('#hubbar [data-hubworld]').forEach(b=>{ const on=b.dataset.hubworld===HUB.world; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
   $('#app').dataset.hubworld=HUB.world;
 }
 function hubColor(f){ const i=HUB.d.firms.indexOf(f); return COLORS[(i<0?0:i)%COLORS.length]; }
@@ -2713,7 +2746,7 @@ function drawHub(){
   const sig=JSON.stringify([HUB.world,HUB.sel,HUB.inside,HUB.dep,HUB.agent,HUB.d,motionOff()]);
   if(sig===HUB.sig && svg.firstChild) return; HUB.sig=sig;
   $('#app').classList.toggle('hub-in', !!f);
-  if(!HUB.d.firms.length){ svg.innerHTML=`<text class="hlbl" x="0" y="0">Noch keine Firma. Lege links bei „Projekte“ mit ＋ eine an.</text>`; HUB.box={x0:-320,x1:320,y0:-60,y1:60}; return; }
+  if(!HUB.d.firms.length){ svg.innerHTML=`<text class="hlbl" x="0" y="0">Noch keine Firma. Lege links bei „Projekte“ mit „＋ Neues Projekt“ eine an.</text>`; HUB.box={x0:-320,x1:320,y0:-60,y1:60}; return; }
   svg.innerHTML = f ? (HUB.world==='kosmos' ? hubInsideCosmos(f) : hubInsideCity(f)) : HUB_DRAW[HUB.world]();
   if(f) HUB.tr=[];
   HUB.els=[...svg.querySelectorAll('.hpl')]; HUB.trEls=[...svg.querySelectorAll('.veh')];
@@ -2864,9 +2897,8 @@ $('#hubcard').addEventListener('click', e=>{ const a=e.target.closest('.hc-ag');
   hubOpenFirm(+a.dataset.firm, +a.dataset.agent); });
 $('#hubdeps').addEventListener('click', e=>{ const b=e.target.closest('.hd'); if(b) hubDep(b.dataset.dep===''?null:+b.dataset.dep); });
 $('#hubOut').onclick=hubLeave;
-document.querySelectorAll('[data-hubworld]').forEach(b=>b.onclick=()=>hubWorld(b.dataset.hubworld));
+document.querySelectorAll('#hubbar [data-hubworld]').forEach(b=>b.onclick=()=>hubWorld(b.dataset.hubworld));
 $('#hubClassic').onclick=async ()=>{ hideHubCard(); HUB.inside=null; HUB.dep=null; $('#app').classList.remove('hub-in'); setView(HUB.back==='hub'?'world':HUB.back); if(!S.pid && S.projects.length) await openProject(S.projects[0].id); };
-$('#btnHub').onclick=()=>setView('hub');
 document.addEventListener('keydown', e=>{ if(e.key!=='Escape' || VIEW!=='hub' || $('#ov').classList.contains('on')) return;
   if(!$('#hubResults').hidden) return hubSearchClose();
   if(HUB.inside) hubLeave(); else if(HUB.sel) hideHubCard(); });

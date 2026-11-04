@@ -342,7 +342,7 @@ Ajanlar turlar halinde çalışır: araç ister, sunucu çalıştırır ve sonu�
 Üretilen her şey `workspace/<proje-kimliği>/` altında durur. Kenar çubuğunda **📁 Dateien** (dosyalar) dosyaları gösterir, `index.html` dosyasını
 bir web sayfası olarak açar (yalıtılmış sandbox) ve her şeyi ZIP olarak indirir. Bağlantı gizli bir anahtar içerir.
 
-**Şirket şablonları** („Projekte“ yanında 🏢): *Web ajansı*, *Muhasebe/Mali müşavirlik*, *İthalat/İhracat ticareti* proje, organizasyon şeması, çalışma talimatları ve hakları eksiksiz oluşturur. Kendi şirketleriniz: proje hedefini yazın („siz bir …sınız“, ülke, sektör), ajanları ve hakları ayarlayın. Ajanlar tarihi ve proje hedefini alır; değişken bilgileri (yasalar, fiyatlar) önce araştırmalı ve kaynak göstermelidir.
+**Şirket şablonları** („Projekte“ altında „＋ Neues Projekt“): *Web ajansı*, *Muhasebe/Mali müşavirlik*, *İthalat/İhracat ticareti* proje, organizasyon şeması, çalışma talimatları ve hakları eksiksiz oluşturur. Kendi şirketleriniz: proje hedefini yazın („siz bir …sınız“, ülke, sektör), ajanları ve hakları ayarlayın. Ajanlar tarihi ve proje hedefini alır; değişken bilgileri (yasalar, fiyatlar) önce araştırmalı ve kaynak göstermelidir.
 
 **Araç güvenliği:** Sayfa çağrıları yalnızca genel adreslerle sınırlıdır (localhost, yerel ağ, Tailscale,
 bulut meta verileri yok; yönlendirmeler tek tek denetlenir). Ajanlar için web içeriği güvenilmeyen veri sayılır,
