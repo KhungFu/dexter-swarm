@@ -184,6 +184,11 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   `busy` (running+queued), `partners`; dazu `links`. Partnerschaften setzt nur der Besitzer: Tabelle `firm_links` (a<b, UNIQUE),
   `POST /api/firms/links` (a, b, note; doppelt -> `exists`), `DELETE /api/firms/links/<id>`, Audit `firm_link`/`firm_unlink`, Projekt loeschen
   entfernt seine Links. Agenten sehen davon nichts. Tests `tests/test_firmen.py`.
+- UI moderne Ebene (`VIEW='hub'`, `#hubsvg`, `#hubbar` Umschalter 📐 Klassisch = zurueck zu `HUB.back` / `data-hubworld` stadt|kosmos,
+  localStorage `hs-hubworld`/`hs-hubback`): `loadFirms` (alle 4,5 s), `drawHub` -> `HUB_DRAW[welt]()` (neue Welt = neuer Eintrag), `hubTeams`
+  (Leitung + Abteilungen wie im Weltall). Stadt `hubCity`/`hubBuilding` (isometrisch, Hoehe nach Stufe, Beschriftungen in eigener Ebene obenauf),
+  Kosmos `hubCosmos`/`hubSystem` (Planeten kreisen per rAF nur mit Bewegung und nicht auf dem Handy). Klick -> `hubSelect` -> `#hubcard`
+  (Leitung/Abteilungen, Name -> `hubOpenFirm` = klassische Ansicht + `selectAgent`). JS steht VOR dem Atom-Abschnitt (Atom-Test verbietet rAF dort).
 
 ## Verbindungen (Webhooks)
 - Tabelle `connections` (Besitzer legt URL/Methode/Kopfzeilen fest, `${ENV}` in Kopfzeilen aus .env, `confirm`, `on_post`). Recht `connect`

@@ -49,3 +49,17 @@ def test_projekt_loeschen_entfernt_partnerschaft(client):
     client.post("/api/firms/links", json={"a": p1, "b": p2})
     client.delete(f"/api/projects/{p1}")
     assert client.get("/api/firms").json["links"] == []
+
+
+def test_oberflaeche_stadt_und_kosmos():
+    """Moderne Ebene: Umschalter Klassisch/Stadt/Kosmos mit Hilfetexten, Anleitungskapitel, Zeichnung je Welt."""
+    import os
+    import re
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    bar = html[html.index('id="hubbar"'):html.index('id="hubcard"')]
+    for b in ('id="hubClassic"', 'data-hubworld="stadt"', 'data-hubworld="kosmos"'):
+        assert b in bar
+    assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", bar))
+    assert 'id="btnHub"' in html and 'data-view="hub"' in html
+    assert "stadt:()=>hubCity()" in html and "kosmos:()=>hubCosmos()" in html
+    assert "{id:'firmen'" in html and "'/firms'" in html
