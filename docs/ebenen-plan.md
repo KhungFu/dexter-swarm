@@ -1,57 +1,53 @@
-# Plan: Alle Firmen auf einen Blick (Stadt, Weltall, Molekül)
+# Plan: zwei Ebenen – klassisch und modern (Stadt, Kosmos)
 
-Wunsch ABI (2026-11-04): eine Ansicht wie SimCity. Jede Firma (= jedes Projekt in Hyperstead) ist ein eigenes Gebäude,
-die Gebäude hängen an Straßen. Klick auf eine Firma führt hinein, innen sieht man die Abteilungen. Dasselbe Prinzip im
-Weltall: jede Firma ist ein eigenes Sonnensystem, Verbindungen sind zuerst unsichtbar. Arbeiten Firmen zusammen, fliegen
-kleine Raumschiffe hin und her. Ähnlich für die anderen Grafiken, nur nicht für das normale Organigramm. Jede dieser
-Ansichten gibt es in zwei Aussehen: **klassisch** und **modern**.
+Wunsch ABI (2026-11-04, mit Konzeptbild): Hyperstead bekommt zwei Ebenen der Darstellung. Beide zeigen **dieselben
+echten Daten** (Firmen, Abteilungen, Agenten, Aufgaben, Zusammenarbeit), nur anders gezeichnet.
 
-## Zwei Ebenen
-
-| Ebene | Was man sieht | Wo |
+| Ebene | Was | Zweck |
 |---|---|---|
-| **Außen: Übersicht** | alle Firmen gleichzeitig | neuer Knopf „🏙 Alle Firmen“ über der Projektliste |
-| **Innen: eine Firma** | ihre Abteilungen und Agenten | Klick auf eine Firma in der Übersicht |
+| **Klassisch** | die bisherigen Ansichten einer Firma: Organigramm (Baum, Gliederung, Kreis), Bauplan, Weltall, Atom | sachlich verwalten und einstellen, bleibt unverändert |
+| **Modern** | eine Welt mit **allen** Firmen: 🏙 Stadt oder 🌌 Kosmos | erleben, wie die Firmen aufgebaut sind und arbeiten |
 
-## Die Übersicht in drei Welten
+Firma = Projekt in Hyperstead. Umschalter oben in der modernen Welt: **📐 Klassisch · 🏙 Stadt · 🌌 Kosmos**.
+Der Eingang ist der Knopf 🏙 bei „Projekte“ und der Eintrag „🏙 Alle Firmen“ in der Grafik-Auswahl.
 
-| Welt | Firma | Verbindung | Zusammenarbeit | Innen |
-|---|---|---|---|---|
-| 🏙 Stadt | Gebäude; Höhe nach Wachstumsstufe (Garage bis Hochhaus), Fenster leuchten, wenn gearbeitet wird | Straßen, immer sichtbar | Lieferwagen fahren über die Straße | Querschnitt des Gebäudes: eine Etage je Abteilung, Agenten als Figuren an Tischen |
-| 🌌 Weltall | eigenes Sonnensystem (Sonne + Planeten je Abteilung) | unsichtbar | Raumschiffe fliegen zwischen den Sonnen | die bekannte Weltall-Ansicht der Firma |
-| ⚛️ Molekül | ein Atom (Kern + Elektronen je Abteilung) | keine | Bindungen zu einem Molekül | die bekannte Atom-Ansicht der Firma |
+## Stadt (wie SimCity, isometrisch)
 
-Das Organigramm bekommt keine Übersicht (Wunsch ABI). Der Bauplan bleibt Werkzeug zum Bearbeiten.
+- Jede Firma ist ein eigenes Gebäude auf eigenem Grundstück: Höhe nach Wachstumsstufe, Farbe je Firma,
+  Fenster leuchten, wenn dort gearbeitet wird. Dunkler Grund, Leuchtkanten, weiche Schatten (Richtung Konzeptbild).
+- **Straßen nur zwischen Firmen, die zusammenarbeiten.** Firmen ohne Verbindung werden nicht künstlich verbunden.
+- Lieferwagen fahren über diese Straßen, mehr Verkehr bei mehr Aktivität.
+- **Hineingehen:** Klick auf ein Gebäude zoomt hinein. Innen: eine Etage je Abteilung, unten die Leitung,
+  Agenten an Tischen (leuchtender Bildschirm = arbeitet). Links eine Liste der Abteilungen zum Anklicken.
 
-## Klassisch und modern
+## Kosmos
 
-Ein Schalter in der Übersicht (und in der Gebäude-Innenansicht), gespeichert pro Gerät:
+- Jede Firma ist ein eigenes Sonnensystem: Sonne = Leitung, Planeten = Abteilungen, Monde = Agenten.
+- **Am Anfang keine Linien.** Erst bei Zusammenarbeit fliegen kleine Raumschiffe zwischen den Sonnen,
+  bei mehr Aktivität häufiger. Ruhende Partnerschaften bleiben unauffällig.
+- **Hineinzoomen:** Klick auf ein Sonnensystem vergrößert es, die Abteilungen werden sichtbar (mit Liste wie im Bild).
 
-- **Klassisch**: kräftige, flache Farben, dicke Umrisse, Klötzchen-Optik wie ein altes Aufbauspiel; Weltall als
-  gezeichnete Sterne, Atom als Lehrbuch-Modell.
-- **Modern**: dunkler Grund, Glas und Leuchtkanten, weiche Verläufe; Weltall mit Leuchten, Atom mit Lichtbahnen.
+## Gemeinsam für beide Welten
+
+- Keine eigene Datenstruktur je Welt: alles kommt aus `GET /api/firms` (Projekte, Agenten mit Chef, laufende Arbeit,
+  Stufe, Partnerschaften). Änderst du in der klassischen Ansicht ein Team, sieht die Stadt es beim nächsten Abruf.
+- Klick auf einen Agenten öffnet seine echte Karte (Aufgaben, Status, Rechte) wie in der klassischen Ansicht.
+  Was du dort änderst, gilt überall.
+- Suche nach Firmen und Agenten, Infofenster beim Auswählen, Zoomen und Verschieben wie bisher.
+- Neue Welten (Inseln, Fabrik, Ökosystem) sollen später nur eine weitere Zeichenfunktion sein (`HUB_WORLDS`).
+- Bewegung nur mit eingeschaltetem „Bewegung“, auf dem Handy ruhig. Jeder neue Knopf hat einen Hilfetext,
+  die Anleitung ein Kapitel „Alle Firmen“.
 
 ## Was „Zusammenarbeit“ heißt
 
-Bisher arbeiten Firmen in Hyperstead nicht miteinander, jede Firma ist ein abgeschlossenes Projekt. Darum gibt es zuerst
-**Partnerschaften, die ABI selbst setzt**: in der Übersicht zwei Firmen wählen und „🤝 Zusammenarbeit“ antippen. Erst dann
-erscheinen Raumschiffe, Lieferwagen oder Bindungen. Arbeiten beide Firmen gerade an Aufgaben, wird es lebhafter (mehr
-Verkehr). Wenn später Agenten wirklich über Firmengrenzen hinweg arbeiten, hängt sich das an dieselbe Tabelle.
-
-## Technik
-
-- Neue Tabelle `firm_links(id, a, b, note, created)` (a < b, keine Doppelten, Löschen eines Projekts löscht seine Links).
-- `GET /api/firms`: alle Firmen mit Stufe, Abteilungen (Teams wie im Weltall), Agentenzahl, laufenden Aufgaben, Partnern.
-- `POST /api/firms/links` (`a`, `b`, `note`) und `DELETE /api/firms/links/<id>`, mit Audit-Eintrag.
-- Oberfläche: eigenes SVG `#hubsvg` im selben Zoom/Verschieben wie die anderen Grafiken, Ansicht `VIEW='hub'`, Welt
-  `HUB.world` (stadt|weltall|molekuel) und `HUB.style` (klassisch|modern) in localStorage. Bewegung nur, wenn
-  „Bewegung“ an ist und nicht auf dem Handy (wie bisher). Handy: Liste der Firmen als Karten.
-- Jeder neue Knopf bekommt `title` bzw. einen Eintrag in `TIPS`, die Anleitung (`HELP`) ein Kapitel „Alle Firmen“.
+Bisher arbeiten Firmen in Hyperstead nicht über Projektgrenzen hinweg. Darum legt ABI Partnerschaften zuerst selbst
+an (🤝 Zusammenarbeit, Tabelle `firm_links`). Die Stärke des Verkehrs kommt aus der echten Aktivität beider Firmen.
+Arbeiten Agenten später wirklich firmenübergreifend, schreibt das in dieselbe Tabelle.
 
 ## Schritte (je ein PR, Tests grün, Squash-Merge)
 
 1. Dieser Plan.
-2. Daten: `firm_links`, `/api/firms`, Partnerschaften setzen/lösen, Tests.
-3. Stadt: Übersicht mit Gebäuden und Straßen, Schalter klassisch/modern, Innenansicht mit Etagen je Abteilung, Hilfetexte.
-4. Weltall: Firmen als Sonnensysteme, unsichtbare Verbindungen, Raumschiffe bei Zusammenarbeit, Klick öffnet die Firma.
-5. Molekül: Firmen als Atome, Bindungen bei Zusammenarbeit, Feinschliff und README.
+2. Daten: `firm_links`, `/api/firms`, Partnerschaften setzen und lösen, Tests.
+3. Phase 1: Stadt und Kosmos als Übersicht, Umschalter Klassisch / Stadt / Kosmos, Hilfetexte.
+4. Phase 2: Hineinzoomen, Abteilungen öffnen (Etagen bzw. Planeten, Liste), Infofenster, Suche.
+5. Phase 3: Zusammenarbeit: Straßen, Lieferwagen und Raumschiffe nach echter Aktivität, README.
