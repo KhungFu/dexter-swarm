@@ -9,7 +9,7 @@ echten Daten** (Firmen, Abteilungen, Agenten, Aufgaben, Zusammenarbeit), nur and
 | **Modern** | eine Welt mit **allen** Firmen: 🏙 Stadt oder 🌌 Kosmos | erleben, wie die Firmen aufgebaut sind und arbeiten |
 
 Firma = Projekt in Hyperstead. Umschalter oben in der modernen Welt: **📐 Klassisch · 🏙 Stadt · 🌌 Kosmos**.
-Eingang (seit 2026-11-04, Wunsch ABI): „Projekte“ ist der Oberpunkt. Links darunter die Ansichten 📐 Klassisch · 🏙 Stadt · 🌌 Kosmos und „＋ Neues Projekt“; die Grafik-Auswahl ist gegliedert in „Alle Projekte · modern“ und „Dieses Projekt · klassisch“.
+Eingang (seit 2026-11-04, Wunsch ABI): „Projekte“ ist der Oberpunkt. Links in der Kopfzeile „Projekte“: 🏙 (alle Firmen) und ＋ (leer oder Vorlage); Grafik-Auswahl als einfache Liste (ABI wollte am 2026-11-04 abends die Leisten wieder wie früher).
 
 ## Stadt (wie SimCity, isometrisch)
 
