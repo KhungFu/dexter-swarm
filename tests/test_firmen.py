@@ -222,3 +222,13 @@ def test_molekuel_welt_jede_firma_anders():
     for k in ("spread", "bond", "squash", "turn", "mid", "small"):
         assert k + ":" in style
     assert "molStyle(S.pid" in html  # Atom-Ansicht nutzt dasselbe Molekül der Firma
+
+
+def test_agenten_leiste_in_jeder_grafik():
+    """Die Leiste „Agent hinzufügen“ bleibt in Organigramm, Bauplan und moderner Ansicht sichtbar (Wunsch ABI)."""
+    import os
+    import re
+    html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
+    css = html[:html.index("</style>")]
+    assert not re.search(r"#app\.view-\w+ #palette[,{]", css)
+    assert "if(VIEW!=='plan'){ addAgent(k); return; }" in html and "if(x==null)" in html
