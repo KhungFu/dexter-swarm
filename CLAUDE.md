@@ -48,6 +48,10 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
 - Rechte `web`, `images`, `read_files` (Standard an) + `PCL_ALLOW_WEB=0` global. Webinhalte sind Daten, nie Anweisungen.
 - Dateien: `/files/<pid>/<token>/<pfad>` (Link-Token per HMAC, ohne Cookie, weil Sandbox-Seiten Bilder nachladen), immer mit CSP `sandbox`.
 - Medien-Werkzeuge (`video_edit` per ffmpeg-Argumentlisten ohne Shell, `speak`, `make_document`, `download_file`, PDF/DOCX/EPUB lesen) liegen ebenfalls in `agent_tools.py`, Recht `media`. Pfade immer per `_inside` auf den Projektordner begrenzt, Temp-Ordner `.tmp-*` sind versteckt.
+- `site_macro` (Recht `media`, nur sichtbar mit `PCL_MACROS=1`, Playwright und einem Skript `macros/<site>.py`, Vorlagen `vorlage_*` zaehlen nicht):
+  startet das vom Besitzer aufgenommene Playwright-Skript als Subprozess mit minimaler Umgebung (keine Keys), `PCL_PROMPT`, `PCL_OUTPUT`
+  (Temp-Ordner `output/.tmp-macro-*`), `PCL_STORAGE` (`macros/<site>.json`, Cookies, gitignored). Groesste Dateien -> `output/`. `_macro_lock`
+  (eine Instanz), `PCL_MACRO_TIMEOUT` (3600). Fuer MagicLight/Google Flow (keine API). Agenten waehlen nur Name + Text. Doku `macros/README.md`.
 - `video_generate` (Recht `media`, nur sichtbar mit `VIDEO_PROVIDER`): Anbieter in `video_providers.py` (`VIDEO` = Keys + Standardmodelle,
   `GEN` = je Anbieter `gen_*` -> (bytes, url, download_headers, fortsetzen_id)). `VIDEO_PROVIDER` ist eine Liste, der erste ist Standard, `call.provider`
   waehlt nur aus der Liste. Modelle `<ANBIETER>_VIDEO_MODEL` / `<ANBIETER>_I2V_MODEL`, altes `VIDEO_MODEL` gilt fuer den ersten. Gemini: Standardmodell

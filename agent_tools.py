@@ -86,6 +86,9 @@ TOOLS = {
     "sound_generate": ("media", '{"tool": "sound_generate", "prompt": "Regen auf Blechdach, entfernter Donner", "kind": "sfx", "seconds": 8, "name": "regen"}  '
                                 'Geraeusch (kind sfx) oder Musik (kind music, z.B. "ruhige Klaviermusik, traurig") per KI erzeugen, Ergebnis in output/audio/. '
                                 'Ins Video mit video_edit add_audio mode mix'),
+    "site_macro": ("media", """{"tool": "site_macro", "site": "magiclight", "prompt": "Geschichte / Szenenbeschreibung", "name": "folge1"}  Video auf einer Webseite mit dem
+     Konto des Besitzers erzeugen (z. B. MagicLight fuer lange Geschichten-Videos mit gleichbleibenden Figuren, Google Flow). Ein Browser-Roboter
+     bedient die Seite, das kann viele Minuten dauern. Ergebnis in output/. Verfuegbare site-Namen stehen in der Fehlermeldung, wenn du einen falschen nimmst"""),
     "list_files": ("read_files", '{"tool": "list_files", "path": ""}  Dateien im Projektordner auflisten (input/ = vom Besitzer hochgeladen, '
                                  'assets/ = Bilder, downloads/ = geladene Dateien, output/ = fertige Medien/Dokumente)'),
     "read_file": ("read_files", '{"tool": "read_file", "path": "datei.pdf", "offset": 0}  Datei lesen: Text, Markdown, HTML, PDF, DOCX, EPUB. '
@@ -168,6 +171,7 @@ def available(perms):
             and (n != "video_generate" or video_enabled())
             and (n != "video_ai" or _vp_on("video_ai_enabled"))
             and (n != "sound_generate" or _vp_on("audio_provider"))
+            and (n != "site_macro" or bool(macro_sites()))
             and (n != "browse_page" or browser_enabled())
             and (n != "run_code" or run_enabled())
             and (n != "rust_project" or cargo_enabled())]
@@ -624,6 +628,87 @@ def _veo_video(key, model, call, root, deadline):
 
 def video_generate(root, call):
     return _vp().generate(root, call)
+
+
+# ------------------------------------------------- Browser-Makros des Besitzers (MagicLight, Flow ...)
+# Der Besitzer legt in macros/<site>.py ein Playwright-Skript ab (aufgenommen mit "playwright codegen", siehe macros/README.md).
+# Agenten waehlen nur den Namen und den Text; das Skript selbst kommt nie von einem Agenten.
+# Es bekommt PCL_PROMPT, PCL_OUTPUT (leerer Ordner fuer das Ergebnis) und PCL_STORAGE (gespeicherte Anmeldung, macros/<site>.json).
+
+
+def macro_dir():
+    return Path(_env("PCL_MACRO_DIR") or Path(__file__).resolve().parent / "macros")
+
+
+def macro_sites():
+    """Standard aus: erst mit PCL_MACROS=1, Playwright und mindestens einem Skript in macros/ (Vorlagen zaehlen nicht)."""
+    if _env("PCL_MACROS", "0") != "1":
+        return []
+    import importlib.util
+    if importlib.util.find_spec("playwright") is None:
+        return []
+    d = macro_dir()
+    if not d.is_dir():
+        return []
+    return sorted(f.stem for f in d.glob("*.py") if re.fullmatch(r"[a-z0-9_-]+", f.stem) and not f.stem.startswith("vorlage"))
+
+
+_macro_lock = __import__("threading").Lock()  # Chromium braucht viel RAM: immer nur ein Makro gleichzeitig
+
+
+def site_macro(root, call):
+    sites = macro_sites()
+    site = str(call.get("site") or "").strip().lower()
+    if site not in sites:
+        raise ToolError(f"Unbekannte Seite '{site}'. Verfuegbar: {', '.join(sites) or 'keine'}")
+    prompt = str(call.get("prompt") or "").strip()[:8000]
+    if not prompt:
+        raise ToolError("prompt fehlt")
+    d = macro_dir()
+    timeout = int(_env("PCL_MACRO_TIMEOUT", "3600") or 3600)
+    if not _macro_lock.acquire(timeout=60):
+        raise ToolError("Ein anderes Makro laeuft gerade, spaeter noch einmal versuchen")
+    try:
+        out_dir = root / "output"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix=".tmp-macro-", dir=out_dir) as tmp:
+            # Minimale Umgebung: keine Schluessel aus .env an das Skript
+            env = {k: os.environ[k] for k in ("PATH", "HOME", "LANG", "DISPLAY", "PLAYWRIGHT_BROWSERS_PATH",
+                                                      "SYSTEMROOT", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA")
+                   if k in os.environ}
+            env.update(PCL_PROMPT=prompt, PCL_OUTPUT=tmp, PCL_STORAGE=str(d / f"{site}.json"),
+                       PCL_BROWSER_PATH=_env("PCL_BROWSER_PATH"), PYTHONIOENCODING="utf-8")
+            try:
+                r = subprocess.run([sys.executable, str(d / f"{site}.py")], cwd=tmp, env=env, capture_output=True,
+                                   text=True, encoding="utf-8", errors="replace", timeout=timeout)
+            except subprocess.TimeoutExpired:
+                raise ToolError(f"Makro '{site}' hat das Zeitlimit ueberschritten (PCL_MACRO_TIMEOUT={timeout} s)")
+            log = _clip((r.stdout or "") + (r.stderr or ""), 600).strip()
+            if r.returncode != 0:
+                shot = next((f for f in Path(tmp).glob("*.png") if f.is_file() and not f.is_symlink()), None)
+                hint = ""
+                if shot:  # Bildschirmfoto der Vorlage bleibt fuer den Besitzer erhalten
+                    dst = _out_path(root, {"name": f"{site}-fehler"}, site, "png")
+                    shutil.move(str(shot), dst)
+                    hint = f" Bildschirmfoto: {_rel(root, dst)}."
+                raise ToolError(f"Makro '{site}' ist fehlgeschlagen (Code {r.returncode}). Die Seite hat sich evtl. geaendert oder "
+                                f"die Anmeldung ist abgelaufen.{hint} Ausgabe: {log or '(leer)'}")
+            files = sorted((f for f in Path(tmp).rglob("*") if f.is_file() and not f.is_symlink()), key=lambda f: f.stat().st_size, reverse=True)
+            if not files:
+                raise ToolError(f"Makro '{site}' lief durch, hat aber keine Datei gespeichert. Ausgabe: {log or '(leer)'}")
+            made = []
+            for i, f in enumerate(files[:5]):
+                if f.stat().st_size > MAX_VIDEO_BYTES:
+                    continue
+                ext = re.sub(r"[^a-z0-9]", "", f.suffix.lower())[:5] or "mp4"
+                dst = _out_path(root, {"name": call.get("name") if i == 0 else f"{call.get('name') or site}-{i + 1}"}, site, ext)
+                shutil.move(str(f), dst)
+                made.append(_rel(root, dst))
+            if not made:
+                raise ToolError("Die gespeicherte Datei ist zu gross")
+    finally:
+        _macro_lock.release()
+    return f"Ergebnis von {site}: {' | '.join(made)} " + (f"(Hinweis des Makros: {log[-300:]})" if log else "")
 
 
 def _safe_name(name, default):
@@ -2533,6 +2618,8 @@ def run_tool(call, root, perms):
             out = _vp().video_ai(root, call)
         elif name == "sound_generate":
             out = _vp().sound_generate(root, call)
+        elif name == "site_macro":
+            out = site_macro(root, call)
         elif name == "list_files":
             out = list_files(root, call.get("path"))
         elif name == "view_image":  # die Bilder selbst haengt app.run_with_tools an
@@ -2573,7 +2660,7 @@ def run_tool(call, root, perms):
             out = read_file(root, call.get("path"), call.get("offset"))
         made = None
         m = re.search(r"((?:assets|downloads|output|karten|film)/[\w./-]+?)(?:\s|\(|$|\.\s|,)", out) if name in (
-            "image_save", "image_generate", "video_generate", "video_ai", "sound_generate", "download_file", "video_edit", "speak", "make_document", "run_code", "browse_page",
+            "image_save", "image_generate", "video_generate", "site_macro", "video_ai", "sound_generate", "download_file", "video_edit", "speak", "make_document", "run_code", "browse_page",
             "film", "rust_project") else None
         if m:
             made = m.group(1)

@@ -283,6 +283,21 @@ def group_browser():
             return "ok"
         raise RuntimeError("nicht blockiert!")
     check("Browser blockt lokale Adressen", blocked)
+    _macros()
+
+
+def _macros():
+    if T._env("PCL_MACROS", "0") != "1":  # noqa: SLF001
+        line("warn", "Browser-Makros (MagicLight, Flow)", "aus (optional: PCL_MACROS=1, siehe macros/README.md)")
+        return
+    sites = T.macro_sites()
+    if not sites:
+        line("warn", "Browser-Makros (MagicLight, Flow)", "kein Makro in macros/ (Vorlage kopieren, siehe macros/README.md)")
+        return
+    for s in sites:
+        login = (T.macro_dir() / f"{s}.json").exists()
+        line("ok" if login else "warn", f"Makro {s}", "Anmeldung gespeichert (nicht gestartet, das kostet Credits)" if login
+             else f"Anmeldung fehlt: playwright codegen --save-storage macros/{s}.json ...")
 
 
 def group_run():
