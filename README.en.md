@@ -225,6 +225,7 @@ This list is extended with every change to the program. Each row says what the s
 | The CEO's AI (for an upgrade request) | The request comes straight to you with the note “no CEO with AI” or “CEO not reachable”. | Decide yourself or assign an AI to the CEO. |
 | `werkstatt.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
 | `growth.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
+| Logo files in `static/logo/` | The sidebar and the login page show an empty image box, the browser tab shows no icon. Everything else works normally. | Run `git pull` again. The logo can be recreated with `docs/logo/logo_blender.py` ([guide](docs/logo-prompt.md), German). |
 | Former world (Guild, Tycoon, Gizmo City) saved in a project | The project shows space automatically. Points, stage and ranks stay the same, only names and icons change. | Nothing to do. |
 | No AI calls today (operations centre, 💶 in the bar) | Shows 0 $ or “keine Aufrufe”. | Nothing to do. Costs are estimates, set your own prices with `PCL_PRICES` in `.env`. |
 | Browser stores nothing (private window) | Light/dark, the chosen graphic (space, org chart style, atom, blueprint), dragged org chart cards, motion and help mode fall back to the default on every load. | Use a normal window; the project data is not affected. |
@@ -303,7 +304,7 @@ Points are called stardust, tasks are called missions. The former worlds Guild, 
 
 **Org chart:** shows the team in three styles, each its own entry in the graphic menu: ⬇ Baum (tree from top to bottom, members without their own team are stacked), ➡ Gliederung (outline, one row per agent, indented by level, best on the phone) and ◎ Kreis (circle, the lead in the middle, each level a ring). Colour shows the state: green ready, blue working, yellow waiting for your approval, red error, purple waiting for the team, grey paused. Tapping opens the agent. Cards can be dragged and the lines follow; the device remembers this per project and style, “↺ Anordnung zurücksetzen” restores the order. If you drop a card onto another one (or, in the blueprint, an agent onto another agent), Hyperstead asks first and only then moves it into that team.
 
-**Atom:** ⚛️ shows the team like an atom in the movies: the top lead sits in the nucleus of red and grey balls, every department circles on its own electron orbit, its members follow as smaller electrons. State and tapping work as in the org chart.
+**Atom:** ⚛️ shows the team like an atom in the movies: the top lead sits in the nucleus of red and grey balls, every department has its own electron orbit, its members sit on it as smaller electrons. The graphic stands still so you can read it calmly. State and tapping work as in the org chart.
 
 **Operations centre:** 🛰 in the sidebar (or a tap on the numbers in the growth bar) shows at a glance what is running and waiting, which approvals are open, what failed in the last 7 days (with ↻ Neu), the schedules (with ▶ Jetzt), error messages and the latest events. It also shows the estimated AI costs for today and the last 7 days; today's cost also appears as 💶 in the bar. All numbers come from the existing tasks, approvals, schedules and the history, nothing is made up.
 

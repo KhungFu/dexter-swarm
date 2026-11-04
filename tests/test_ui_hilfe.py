@@ -75,3 +75,16 @@ def test_grafik_auswahl_atom_und_farben():
     # dunkles Design: Variablen duerfen nicht auf sich selbst zeigen (sonst sind die Bauplan-Linien unsichtbar)
     for name in ("chip", "dotgrid", "edge", "hover", "toastbg"):
         assert not re.search(r"--%s:var\(--%s\)" % (name, name), html)
+
+
+def test_atom_steht_still_und_logo():
+    """Atom ohne Animation (Wunsch ABI), Logo als Symbol eingebunden und ohne Anmeldung abrufbar."""
+    atom = HTML[HTML.index("const ATOM"):HTML.index("/* ---------- Start")]
+    assert "requestAnimationFrame" not in atom and "opulse" not in atom
+    assert "atomTick" not in HTML and "startAtom" not in HTML
+    root = os.path.join(os.path.dirname(__file__), "..")
+    for n in (32, 180, 192, 512, 1024):
+        assert os.path.isfile(os.path.join(root, "static", "logo", f"hyperstead-{n}.png"))
+    assert 'rel="icon"' in HTML and "/static/logo/hyperstead-192.png" in HTML
+    app = open(os.path.join(root, "app.py"), encoding="utf-8").read()
+    assert '"/static/logo/"' in app

@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hyperstead</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/static/logo/hyperstead-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/logo/hyperstead-192.png">
+<link rel="apple-touch-icon" href="/static/logo/hyperstead-180.png">
 <style>
 :root{
   --bg:#0b0b0c; --panel:#111113; --panel2:#17171a; --line:#27272b; --text:#e8e8ea; --mute:#8b8b93;
@@ -30,7 +33,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* Sidebar */
 #side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 .brand{display:flex;align-items:center;gap:10px;padding:14px 14px 10px}
-.logo{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700}
+.logo{width:30px;height:30px;border-radius:9px;display:block;object-fit:cover}
 .side-sec{padding:6px 10px}
 .side-h{font-size:11px;letter-spacing:.08em;color:var(--mute);text-transform:uppercase;padding:10px 6px 4px;display:flex;justify-content:space-between;align-items:center}
 .side-btn{width:100%;text-align:left;background:none;border:0;padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:center;color:var(--text)}
@@ -392,7 +395,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
 <body>
 <div id="app">
   <aside id="side">
-    <div class="brand"><div class="logo">H</div><b>Hyperstead</b></div>
+    <div class="brand"><img class="logo" src="/static/logo/hyperstead-192.png" alt=""><b>Hyperstead</b></div>
     <div class="side-sec" id="sidemenu">
       <button class="side-btn" id="btnHelp" title="Anleitung: wie Hyperstead funktioniert, Kapitel mit Suche, dazu der Hilfe-Modus fürs Handy">📖 Anleitung</button>
       <details class="side-grp" data-grp="arbeit" open>
@@ -446,7 +449,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
             <button role="menuitemradio" data-view="org" data-org="baum" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
             <button role="menuitemradio" data-view="org" data-org="gliederung" title="Organigramm als Gliederung, eine Zeile je Agent (gut fürs Handy)">➡ Organigramm: Gliederung</button>
             <button role="menuitemradio" data-view="org" data-org="kreis" title="Organigramm als Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Organigramm: Kreis</button>
-            <button role="menuitemradio" data-view="atom" title="Atom: die Leitung ist der Kern, jede Abteilung kreist als Elektron auf ihrer Bahn">⚛️ Atom</button>
+            <button role="menuitemradio" data-view="atom" title="Atom: die Leitung ist der Kern, jede Abteilung sitzt als Elektron auf ihrer Bahn (steht still)">⚛️ Atom</button>
             <button role="menuitemradio" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
           </div>
         </div>
@@ -1644,7 +1647,7 @@ const HELP=[
 <li><b>Grafik wählen:</b> Der aufklappbare Knopf oben rechts in der Leiste (z. B. „🌌 Weltall ▾“) bietet sechs Grafiken: 🌌 Weltall, drei Organigramme (Baum, Gliederung, Kreis), ⚛️ Atom und 📐 Bauplan zum genauen Bearbeiten. Das Gerät merkt sich die Wahl.</li>
 <li><b>Weltall:</b> Sonne oder Planet antippen öffnet eine Karte mit dem Team, ein Mond öffnet direkt den Agenten. Blau pulsierender Ring = arbeitet, gelber Ring = wartet auf deine Freigabe, roter Ring = Fehler, gestrichelt lila = wartet auf sein Team. Zwischen den Bahnen liegt ein Asteroidengürtel, Monde haben Krater, Planeten Wolken oder Bänder: das ist nur Schmuck. Auf dem Handy siehst du statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden, mit Zeichen ▶ in Arbeit, ✋ Freigabe, ❗ Fehler, ⏳ wartet, 📦 erfüllt.</li>
 <li><b>🏢 Organigramm:</b> zeigt dasselbe Team als klassisches Organigramm in drei Arten, auswählbar im Grafik-Knopf: <b>⬇ Baum</b> (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), <b>➡ Gliederung</b> (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und <b>◎ Kreis</b> (Leitung in der Mitte, jede Ebene ein Ring). Der farbige Streifen bzw. Ring zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Die gewählte Art merkt sich das Gerät. Karten lassen sich mit der Maus oder dem Finger verschieben, die Linien gehen mit. Das merkt sich das Gerät je Projekt und Art; „↺ Anordnung zurücksetzen“ oben in der Mitte stellt die Ordnung wieder her.</li>
-<li><b>⚛️ Atom:</b> wie ein Atom aus dem Film: Im <b>Kern</b> aus roten und grauen Kugeln sitzt die oberste Leitung. Jede Abteilung bekommt eine eigene <b>Elektronenbahn</b>, die großen Elektronen sind die Abteilungsleitungen, die kleinen ihre Mitarbeiter. Ein farbiger Ring zeigt den Zustand wie überall. Antippen öffnet den Agenten, mit der Maus darauf hält die Bewegung an.
+<li><b>⚛️ Atom:</b> wie ein Atom aus dem Film: Im <b>Kern</b> aus roten und grauen Kugeln sitzt die oberste Leitung. Jede Abteilung bekommt eine eigene <b>Elektronenbahn</b>, die großen Elektronen sind die Abteilungsleitungen, die kleinen ihre Mitarbeiter. Ein farbiger Ring zeigt den Zustand wie überall. Die Grafik steht still, damit man in Ruhe lesen kann. Antippen öffnet den Agenten.
 <li><b>Mehr Sterne:</b> Mit jeder Stufe wird der Himmel voller. Ab Sternhaufen leuchten Nebel, als Galaxie dreht sich eine Spirale im Hintergrund.</li>
 <li><b>🌓</b> wechselt Hell/Dunkel. Unter ⓘ lassen sich Bewegung und Feier-Effekte abschalten.</li></ul>`},
  {id:'agenten',t:'🤖 Agenten, KI und Rechte',h:`<p>Agent antippen öffnet das Seitenfenster mit den Reitern Einstellungen, 💬 Chat, Aufgaben und Verlauf.</p>
@@ -1930,7 +1933,7 @@ function setView(v){
   $('#app').classList.toggle('view-org', v==='org');
   $('#app').classList.toggle('view-atom', v==='atom');
   markView();
-  hideBcard(); MAP.sig=''; ORG.sig=''; ATOM.sig=''; render(); fit(); startOrbit(); startAtom();
+  hideBcard(); MAP.sig=''; ORG.sig=''; ATOM.sig=''; render(); fit(); startOrbit();
   if(v==='plan' && S.graph) untangle();
 }
 function markView(){
@@ -2311,7 +2314,7 @@ $('#orgReset').onclick=()=>{ delete ORG.off[orgOffKey()]; orgSaveOff(); ORG.sig=
 $('#orgsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const c=e.target.closest('.ocard'); if(c){ e.preventDefault(); selectAgent(+c.dataset.agent); } });
 
 /* ---------- Atom: Kern = oberste Leitung, je Abteilung eine Elektronenbahn, Teammitglieder kreisen mit ---------- */
-const ATOM = {box:null, sig:'', mv:[], raf:0, t0:0, hold:false, held:0, last:0};
+const ATOM = {box:null, sig:'', mv:[]};
 function atomNucleus(n, R){  // Protonen (rot) und Neutronen (grau) dicht gepackt, Anzahl nach Teamgroesse
   const out=[], k=Math.max(8, Math.min(40, n*2)), r=Math.max(7, R/Math.sqrt(k)*1.05), RND=rnd((S.pid||1)*31);
   const pts=[]; for(let i=0;i<k;i++){ const rr=R*.82*Math.sqrt((i+.5)/k), a=i*2.39996; pts.push([rr*Math.cos(a), rr*Math.sin(a), RND()]); }
@@ -2322,7 +2325,7 @@ function atomNucleus(n, R){  // Protonen (rot) und Neutronen (grau) dicht gepack
 function drawAtom(){
   const g=S.graph, svg=$('#atomsvg');
   if(!g || VIEW!=='atom'){ svg.innerHTML=''; ATOM.box=null; ATOM.sig=''; ATOM.mv=[]; return; }
-  const sig=JSON.stringify([S.pid,S.sel,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts]),motionOff()]);
+  const sig=JSON.stringify([S.pid,S.sel,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts])]);
   if(sig===ATOM.sig && svg.firstChild) return; ATOM.sig=sig;
   const roots=orgTree(g); if(!roots.length){ svg.innerHTML=''; ATOM.box=null; ATOM.mv=[]; return; }
   const shells=[]; roots.forEach(r=>r.kids.forEach(k=>shells.push(k)));
@@ -2332,14 +2335,15 @@ function drawAtom(){
   shells.forEach((sh,i)=>{
     const rot=shells.length===1?0:i*180/shells.length, rx=R-(i%2)*24, ry=RY-(i%2)*8;
     orbits.push(`<ellipse class="aorbit" rx="${rx}" ry="${ry.toFixed(1)}" transform="rotate(${rot})"/>`);
-    const team=all(sh), w=2*Math.PI/(14+i*3)*(i%2?-1:1);
+    const team=all(sh);
     team.forEach((n,j)=>{
-      const lead=j===0, a0=2*Math.PI*j/team.length+i*.9, st=agentState(n.a), er=lead?13:Math.max(6,9-n.d);
-      ATOM.mv.push({rx, ry, rot:rot*Math.PI/180, a0, w});
+      const lead=j===0, u=(60+j*240/team.length)%240, a0=(u<120?u-60:u+60)*Math.PI/180,  // nur an den Bahnenden, nie vor dem Kern
+        st=agentState(n.a), er=lead?13:Math.max(6,9-n.d);
+      ATOM.mv.push({rx, ry, rot:rot*Math.PI/180, a0});
       els.push(`<g class="amv"><g class="el${S.sel===n.a.id?' sel':''}" data-agent="${n.a.id}" tabindex="0" role="button" aria-label="${esc(n.a.name)}: ${STATE_TEXT[st]}">
         <title>${esc(n.a.name)} – ${esc(n.a.role||'')} · ${STATE_TEXT[st]}</title>
         <circle r="${er*2.6}" fill="url(#aGlow)"/><circle class="core" r="${er}" fill="url(#aE)"/>
-        ${st!=='idle'?`<circle r="${er+3.5}" fill="none" stroke="${ORG_COL[st]}" stroke-width="2.5" class="${st==='run'?'opulse':''}"/>`:''}
+        ${st!=='idle'?`<circle r="${er+3.5}" fill="none" stroke="${ORG_COL[st]}" stroke-width="2.5"/>`:''}
         ${lead||team.length<=6?`<text class="albl" y="${er+15}">${esc(n.a.name.length>16?n.a.name.slice(0,15)+'…':n.a.name)}</text>`:''}
         ${lead&&n.a.role?`<text class="albl2" y="${er+28}">${esc(n.a.role.length>20?n.a.role.slice(0,19)+'…':n.a.role)}</text>`:''}</g></g>`);
     });
@@ -2348,7 +2352,7 @@ function drawAtom(){
   const nuc=`<g class="nuc el${S.sel===roots[0].a.id?' sel':''}" data-agent="${roots[0].a.id}" tabindex="0" role="button" aria-label="${esc(names)}: ${STATE_TEXT[st0]}">
     <title>${esc(names)} – Kern · ${STATE_TEXT[st0]}</title>
     <circle r="${(NR*2.4).toFixed(1)}" fill="url(#aNucGlow)"/>${atomNucleus(g.agents.length, NR)}
-    ${st0!=='idle'?`<circle r="${NR+6}" fill="none" stroke="${ORG_COL[st0]}" stroke-width="3" class="${st0==='run'?'opulse':''}"/>`:''}
+    ${st0!=='idle'?`<circle r="${NR+6}" fill="none" stroke="${ORG_COL[st0]}" stroke-width="3"/>`:''}
     <text class="nlbl" y="${NR+24}">${esc(names.length>30?names.slice(0,29)+'…':names)}</text>
     ${roots.length===1&&roots[0].a.role?`<text class="albl2" y="${NR+39}">${esc(roots[0].a.role)}</text>`:''}</g>`;
   const defs=`<defs><radialGradient id="aP" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#ffb4a8"/><stop offset=".45" stop-color="#e2463a"/><stop offset="1" stop-color="#5c0d0a"/></radialGradient>
@@ -2361,26 +2365,14 @@ function drawAtom(){
   svg.innerHTML=defs+back+`<g>${orbits.join('')}</g>`+nuc+els.join('');
   ATOM.box={x0:-R-50, x1:R+50, y0:-R-40, y1:R+40};
   ATOM.els=[...svg.querySelectorAll('.amv')];
-  atomPlace(motionOff()?0:(performance.now()-ATOM.held)/1000);
-  startAtom();
+  atomPlace();
 }
-function atomPlace(t){
-  ATOM.mv.forEach((m,i)=>{ const el=ATOM.els[i]; if(!el) return; const a=m.a0+t*m.w, x=m.rx*Math.cos(a), y=m.ry*Math.sin(a), c=Math.cos(m.rot), s=Math.sin(m.rot);
+function atomPlace(){  // feste Plaetze auf den Bahnen, die Grafik bewegt sich nicht (Wunsch ABI)
+  ATOM.mv.forEach((m,i)=>{ const el=ATOM.els[i]; if(!el) return; const a=m.a0, x=m.rx*Math.cos(a), y=m.ry*Math.sin(a), c=Math.cos(m.rot), s=Math.sin(m.rot);
     el.setAttribute('transform',`translate(${(x*c-y*s).toFixed(1)},${(x*s+y*c).toFixed(1)})`); });
 }
-function atomTick(now){
-  ATOM.raf=0;
-  if(VIEW!=='atom' || !ATOM.mv.length || document.hidden || motionOff()) return;
-  if(ATOM.hold){ ATOM.held+=now-(ATOM.last||now); ATOM.last=now; }
-  else if(now-ATOM.last>40){ ATOM.last=now; atomPlace((now-ATOM.held)/1000); }
-  ATOM.raf=requestAnimationFrame(atomTick);
-}
-function startAtom(){ if(!ATOM.raf) ATOM.raf=requestAnimationFrame(atomTick); }
-document.addEventListener('visibilitychange', startAtom);
 $('#atomsvg').addEventListener('click', e=>{ if(MAP.down && Math.hypot(e.clientX-MAP.down.x, e.clientY-MAP.down.y)>6) return; const c=e.target.closest('[data-agent]'); if(c) selectAgent(+c.dataset.agent); });
 $('#atomsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const c=e.target.closest('[data-agent]'); if(c){ e.preventDefault(); selectAgent(+c.dataset.agent); } });
-$('#atomsvg').addEventListener('pointerover', e=>{ ATOM.hold = e.pointerType==='mouse' && !!e.target.closest('.el'); });
-$('#atomsvg').addEventListener('pointerleave', ()=>{ ATOM.hold=false; });
 
 /* ---------- Start ---------- */
 (async function init(){

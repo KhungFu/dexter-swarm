@@ -3507,13 +3507,14 @@ _fails = {}  # ip -> [fehlversuche, fensterstart, gesperrt_bis]
 
 LOGIN_HTML = """<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Hyperstead – Login</title>
+<link rel="icon" type="image/png" href="/static/logo/hyperstead-32.png">
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b0c;color:#e8e8ea;
 font:15px system-ui,sans-serif}form{background:#111113;border:1px solid #27272b;border-radius:14px;padding:28px;width:min(340px,90vw)}
-.logo{width:34px;height:34px;border-radius:10px;background:#f97316;display:grid;place-items:center;font-weight:700;color:#fff;margin-bottom:14px}
+.logo{width:56px;height:56px;border-radius:14px;display:block;margin-bottom:14px}
 input{width:100%;box-sizing:border-box;margin:10px 0;padding:10px;border-radius:8px;border:1px solid #27272b;background:#0b0b0c;color:inherit;font:inherit}
 button{width:100%;padding:10px;border:0;border-radius:8px;background:#f97316;color:#fff;font:inherit;cursor:pointer}
 .err{color:#ff8a8a;font-size:13px;min-height:18px}</style></head><body>
-<form method="post" action="/login"><div class="logo">H</div><b>Hyperstead</b>
+<form method="post" action="/login"><img class="logo" src="/static/logo/hyperstead-192.png" alt=""><b>Hyperstead</b>
 <input type="password" name="password" placeholder="Passwort" autofocus autocomplete="current-password">
 <div class="err">__MSG__</div><button>Anmelden</button></form></body></html>"""
 
@@ -3559,7 +3560,7 @@ def logout():
 
 @app.before_request
 def guard():
-    if request.path == "/login" or request.path.startswith(("/files/", "/hook/")):
+    if request.path == "/login" or request.path.startswith(("/files/", "/hook/", "/static/logo/")):
         return  # /hook/ prueft sein Projekt-Token selbst  # /files/ prueft ein Link-Token selbst (Vorschauseiten laden Bilder ohne Cookie nach)
     if TOKEN and not verify_cookie(request.cookies.get("pcl")):
         if request.path.startswith("/api/"):

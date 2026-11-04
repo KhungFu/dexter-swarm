@@ -225,6 +225,7 @@ Ova lista se dopunjuje pri svakoj promeni programa. Svaki red kaže šta sistem 
 | AI CEO-a (kod zahteva za dopunu) | Zahtev stiže direktno vama uz napomenu „Nema CEO-a sa AI“ ili „CEO nije dostupan“. | Odlučite sami ili dodelite CEO-u AI. |
 | `werkstatt.py` (programski fajl) | Hyperstead se ne pokreće (greška pri uvozu). | Ponovo pokrenite `git pull`, fajl je deo programa. |
 | `growth.py` (programski fajl) | Hyperstead se ne pokreće (greška pri uvozu). | Ponovo pokrenite `git pull`, fajl je deo programa. |
+| Datoteke logotipa u `static/logo/` | Bočna traka i stranica za prijavu prikazuju prazno polje za sliku, kartica pregledača nema ikonu. Sve ostalo radi normalno. | Ponovo pokrenuti `git pull`. Logotip se može ponovo napraviti sa `docs/logo/logo_blender.py` ([uputstvo](docs/logo-prompt.md), na nemačkom). |
 | Raniji svet (Ceh, Tycoon, Gizmo grad) sačuvan u projektu | Projekat automatski prikazuje svemir. Poeni, nivo i rangovi ostaju isti, menjaju se samo nazivi i ikone. | Ništa ne treba raditi. |
 | Danas nema poziva veštačke inteligencije (operativni centar, 💶 u traci) | Prikazuje 0 $ odnosno „keine Aufrufe“. | Ništa ne treba raditi. Troškovi su procene, sopstvene cene preko `PCL_PRICES` u `.env`. |
 | Pregledač ništa ne čuva (privatni prozor) | Svetlo/tamno, izabrana grafika (svemir, vrsta organigrama, atom, nacrt), pomerene kartice organigrama, pokreti i režim pomoći se pri svakom učitavanju vraćaju na podrazumevano. | Koristite običan prozor; podaci projekata nisu pogođeni. |
@@ -303,7 +304,7 @@ Poeni se zovu zvezdana prašina, zadaci se zovu misije. Raniji svetovi Ceh, Tyco
 
 **Organigram:** prikazuje tim u tri vrste, svaka je posebna stavka u izboru grafike: ⬇ Baum (stablo odozgo nadole, zaposleni bez sopstvenog tima stoje jedan ispod drugog), ➡ Gliederung (jedan red po agentu, uvučeno po nivou, najbolje za telefon) i ◎ Kreis (krug, rukovodstvo u sredini, svaki nivo jedan prsten). Boja pokazuje stanje: zeleno spremno, plavo radi, žuto čeka vaše odobrenje, crveno greška, ljubičasto čeka tim, sivo pauzirano. Dodir otvara agenta. Kartice se mogu prevlačiti, linije ih prate; uređaj to pamti po projektu i vrsti, „↺ Anordnung zurücksetzen“ vraća raspored. Ako karticu spustite na drugu (ili u nacrtu agenta na drugog agenta), Hyperstead prvo pita i tek onda ga stavlja u taj tim.
 
-**Atom:** ⚛️ prikazuje tim kao atom iz filmova: u jezgru od crvenih i sivih kuglica sedi najviše rukovodstvo, svako odeljenje kruži na sopstvenoj elektronskoj putanji, a zaposleni ga prate kao manji elektroni. Stanje i dodir rade kao u organigramu.
+**Atom:** ⚛️ prikazuje tim kao atom iz filmova: u jezgru od crvenih i sivih kuglica sedi najviše rukovodstvo, svako odeljenje ima sopstvenu elektronsku putanju, a zaposleni stoje na njoj kao manji elektroni. Grafika miruje, da bi se mogla čitati na miru. Stanje i dodir rade kao u organigramu.
 
 **Operativni centar:** 🛰 u bočnoj traci (ili dodir na brojeve u traci rasta) na prvi pogled prikazuje šta trenutno radi i čeka, koja odobrenja su otvorena, šta nije uspelo u poslednjih 7 dana (sa ↻ Neu), rasporede (sa ▶ Jetzt), poruke o greškama i poslednje događaje. Uz to prikazuje procenjene troškove veštačke inteligencije za danas i poslednjih 7 dana; današnji trošak stoji i kao 💶 u traci. Svi brojevi dolaze iz postojećih zadataka, odobrenja, rasporeda i istorije, ništa nije izmišljeno.
 

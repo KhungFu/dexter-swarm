@@ -155,7 +155,9 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
 - Grafik-Auswahl: aufklappbares Menue `#gViewBtn`/`#gViewMenu` (world, org+baum/gliederung/kreis, atom, plan; `markView`, `viewMenu`).
   Dunkle Farbvariablen in `:root` NIE auf sich selbst zeigen lassen (`--edge:var(--edge)` machte die Bauplan-Linien unsichtbar). `untangle`: liegen
   Agenten im Bauplan aufeinander, einmal je Projekt `autoLayout`. Verbinden (Port ziehen, Agent/Karte auf anderen ziehen) immer ueber `connectAsk` (confirm, Zyklus-Pruefung).
-- Atom (`VIEW='atom'`, `#atomsvg`, `drawAtom`/`atomTick`): Kern = Wurzel(n), je direkt Unterstellter eine gedrehte Ellipsenbahn, Team als Elektronen.
+- Atom (`VIEW='atom'`, `#atomsvg`, `drawAtom`/`atomPlace`): Kern = Wurzel(n), je direkt Unterstellter eine gedrehte Ellipsenbahn, Team als Elektronen auf festen Plaetzen. Steht still (Wunsch ABI 2026-11-04), keine Animation, keine Pulsringe.
+- Logo: `static/logo/hyperstead-{32,180,192,512,1024}.png` (Favicon, Seitenleiste `.brand img.logo`, Login-Seite), `/static/logo/` ohne Anmeldung (guard).
+  Gerendert mit `docs/logo/logo_blender.py` (bpy/Cycles, Molekuelnetz), Prompt und Anleitung `docs/logo-prompt.md`.
 - Organigramm (Ansicht `VIEW='org'`): `#orgsvg` im `#world`-Transform, drei Arten
   (`ORG.style` baum|gliederung|kreis, localStorage `hs-org`), Layouts liefern nur `nodes`, `orgRender` wendet Verschiebungen `ORG.off` an
   (localStorage `hs-orgpos`, je Projekt+Art, `#orgReset`) und zeichnet Linien neu: `orgBaum` (oben nach unten, mehr als 2 Mitarbeiter ohne Team werden gestapelt),
