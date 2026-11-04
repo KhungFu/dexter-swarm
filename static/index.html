@@ -8,7 +8,7 @@
 :root{
   --bg:#0b0b0c; --panel:#111113; --panel2:#17171a; --line:#27272b; --text:#e8e8ea; --mute:#8b8b93;
   --accent:#f97316; --accent2:#7c3aed; --blue:#3b82f6; --green:#22c55e; --red:#ef4444; --yellow:#eab308; --orange:#f59e0b;
-  --chip:var(--chip); --dotgrid:var(--dotgrid); --edge:var(--edge); --hover:var(--hover); --toastbg:var(--toastbg); --ground:#0f1a26;
+  --chip:#1f1f24; --dotgrid:#24242a; --edge:#6b6b78; --hover:#3a3a43; --toastbg:#3a1616; --ground:#0f1a26;
 }
 /* Helles Design (Schalter in der Kopfleiste, Standard folgt dem Geraet) */
 :root[data-theme="light"]{
@@ -118,14 +118,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 #map{position:absolute;left:0;top:0;overflow:visible;display:none}
 #app.view-world #map{display:block}
 #app.view-world #edges,#app.view-world #nodes,#app.view-world #palette{display:none}
-#app.view-world #vp{background:radial-gradient(ellipse at 50% 45%,#16204a,#0a0f24 55%,#05070f) !important;background-size:100% 100% !important;background-position:0 0 !important}
-#map .star{fill:#e2e8f0;opacity:.7}
+#app.view-world #vp,#app.view-atom #vp{background:radial-gradient(ellipse at 50% 45%,#0c1222,#05070e 60%,#020308) !important;background-size:100% 100% !important;background-position:0 0 !important}
+#map .star{opacity:.75}
+#map .halo{opacity:.5}
 #map .star.tw{animation:twinkle 4s ease-in-out infinite}
-#map .gstar{fill:#c7d2fe;opacity:.5}
-#map .nebula{opacity:.10;filter:blur(30px)}
-#map .orbit{fill:none;stroke:#94a3b8;stroke-opacity:.22;stroke-width:1.2;stroke-dasharray:3 6}
-#map .morbit{fill:none;stroke:#94a3b8;stroke-opacity:.18;stroke-width:1}
-#map .pring{fill:none;stroke-width:3;stroke-opacity:.55}
+#map .gstar{fill:#dbe4ff;opacity:.22}
+#map .nebula{opacity:.07;filter:blur(40px)}
+#map .milky{opacity:.09;filter:blur(28px)}
+#map .orbit{fill:none;stroke:#8fa3c0;stroke-opacity:.16;stroke-width:1}
+#map .morbit{fill:none;stroke:#8fa3c0;stroke-opacity:.12;stroke-width:.8}
+#map .pring{fill:none;stroke:#d9c8a6;stroke-opacity:.45}
 #map .body{cursor:pointer}
 #map .body:focus{outline:none}
 #map .body:hover>circle:first-of-type{filter:brightness(1.2)}
@@ -138,29 +140,43 @@ button,input,select,textarea{font:inherit;color:inherit}
 #map .s-wait{stroke:#a78bfa;stroke-dasharray:3 3}
 #map .sun .corona{animation:corona 5s ease-in-out infinite;transform-origin:0 0;transform-box:fill-box}
 #map .sun.st-run .corona{animation-duration:1.8s}
-#map .lbl{font:600 13px system-ui,sans-serif;fill:#e5e7eb;text-anchor:middle;paint-order:stroke;stroke:#070b1a;stroke-width:4px;stroke-linejoin:round}
+#map .lbl{font:600 13px system-ui,sans-serif;fill:#dfe4ec;text-anchor:middle;paint-order:stroke;stroke:#070b1a;stroke-width:4px;stroke-linejoin:round}
 #map .lbl2{font:11px system-ui,sans-serif;fill:#94a3b8;text-anchor:middle;paint-order:stroke;stroke:#070b1a;stroke-width:3px}
 #map .mlbl{font:10px system-ui,sans-serif;fill:#cbd5e1;text-anchor:middle;paint-order:stroke;stroke:#070b1a;stroke-width:3px;pointer-events:none}
 #map .state{font-size:22px;text-anchor:middle;fill:#fff}
 #map .state.sm{font-size:15px}
-@keyframes twinkle{50%{opacity:.15}}
+@keyframes twinkle{50%{opacity:.35}}
 @keyframes glow{50%{stroke-opacity:.25}}
-@keyframes corona{50%{transform:scale(1.12);opacity:.8}}
+@keyframes corona{50%{transform:scale(1.04);opacity:.85}}
 @media (prefers-reduced-motion: reduce){#map .star.tw,#map .s-run,#map .sun .corona{animation:none}}
 :root[data-motion="off"] #map .star.tw,:root[data-motion="off"] #map .s-run,:root[data-motion="off"] #map .sun .corona{animation:none}
 /* Organigramm (drei Arten) */
 #orgsvg{position:absolute;left:0;top:0;overflow:visible;display:none}
-#orgbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:5;display:none;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
-#orgbar .btn{white-space:nowrap}
-#orgbar .btn.on,.vseg .vbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
 #app.view-org #orgsvg{display:block}
-#app.view-org #orgbar{display:flex}
+/* Atom (Kern = Leitung, Elektronen = Abteilungen und ihre Teams) */
+#atomsvg{position:absolute;left:0;top:0;overflow:visible;display:none}
+#app.view-atom #atomsvg{display:block}
+#app.view-atom #edges,#app.view-atom #nodes,#app.view-atom #palette{display:none}
+#atomsvg .aorbit{fill:none;stroke:#7dd3fc;stroke-opacity:.28;stroke-width:1.4}
+#atomsvg .el{cursor:pointer}
+#atomsvg .el:focus{outline:none}
+#atomsvg .el:focus-visible circle.core,#atomsvg .el.sel circle.core{stroke:#fff;stroke-width:2}
+#atomsvg .nuc{cursor:pointer}
+#atomsvg .albl{font:600 12px system-ui,sans-serif;fill:#e0f2fe;text-anchor:middle;paint-order:stroke;stroke:#020617;stroke-width:3.5px;pointer-events:none}
+#atomsvg .albl2{font:10px system-ui,sans-serif;fill:#94a3b8;text-anchor:middle;paint-order:stroke;stroke:#020617;stroke-width:3px;pointer-events:none}
+#atomsvg .nlbl{font:700 15px system-ui,sans-serif;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:#020617;stroke-width:4px}
+#orgReset{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:5;display:none}
+#app.view-org #orgReset:not([hidden]){display:block}
 #app.view-org #edges,#app.view-org #nodes,#app.view-org #palette{display:none}
-.vseg{display:flex;gap:2px}
-.vseg .vbtn{border-radius:0}
-.vseg .vbtn:first-child{border-radius:8px 0 0 8px}
-.vseg .vbtn:last-child{border-radius:0 8px 8px 0}
-@media (max-width:820px){.vseg .vbtn span{display:none}}
+/* Grafik-Auswahl (aufklappbar) */
+.vpick{position:relative}
+#gViewBtn{white-space:nowrap}
+.vmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:230px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:4px;box-shadow:0 10px 28px rgba(0,0,0,.28);display:flex;flex-direction:column}
+.vmenu[hidden]{display:none}
+.vmenu button{all:unset;box-sizing:border-box;display:block;padding:8px 10px;border-radius:7px;cursor:pointer;white-space:nowrap;font-size:13px}
+.vmenu button:hover,.vmenu button:focus-visible{background:var(--panel2);outline:none}
+.vmenu button.on{background:var(--accent);color:#fff}
 #orgsvg .ocard{cursor:pointer}
 #orgsvg .ocard:focus{outline:none}
 #orgsvg .ocard:focus-visible .obox,#orgsvg .ocard.sel .obox{stroke:var(--accent);stroke-width:2.5}
@@ -423,10 +439,16 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="g-bar" title="Fortschritt bis zur nächsten Stufe"><i id="gBar"></i></div>
       <div class="g-stats" id="gStats"></div>
       <div class="g-tools">
-        <div class="vseg" id="gViews" role="group" aria-label="Ansicht">
-          <button class="btn sm vbtn" data-view="world" title="Weltall: Sonnensystem mit Sonne, Planeten und Monden">🌌<span> Weltall</span></button>
-          <button class="btn sm vbtn" data-view="org" title="Organigramm: Baum, Gliederung oder Kreis">🏢<span> Organigramm</span></button>
-          <button class="btn sm vbtn" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐<span> Bauplan</span></button>
+        <div class="vpick" id="gViews">
+          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Grafik wählen: Weltall, drei Organigramme, Atom oder Bauplan"><span id="gViewLbl">🌌 Weltall</span> ▾</button>
+          <div class="vmenu" id="gViewMenu" role="menu" aria-label="Grafik" hidden>
+            <button role="menuitemradio" data-view="world" title="Weltall: Sonnensystem mit Sonne, Planeten und Monden">🌌 Weltall</button>
+            <button role="menuitemradio" data-view="org" data-org="baum" title="Organigramm als Baum von oben nach unten">🏢 Organigramm: Baum</button>
+            <button role="menuitemradio" data-view="org" data-org="gliederung" title="Organigramm als Gliederung, eine Zeile je Agent (gut fürs Handy)">➡ Organigramm: Gliederung</button>
+            <button role="menuitemradio" data-view="org" data-org="kreis" title="Organigramm als Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Organigramm: Kreis</button>
+            <button role="menuitemradio" data-view="atom" title="Atom: die Leitung ist der Kern, jede Abteilung kreist als Elektron auf ihrer Bahn">⚛️ Atom</button>
+            <button role="menuitemradio" data-view="plan" title="Bauplan: Agenten anlegen, verschieben und verbinden">📐 Bauplan</button>
+          </div>
         </div>
         <button class="icon-btn" id="gTheme" title="Wechselt zwischen hellem und dunklem Aussehen (gilt für dieses Gerät)">🌓</button>
         <button class="icon-btn" id="gInfo" title="Wie das Wachstum funktioniert">ⓘ</button>
@@ -437,10 +459,10 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
     </div>
     <div id="vp">
       <div class="zoom"><button id="zin" title="Hineinzoomen" aria-label="Hineinzoomen">+</button><button id="zout" title="Herauszoomen" aria-label="Herauszoomen">−</button><button id="zfit">Fit</button></div>
-      <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
+      <div id="world"><svg id="map" width="1" height="1"></svg><svg id="orgsvg" width="1" height="1"></svg><svg id="atomsvg" width="1" height="1"></svg><svg id="edges"></svg><div id="nodes"></div></div>
       <div id="bcard" role="dialog" aria-label="Himmelskörper"></div>
       <div id="wlist"></div>
-      <div id="orgbar" role="group" aria-label="Art des Organigramms"><button class="btn sm" data-org="baum" title="Klassischer Baum von oben nach unten">⬇ Baum</button><button class="btn sm" data-org="gliederung" title="Gliederung von links nach rechts, eine Zeile je Agent (gut fürs Handy)">➡ Gliederung</button><button class="btn sm" data-org="kreis" title="Kreis: Leitung in der Mitte, jede Ebene ein Ring">◎ Kreis</button></div>
+      <button class="btn sm" id="orgReset" hidden title="Von Hand verschobene Karten in diesem Organigramm wieder ordnen">↺ Anordnung zurücksetzen</button>
       <div class="empty" id="empty">Wähle links ein Projekt oder lege eins mit ＋ an.</div>
     </div>
   </section>
@@ -547,6 +569,15 @@ async function refresh(force){
   sideDots();
   render(); renderGrowth(); loadGrowth(force);
   if(S.sel && S.tab==='tasks') loadTasks();
+  if(VIEW==='plan' && !drag) untangle();
+}
+const UNTANGLED = new Set();
+function untangle(){  // Bauplan: liegen Agenten aufeinander (z. B. alle auf 0,0), einmal je Projekt automatisch ordnen
+  const as=S.graph.agents; if(as.length<2 || UNTANGLED.has(S.pid)) return;
+  let hits=0;
+  for(let i=0;i<as.length;i++) for(let j=i+1;j<as.length;j++) if(Math.abs(as[i].x-as[j].x)<W*.5 && Math.abs(as[i].y-as[j].y)<H*.5) hits++;
+  if(!hits) return;
+  UNTANGLED.add(S.pid); autoLayout().then(()=>toast('Einige Agenten lagen übereinander. Der Bauplan wurde automatisch geordnet.'));
 }
 function agentById(id){ return S.graph && S.graph.agents.find(a=>a.id===id); }
 
@@ -577,6 +608,7 @@ function render(){
   drawEdges();
   if(typeof drawMap==='function') drawMap();
   if(typeof drawOrg==='function') drawOrg();
+  if(typeof drawAtom==='function') drawAtom();
 }
 function drawEdges(){
   const svg = $('#edges'); let h='';
@@ -656,6 +688,9 @@ function fit(){
     const fw=(vp.width-30)/(b.x1-b.x0), fh=(vp.height-top-20)/(b.y1-b.y0);  // Gliederung: nur nach Breite, nach unten wird geblaettert
     const s=Math.min(1.1,Math.max(.3, ORG.style==='gliederung' ? fw : Math.min(fw,fh)));
     V.s=s; V.x=(vp.width-(b.x1-b.x0)*s)/2-b.x0*s; V.y = ORG.style==='kreis' ? top+(vp.height-top-(b.y1-b.y0)*s)/2-b.y0*s : top-b.y0*s; return applyView(); }
+  if(VIEW==='atom' && ATOM.box){ const vp=$('#vp').getBoundingClientRect(), b=ATOM.box;
+    const s=Math.min(1.1,Math.max(.25,Math.min((vp.width-40)/(b.x1-b.x0),(vp.height-40)/(b.y1-b.y0))));
+    V.s=s; V.x=(vp.width-(b.x1-b.x0)*s)/2-b.x0*s; V.y=(vp.height-(b.y1-b.y0)*s)/2-b.y0*s; return applyView(); }
   if(VIEW==='world' && MAP.box){ const vp=$('#vp').getBoundingClientRect(), b=MAP.box;
     const s=Math.min(1.1,Math.max(.3,Math.min((vp.width-40)/(b.x1-b.x0),(vp.height-40)/(b.y1-b.y0))));
     V.s=s; V.x=(vp.width-(b.x1-b.x0)*s)/2-b.x0*s; V.y=(vp.height-(b.y1-b.y0)*s)/2-b.y0*s; return applyView(); }
@@ -695,8 +730,13 @@ $('#vp').addEventListener('pointerdown',e=>{
   if(node){
     e.preventDefault();
     const id=+node.dataset.id; const a=agentById(id); const w=toWorld(e.clientX,e.clientY);
-    drag={type:'node',id,el:node,dx:w.x-a.x,dy:w.y-a.y,moved:false};
+    drag={type:'node',id,el:node,dx:w.x-a.x,dy:w.y-a.y,x0:a.x,y0:a.y,moved:false};
     selectAgent(id,true); return;
+  }
+  const oc = VIEW==='org' && e.target.closest('#orgsvg .ocard');
+  if(oc){  // Organigramm: Karte verschieben (nur Ansicht, gespeichert je Geraet)
+    const id=+oc.dataset.agent, o=orgOff()[id]||[0,0];
+    drag={type:'org', id, sx:e.clientX, sy:e.clientY, o0:o, moved:false}; return;
   }
   if(e.target.closest('#edges path.hit')) return;
   drag={type:'pan',sx:e.clientX,sy:e.clientY,vx:V.x,vy:V.y}; $('#vp').classList.add('panning');
@@ -715,6 +755,11 @@ window.addEventListener('pointermove',e=>{
     const w=toWorld(e.clientX,e.clientY); const a=agentById(drag.id);
     a.x=Math.round(w.x-drag.dx); a.y=Math.round(w.y-drag.dy); drag.moved=true;
     drag.el.style.left=a.x+'px'; drag.el.style.top=a.y+'px'; drawEdges();
+  } else if(drag.type==='org'){
+    const dx=(e.clientX-drag.sx)/V.s, dy=(e.clientY-drag.sy)/V.s;
+    if(!drag.moved && Math.hypot(e.clientX-drag.sx, e.clientY-drag.sy)<5) return; drag.moved=true;
+    const k=orgOffKey(); ORG.off[k]=ORG.off[k]||{}; ORG.off[k][drag.id]=[Math.round(drag.o0[0]+dx), Math.round(drag.o0[1]+dy)];
+    drawOrg();
   } else if(drag.type==='link'){
     const w=toWorld(e.clientX,e.clientY); const my=(drag.y1+w.y)/2;
     $('#tmp').setAttribute('d',`M${drag.x1},${drag.y1} V${my} H${w.x} V${w.y}`);
@@ -725,16 +770,34 @@ window.addEventListener('pointercancel',e=>{ endTouch(e); if(drag&&drag.type==='
 window.addEventListener('pointerup',async e=>{
   endTouch(e);
   if(!drag) return; const d=drag; drag=null; $('#vp').classList.remove('panning');
-  if(d.type==='node' && d.moved){ const a=agentById(d.id); api('/agents/'+d.id,'PUT',{x:a.x,y:a.y}); }
+  const dropOn=(sel,self)=>{ for(const el of document.elementsFromPoint(e.clientX,e.clientY)){ const c=el.closest(sel); if(c && +(c.dataset.id||c.dataset.agent)!==self) return +(c.dataset.id||c.dataset.agent); } return 0; };
+  if(d.type==='org' && d.moved){
+    const target=dropOn('#orgsvg .ocard', d.id);
+    if(target){  // auf eine andere Karte gezogen: nachfragen und unterstellen, die Karte springt an ihren Platz zurueck
+      const k=orgOffKey(); if(d.o0[0]||d.o0[1]) ORG.off[k][d.id]=d.o0; else delete ORG.off[k][d.id];
+      orgSaveOff(); ORG.sig=''; drawOrg(); connectAsk(d.id, target);
+    } else orgSaveOff();
+  }
+  if(d.type==='node' && d.moved){
+    const a=agentById(d.id), target=dropOn('.node', d.id);
+    if(target){ a.x=d.x0; a.y=d.y0; d.el.style.left=a.x+'px'; d.el.style.top=a.y+'px'; drawEdges(); connectAsk(d.id, target); }
+    else api('/agents/'+d.id,'PUT',{x:a.x,y:a.y});
+  }
   if(d.type==='link'){
     const t=$('#tmp'); if(t) t.remove();
     const el=document.elementFromPoint(e.clientX,e.clientY); const n=el&&el.closest('.node');
-    if(n && +n.dataset.id!==d.from){
-      try{ await api('/agents/'+n.dataset.id,'PUT',{parent_id:d.from}); }catch(_){}
-      refresh(true);
-    }
+    if(n && +n.dataset.id!==d.from) connectAsk(+n.dataset.id, d.from);
   }
 });
+
+async function connectAsk(childId, bossId){  // Verbinden immer mit Rueckfrage, damit nichts aus Versehen umgehaengt wird
+  const c=agentById(childId), b=agentById(bossId); if(!c || !b || c.id===b.id) return;
+  if(c.parent_id===b.id) return toast(`„${c.name}“ gehört schon zum Team von „${b.name}“.`);
+  for(let x=b; x; x=x.parent_id && agentById(x.parent_id)) if(x.id===c.id) return toast(`Geht nicht: „${b.name}“ gehört selbst zum Team von „${c.name}“.`);
+  if(!confirm(`„${c.name}“ dem Team von „${b.name}“ unterstellen?`)) return;
+  try{ await api('/agents/'+c.id,'PUT',{parent_id:b.id}); }catch(_){}
+  refresh(true);
+}
 
 /* ---------- Palette ---------- */
 (function(){
@@ -1578,8 +1641,10 @@ const HELP=[
 <li><b>Punkte:</b> Lieferung beim ersten Mal abgenommen +10, nach Überarbeitung +5, Auftrag in der Post erledigt +20, fehlgeschlagen −3, Nacharbeit angefordert −5.</li>
 <li><b>Stufen:</b> ab 0, 100, 300, 700 und 1500 Punkten. Die Stufe begrenzt nur, wie viele Agenten die Führung <i>selbst</i> anwirbt. Du kannst immer alles von Hand anlegen. Abschalten unter ⓘ in der Leiste.</li>
 <li><b>Ränge:</b> Agenten steigen nach ihren eigenen abgenommenen Lieferungen auf (ab 5, 20, 60).</li>
-<li><b>Weltall / Bauplan:</b> 🌌 zeigt das Sonnensystem, 📐 den Bauplan zum genauen Bearbeiten. Sonne oder Planet antippen öffnet eine Karte mit dem Team, ein Mond öffnet direkt den Agenten. Blau pulsierender Ring = arbeitet, gelber Ring = wartet auf deine Freigabe, roter Ring = Fehler, gestrichelt lila = wartet auf sein Team. ▶ in Arbeit, ✋ Freigabe, 🔧 Fehler, ⏳ wartet, 📦 erfüllt. Auf dem Handy siehst du statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden.</li>
-<li><b>🏢 Organigramm:</b> zeigt dasselbe Team als klassisches Organigramm in drei Arten, umschaltbar oben in der Mitte: <b>⬇ Baum</b> (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), <b>➡ Gliederung</b> (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und <b>◎ Kreis</b> (Leitung in der Mitte, jede Ebene ein Ring). Der farbige Streifen bzw. Ring zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Die gewählte Art merkt sich das Gerät.</li>
+<li><b>Grafik wählen:</b> Der aufklappbare Knopf oben rechts in der Leiste (z. B. „🌌 Weltall ▾“) bietet sechs Grafiken: 🌌 Weltall, drei Organigramme (Baum, Gliederung, Kreis), ⚛️ Atom und 📐 Bauplan zum genauen Bearbeiten. Das Gerät merkt sich die Wahl.</li>
+<li><b>Weltall:</b> Sonne oder Planet antippen öffnet eine Karte mit dem Team, ein Mond öffnet direkt den Agenten. Blau pulsierender Ring = arbeitet, gelber Ring = wartet auf deine Freigabe, roter Ring = Fehler, gestrichelt lila = wartet auf sein Team. Zwischen den Bahnen liegt ein Asteroidengürtel, Monde haben Krater, Planeten Wolken oder Bänder: das ist nur Schmuck. Auf dem Handy siehst du statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden, mit Zeichen ▶ in Arbeit, ✋ Freigabe, ❗ Fehler, ⏳ wartet, 📦 erfüllt.</li>
+<li><b>🏢 Organigramm:</b> zeigt dasselbe Team als klassisches Organigramm in drei Arten, auswählbar im Grafik-Knopf: <b>⬇ Baum</b> (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), <b>➡ Gliederung</b> (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und <b>◎ Kreis</b> (Leitung in der Mitte, jede Ebene ein Ring). Der farbige Streifen bzw. Ring zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Die gewählte Art merkt sich das Gerät. Karten lassen sich mit der Maus oder dem Finger verschieben, die Linien gehen mit. Das merkt sich das Gerät je Projekt und Art; „↺ Anordnung zurücksetzen“ oben in der Mitte stellt die Ordnung wieder her.</li>
+<li><b>⚛️ Atom:</b> wie ein Atom aus dem Film: Im <b>Kern</b> aus roten und grauen Kugeln sitzt die oberste Leitung. Jede Abteilung bekommt eine eigene <b>Elektronenbahn</b>, die großen Elektronen sind die Abteilungsleitungen, die kleinen ihre Mitarbeiter. Ein farbiger Ring zeigt den Zustand wie überall. Antippen öffnet den Agenten, mit der Maus darauf hält die Bewegung an.
 <li><b>Mehr Sterne:</b> Mit jeder Stufe wird der Himmel voller. Ab Sternhaufen leuchten Nebel, als Galaxie dreht sich eine Spirale im Hintergrund.</li>
 <li><b>🌓</b> wechselt Hell/Dunkel. Unter ⓘ lassen sich Bewegung und Feier-Effekte abschalten.</li></ul>`},
  {id:'agenten',t:'🤖 Agenten, KI und Rechte',h:`<p>Agent antippen öffnet das Seitenfenster mit den Reitern Einstellungen, 💬 Chat, Aufgaben und Verlauf.</p>
@@ -1859,14 +1924,38 @@ const MAP = {teams:[], box:null, down:null, movers:[], kids:{}, sig:'', raf:0, l
 let VIEW = 'world';
 try{ VIEW = localStorage.getItem('hs-view') || 'world'; }catch(e){}
 function setView(v){
-  if(!['world','org','plan'].includes(v)) v='world';
+  if(!['world','org','atom','plan'].includes(v)) v='world';
   VIEW = v; try{ localStorage.setItem('hs-view', v); }catch(e){}
   $('#app').classList.toggle('view-world', v==='world');
   $('#app').classList.toggle('view-org', v==='org');
-  document.querySelectorAll('#gViews [data-view]').forEach(b=>{ b.classList.toggle('on', b.dataset.view===v); b.setAttribute('aria-pressed', b.dataset.view===v); });
-  hideBcard(); MAP.sig=''; ORG.sig=''; render(); fit(); startOrbit();
+  $('#app').classList.toggle('view-atom', v==='atom');
+  markView();
+  hideBcard(); MAP.sig=''; ORG.sig=''; ATOM.sig=''; render(); fit(); startOrbit(); startAtom();
+  if(v==='plan' && S.graph) untangle();
 }
-$('#gViews').addEventListener('click', e=>{ const b=e.target.closest('[data-view]'); if(b) setView(b.dataset.view); });
+function markView(){
+  let lbl='';
+  document.querySelectorAll('#gViewMenu [data-view]').forEach(b=>{
+    const on = b.dataset.view===VIEW && (VIEW!=='org' || b.dataset.org===ORG.style);
+    b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if(on) lbl=b.textContent;
+  });
+  $('#gViewLbl').textContent = lbl || '🌌 Weltall';
+}
+function viewMenu(open){
+  const m=$('#gViewMenu'); if(open===undefined) open=m.hidden; m.hidden=!open;
+  $('#gViewBtn').setAttribute('aria-expanded', open);
+  if(open){ const b=m.querySelector('.on')||m.querySelector('button'); b && b.focus(); }
+}
+$('#gViewBtn').addEventListener('click', e=>{ e.stopPropagation(); viewMenu(); });
+$('#gViewMenu').addEventListener('click', e=>{ const b=e.target.closest('[data-view]'); if(!b) return;
+  if(b.dataset.org){ ORG.style=b.dataset.org; try{ localStorage.setItem('hs-org', ORG.style); }catch(err){} }
+  viewMenu(false); setView(b.dataset.view); $('#gViewBtn').focus(); });
+$('#gViewMenu').addEventListener('keydown', e=>{
+  const items=[...$('#gViewMenu').querySelectorAll('button')], i=items.indexOf(document.activeElement);
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); items[(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length].focus(); }
+  if(e.key==='Escape'){ e.stopPropagation(); viewMenu(false); $('#gViewBtn').focus(); }
+});
+document.addEventListener('click', e=>{ if(!e.target.closest('#gViews')) viewMenu(false); });
 function narrowCheck(){ $('#app').classList.toggle('narrow', innerWidth<=820); startOrbit(); }
 addEventListener('resize', narrowCheck);
 
@@ -1885,7 +1974,7 @@ function teamsOf(g){
 function teamState(t){
   const all=[t.lead,...t.members], c={run:0,wait:0,appr:0,fail:0,done:0,paused:0};
   all.forEach(a=>{ const k=a.counts||{}; c.run+=(k.running||0)+(k.queued||0); c.wait+=k.waiting_subtasks||0; c.appr+=k.waiting_approval||0; c.fail+=k.failed||0; c.done+=k.done||0; if(a.paused) c.paused++; });
-  c.icon = c.appr?'✋':c.run?'▶':c.fail?'🔧':c.wait?'⏳':c.done?'📦':'';
+  c.icon = c.appr?'✋':c.run?'▶':c.fail?'❗':c.wait?'⏳':c.done?'📦':'';
   c.text = c.appr?'wartet auf deine Freigabe':c.run?`${c.run} in Arbeit`:c.fail?`${c.fail} fehlgeschlagen`:c.wait?'wartet auf Zulieferung':c.done?`${c.done} erfüllt`:'bereit';
   return c;
 }
@@ -1894,7 +1983,17 @@ function agentState(a){
   return a.paused?'paused':c.waiting_approval?'appr':((c.running||0)+(c.queued||0))?'run':c.failed?'fail':c.waiting_subtasks?'wait':'idle';
 }
 const STATE_TEXT = {paused:'pausiert', appr:'wartet auf deine Freigabe', run:'arbeitet', fail:'Fehler', wait:'wartet auf Zulieferung', idle:'bereit'};
-const PLANET_COLS = ['#60a5fa','#34d399','#f472b6','#a78bfa','#fb923c','#22d3ee','#facc15','#f87171'];
+// Realistischere Planeten: [hell, mittel, dunkel], Gasriesen bekommen Wolkenbaender
+const PLANETS = [
+  ['#9cc3e6','#3f72a8','#0d2240'],  // Ozeanwelt
+  ['#e8a57c','#b5532c','#3d1408'],  // roter Wuestenplanet
+  ['#f1e2bd','#cbb07a','#5e4724'],  // Gasriese hell (Bänder)
+  ['#c9e7ee','#7fb3c4','#1f4652'],  // Eisriese
+  ['#e7c9a1','#b8844f','#4a2d12'],  // Gasriese braun (Bänder)
+  ['#bdbdbd','#8a8580','#2b2927'],  // Gesteinsplanet
+  ['#8fb0ea','#3b5fb0','#0e1d47'],  // tiefblauer Eisriese
+  ['#efe3c4','#d1b98a','#6a5634']]; // Wolkenplanet
+const PLANET_COLS = PLANETS.map(p=>p[1]);
 function allBelow(id){ const out=[], st=[...(MAP.kids[id]||[])]; while(st.length){ const a=st.shift(); out.push(a); st.push(...(MAP.kids[a.id]||[])); } return out; }
 function sysLayout(root){
   const kids=MAP.kids, stage=(WORLD.g&&WORLD.g.stage)||0, sunR=30+stage*4;
@@ -1937,52 +2036,90 @@ function moonSvg(m, j, n, mr, t){
   return `<g class="mv" transform="translate(${(mr*Math.cos(a)).toFixed(1)},${(mr*Math.sin(a)).toFixed(1)})">
     ${minis.length?'<circle class="morbit" r="10"/>':''}
     <g class="body moon st-${st}${S.sel===m.id?' sel':''}" data-agent="${m.id}" tabindex="0" role="button" aria-label="${esc(m.name)}: ${STATE_TEXT[st]}"><title>${esc(m.name)} – ${esc(m.role||'')}${rankTxt(m)} · ${STATE_TEXT[st]}</title>
-      <circle r="6" fill="url(#gMoon)"/>${stateRing(st,6)}${n<=8?`<text class="mlbl" y="17">${esc(m.name)}</text>`:''}</g>${inner}</g>`;
+      <circle r="6" fill="url(#gMoon)"/><circle cx="-1.8" cy="1.6" r="1.5" fill="#000" opacity=".2"/><circle cx="2" cy="-1.4" r="1" fill="#000" opacity=".18"/><circle cx="1.2" cy="2.8" r=".7" fill="#000" opacity=".15"/>${stateRing(st,6)}${n<=8?`<text class="mlbl" y="17">${esc(m.name)}</text>`:''}</g>${inner}</g>`;
 }
 function systemSvg(root, L, cx, cy, t, tIdx){
   const w=wdef(), out=[], sst=agentState(root), steam=MAP.teams.find(x=>x.lead.id===root.id);
   L.orbits.forEach(o=>out.push(`<ellipse class="orbit" rx="${o.R}" ry="${(o.R*MAP.TILT).toFixed(1)}"/>`));
+  if(L.orbits.length>=2) out.push(asteroidBelt(L, root.id));
   const sun = `<g class="body sun st-${sst}${S.sel===root.id?' sel':''}" data-team="${steam.idx}" tabindex="0" role="button" aria-label="${esc(root.name)} (${esc(w.words.top)}): ${esc(teamState(steam).text)}">
-    <circle class="corona" r="${(L.sunR*1.9).toFixed(1)}" fill="url(#gGlow)"/>
-    <circle r="${L.sunR}" fill="url(#gSun)"/>${stateRing(sst, L.sunR)}
-    ${teamState(steam).icon?`<text class="state" y="${-L.sunR-12}">${teamState(steam).icon}</text>`:''}
+    <circle class="corona" r="${(L.sunR*3.2).toFixed(1)}" fill="url(#gGlow)"/>
+    ${sunRays(L.sunR, root.id)}<circle r="${L.sunR}" fill="url(#gSun)"/>${sunSpots(L.sunR, root.id)}${stateRing(sst, L.sunR)}
     <text class="lbl" y="${L.sunR+22}">${esc(root.name)}</text>
     <text class="lbl2" y="${L.sunR+37}">${esc(root.role||w.words.top)}${rankTxt(root)}</text></g>`;
   const planets=[];
   L.orbits.forEach((o,oi)=>o.list.forEach((p,j)=>{
     const a0=2*Math.PI*j/o.list.length + oi*1.1, a=a0+t*o.w, st=agentState(p.a);
     const team=MAP.teams.find(x=>x.lead.id===p.a.id), col=PLANET_COLS[p.i%PLANET_COLS.length];
-    MAP.mv.push({r:o.R, a0, w:o.w, k:MAP.TILT});
+    MAP.mv.push({r:o.R, a0, w:o.w, k:MAP.TILT, sh:1});
     const moons = p.ms.map((m,k)=>moonSvg(m,k,p.ms.length,p.mr,t)).join('');
-    const ringed = p.ms.length>=4 ? `<ellipse class="pring" rx="${(p.pr*1.75).toFixed(1)}" ry="${(p.pr*.5).toFixed(1)}" transform="rotate(-18)" stroke="${col}"/>` : '';
+    const rx=p.pr*1.85, ry=p.pr*.42, rw=(p.pr*.22).toFixed(1);  // Ring: hintere Haelfte hinter dem Planeten, vordere davor
+    const ringBack = p.ms.length>=4 ? `<ellipse class="pring" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" transform="rotate(-14)" stroke-width="${rw}"/>` : '';
+    const ringed = p.ms.length>=4 ? `<path class="pring" d="M${(-rx).toFixed(1)},0 A${rx.toFixed(1)},${ry.toFixed(1)} 0 0 0 ${rx.toFixed(1)},0" transform="rotate(-14)" stroke-width="${rw}"/>` : '';
     planets.push(`<g class="mv" transform="translate(${(o.R*Math.cos(a)).toFixed(1)},${(o.R*Math.sin(a)*MAP.TILT).toFixed(1)})">
       ${p.ms.length?`<circle class="morbit" r="${p.mr.toFixed(1)}"/>`:''}
       <g class="body planet st-${st}${S.sel===p.a.id?' sel':''}" ${team?`data-team="${team.idx}"`:`data-agent="${p.a.id}"`} tabindex="0" role="button" aria-label="${esc(p.a.name)}: ${team?esc(teamState(team).text):STATE_TEXT[st]}">
         <title>${esc(p.a.name)} – ${esc(p.a.role||'')}${rankTxt(p.a)} · ${p.ms.length} ${p.ms.length===1?'Mond':'Monde'}</title>
-        <circle r="${p.pr.toFixed(1)}" fill="url(#gP${p.i%PLANET_COLS.length})"/>${ringed}${stateRing(st,p.pr)}
-        ${team&&teamState(team).icon?`<text class="state sm" y="${-p.pr-8}">${teamState(team).icon}</text>`:''}
+        ${ringBack}<circle r="${p.pr.toFixed(1)}" fill="url(#gP${p.i%PLANET_COLS.length})"/>${bands(p)}<circle class="shade" r="${p.pr.toFixed(1)}" fill="url(#gShade)" transform="rotate(${shadeDeg(a).toFixed(0)})"/>${ringed}${stateRing(st,p.pr)}
         <text class="lbl" y="${p.ext+15}">${esc(p.a.name)}</text>
         ${p.a.role?`<text class="lbl2" y="${p.ext+29}">${esc(p.a.role)}</text>`:''}</g>${moons}</g>`);
   }));
   return `<g transform="translate(${cx},${cy})">${out.join('')}${sun}${planets.join('')}</g>`;
 }
+function sunRays(r, seed){ const R=rnd(seed*13); let h='';
+  for(let i=0;i<28;i++){ const a=i/28*2*Math.PI+R()*.1, l=r*(1.25+R()*.9); h+=`<line x1="${(Math.cos(a)*r*.95).toFixed(1)}" y1="${(Math.sin(a)*r*.95).toFixed(1)}" x2="${(Math.cos(a)*l).toFixed(1)}" y2="${(Math.sin(a)*l).toFixed(1)}" stroke="#ffe7a8" stroke-opacity="${(.06+R()*.1).toFixed(2)}" stroke-width="${(1+R()*2.5).toFixed(1)}" stroke-linecap="round"/>`; }
+  return `<g class="rays">${h}</g>`; }
+function sunSpots(r, seed){ const R=rnd(seed*7); let h='';
+  for(let i=0;i<60;i++){ const a=R()*2*Math.PI, d=Math.sqrt(R())*r*.92; h+=`<circle cx="${(Math.cos(a)*d).toFixed(1)}" cy="${(Math.sin(a)*d).toFixed(1)}" r="${(r*(.03+R()*.05)).toFixed(1)}" fill="#f59e0b" opacity="${(.08+R()*.12).toFixed(2)}"/>`; }
+  for(let i=0;i<2;i++){ const a=R()*2*Math.PI, d=R()*r*.6; h+=`<circle cx="${(Math.cos(a)*d).toFixed(1)}" cy="${(Math.sin(a)*d).toFixed(1)}" r="${(r*.05).toFixed(1)}" fill="#7c2d12" opacity=".35"/>`; }
+  return h; }
+function asteroidBelt(L, seed){  // Guertel zwischen zweiter und dritter Bahn (oder ausserhalb der ersten)
+  if(!L.orbits.length) return ''; const o=L.orbits[Math.min(1,L.orbits.length-1)], R0=o.R+o.ext+18, R=rnd(seed*101); let h='';
+  for(let i=0;i<220;i++){ const a=R()*2*Math.PI, d=R0+(R()-.5)*26; h+=`<circle cx="${(Math.cos(a)*d).toFixed(1)}" cy="${(Math.sin(a)*d*MAP.TILT).toFixed(1)}" r="${(.4+R()*1.3).toFixed(1)}" fill="${R()>.5?'#9c8f80':'#6f6a64'}" opacity="${(.35+R()*.45).toFixed(2)}"/>`; }
+  return `<g class="belt">${h}</g>`; }
+function shadeDeg(a){ return Math.atan2(Math.sin(a)*MAP.TILT, Math.cos(a))*180/Math.PI; }  // Nachtseite zeigt von der Sonne weg
+function bands(p){
+  const k=p.i%PLANETS.length;
+  if(!(k===2||k===4||p.ms.length>=4)){  // Gestein/Ozean/Eis: Wolkenschleier und Flecken
+    const r=p.pr, R=rnd(p.a.id*97); let h='';
+    for(let i=0;i<4;i++) h+=`<ellipse cx="${((R()-.5)*r).toFixed(1)}" cy="${((R()-.5)*1.4*r).toFixed(1)}" rx="${(r*(.35+R()*.5)).toFixed(1)}" ry="${(r*(.06+R()*.08)).toFixed(1)}" fill="#fff" opacity="${(.18+R()*.2).toFixed(2)}" transform="rotate(${((R()-.5)*30).toFixed(0)})"/>`;
+    if(k===0||k===6) for(let i=0;i<2;i++) h+=`<ellipse cx="${((R()-.5)*r).toFixed(1)}" cy="${((R()-.5)*r).toFixed(1)}" rx="${(r*(.25+R()*.2)).toFixed(1)}" ry="${(r*(.15+R()*.15)).toFixed(1)}" fill="#4f7a3a" opacity=".45"/>`;
+    return `<g clip-path="url(#cP${p.a.id})"><clipPath id="cP${p.a.id}"><circle r="${r.toFixed(1)}"/></clipPath>${h}</g>`;
+  }
+  const r=p.pr, c=PLANETS[k]; let h='';
+  [-.55,-.28,.05,.34,.62].forEach((y,i)=>{ h+=`<ellipse cx="0" cy="${(y*r).toFixed(1)}" rx="${r.toFixed(1)}" ry="${(r*(i%2?.07:.11)).toFixed(1)}" fill="${i%2?c[0]:c[2]}" opacity="${i%2?.35:.28}"/>`; });
+  return `<g clip-path="url(#cP${p.a.id})"><clipPath id="cP${p.a.id}"><circle r="${r.toFixed(1)}"/></clipPath>${h}</g>`;
+}
 function rnd(seed){ let s=seed>>>0||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 function skySvg(b, stage, cx, cy){
-  const R=rnd((S.pid||1)*7919), W=b.x1-b.x0, H=b.y1-b.y0, n=Math.min(500, Math.round(W*H/9000)+40+stage*70), out=[];
+  const R=rnd((S.pid||1)*7919), W=b.x1-b.x0, H=b.y1-b.y0, n=Math.min(1100, Math.round(W*H/3500)+120+stage*80), out=[];
+  const SC=['#ffffff','#ffffff','#dbe6ff','#cfdcff','#fff3df','#ffe2bf','#ffd2a6'];
+  // Milchstrassen-Band quer ueber den Himmel
+  out.push(`<ellipse class="milky" cx="${cx}" cy="${cy}" rx="${(Math.max(W,H)*.75).toFixed(0)}" ry="${(Math.min(W,H)*.14).toFixed(0)}" fill="#b9c4dd" transform="rotate(-24 ${cx} ${cy})"/>`);
   if(stage>=4){ // Spiralgalaxie im Hintergrund
     for(let arm=0;arm<2;arm++) for(let i=0;i<160;i++){ const th=i*0.07, rr=40+i*Math.max(W,H)/330, a=th+arm*Math.PI;
-      out.push(`<circle class="gstar" cx="${(cx+rr*Math.cos(a)+(R()-.5)*30).toFixed(0)}" cy="${(cy+rr*Math.sin(a)*.55+(R()-.5)*30).toFixed(0)}" r="${(R()*1.6+.5).toFixed(1)}"/>`); }
+      out.push(`<circle class="gstar" cx="${(cx+rr*Math.cos(a)+(R()-.5)*30).toFixed(0)}" cy="${(cy+rr*Math.sin(a)*.55+(R()-.5)*30).toFixed(0)}" r="${(R()*1.2+.3).toFixed(1)}"/>`); }
   }
-  if(stage>=3){ const cols=['#7c3aed','#0ea5e9','#db2777'];
+  if(stage>=3){ const cols=['#3b4a8a','#5b3d6e','#2c5a66'];
     for(let i=0;i<3;i++) out.push(`<ellipse cx="${(b.x0+W*(.2+.3*i)).toFixed(0)}" cy="${(b.y0+H*(.3+.2*(i%2))).toFixed(0)}" rx="${(W*.28).toFixed(0)}" ry="${(H*.2).toFixed(0)}" fill="${cols[i]}" class="nebula"/>`); }
-  for(let i=0;i<n;i++){ const r=R(); out.push(`<circle class="star${r>.93?' tw':''}" cx="${(b.x0+R()*W).toFixed(0)}" cy="${(b.y0+R()*H).toFixed(0)}" r="${(r*1.3+.3).toFixed(1)}" style="animation-delay:${(R()*4).toFixed(1)}s"/>`); }
+  for(let i=0;i<5+stage*2;i++){  // ferne Galaxien als kleine Lichtflecken
+    const x=b.x0+R()*W, y=b.y0+R()*H, rx=6+R()*14;
+    out.push(`<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${rx.toFixed(1)}" ry="${(rx*(.25+R()*.4)).toFixed(1)}" fill="url(#gHalo)" opacity=".55" transform="rotate(${(R()*180).toFixed(0)} ${x.toFixed(0)} ${y.toFixed(0)})"/>`);
+  }
+  for(let i=0;i<n;i++){
+    const m=Math.pow(R(),3), x=(b.x0+R()*W).toFixed(0), y=(b.y0+R()*H).toFixed(0), c=SC[Math.floor(R()*SC.length)], r=(.25+m*1.3).toFixed(2);
+    if(m>.6) out.push(`<circle class="halo" cx="${x}" cy="${y}" r="${(r*5).toFixed(1)}" fill="url(#gHalo)"/>`);
+    out.push(`<circle class="star${m>.7?' tw':''}" cx="${x}" cy="${y}" r="${r}" fill="${c}" style="opacity:${(.35+m*.6).toFixed(2)};animation-delay:${(R()*4).toFixed(1)}s"/>`);
+  }
   return out.join('');
 }
 function mapDefs(){
-  const pl=PLANET_COLS.map((c,i)=>`<radialGradient id="gP${i}" cx="35%" cy="32%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".25" stop-color="${c}"/><stop offset="1" stop-color="${c}" stop-opacity=".55"/></radialGradient>`).join('');
-  return `<defs><radialGradient id="gSun" cx="40%" cy="38%" r="70%"><stop offset="0" stop-color="#fffbe6"/><stop offset=".35" stop-color="#fcd34d"/><stop offset=".8" stop-color="#f59e0b"/><stop offset="1" stop-color="#ea580c"/></radialGradient>
-    <radialGradient id="gGlow"><stop offset=".45" stop-color="#fbbf24" stop-opacity=".55"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
-    <radialGradient id="gMoon" cx="35%" cy="32%" r="75%"><stop offset="0" stop-color="#f8fafc"/><stop offset="1" stop-color="#94a3b8"/></radialGradient>${pl}</defs>`;
+  const pl=PLANETS.map((c,i)=>`<radialGradient id="gP${i}" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${c[0]}"/><stop offset=".55" stop-color="${c[1]}"/><stop offset=".92" stop-color="${c[2]}"/><stop offset="1" stop-color="${c[2]}" stop-opacity=".9"/></radialGradient>`).join('');
+  return `<defs><radialGradient id="gSun" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fffef6"/><stop offset=".55" stop-color="#fff2c9"/><stop offset=".85" stop-color="#ffd27f"/><stop offset="1" stop-color="#f4a340"/></radialGradient>
+    <radialGradient id="gGlow"><stop offset=".3" stop-color="#ffe8b0" stop-opacity=".55"/><stop offset=".55" stop-color="#ffcf7a" stop-opacity=".16"/><stop offset="1" stop-color="#ffb74d" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gHalo"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".25" stop-color="#dbe6ff" stop-opacity=".25"/><stop offset="1" stop-color="#dbe6ff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".48" stop-color="#000" stop-opacity=".05"/><stop offset=".68" stop-color="#000" stop-opacity=".72"/><stop offset="1" stop-color="#000" stop-opacity=".9"/></linearGradient>
+    <radialGradient id="gMoon" cx="38%" cy="36%" r="70%"><stop offset="0" stop-color="#d6d3ce"/><stop offset=".6" stop-color="#8f8b85"/><stop offset="1" stop-color="#3a3835"/></radialGradient>${pl}</defs>`;
 }
 function drawMap(){
   const g=S.graph, w=wdef(), svg=$('#map');
@@ -2000,7 +2137,7 @@ function drawMap(){
     MAP.box = i ? {x0:MAP.box.x0, x1:x-40, y0:Math.min(MAP.box.y0,-L.extY), y1:Math.max(MAP.box.y1,L.extY)} : {x0:-L.ext, x1:L.ext, y0:-L.extY, y1:L.extY}; });
   const b=MAP.box, pad=60, sky={x0:b.x0-pad*4, x1:b.x1+pad*4, y0:b.y0-pad*3, y1:b.y1+pad*3};
   svg.innerHTML = `${mapDefs()}<g>${skySvg(sky, stage, 0, 0)}</g>${parts.join('')}`;
-  MAP.movers = [...svg.querySelectorAll('.mv')].map((el,i)=>({el, ...MAP.mv[i]}));
+  MAP.movers = [...svg.querySelectorAll('.mv')].map((el,i)=>({el, ...MAP.mv[i], shade: MAP.mv[i]&&MAP.mv[i].sh ? el.querySelector(':scope > .body > .shade') : null}));
   // Handy: Liste statt Karte (Sonne, darunter je Planet mit seinen Monden)
   $('#wlist').innerHTML = teams.map(tm=>{ const st=teamState(tm), lvl=!tm.parent?'sun':!tm.parent.parent?'planet':'moon';
     const ico = st.icon || (lvl==='sun'?'☀️':lvl==='planet'?'🪐':'🌙');
@@ -2011,7 +2148,7 @@ function drawMap(){
         return `<button data-agent="${a.id}" class="st-${s}" title="${esc(a.name)}: ${STATE_TEXT[s]}">${k?sym:(lvl==='sun'?'☀️ ':lvl==='planet'?'🪐 ':'🌙 ')}${r?r.icon+' ':''}${esc(a.name)}${s==='run'?' ▶':s==='appr'?' ✋':s==='fail'?' 🔧':''}${a.paused?' ⏸':''}</button>`; }).join('')}</div></div>`; }).join('');
   startOrbit();
 }
-function placeMovers(t){ for(const m of MAP.movers){ const a=m.a0+t*m.w; m.el.setAttribute('transform',`translate(${(m.r*Math.cos(a)).toFixed(1)},${(m.r*Math.sin(a)*(m.k||1)).toFixed(1)})`); } }
+function placeMovers(t){ for(const m of MAP.movers){ const a=m.a0+t*m.w; m.el.setAttribute('transform',`translate(${(m.r*Math.cos(a)).toFixed(1)},${(m.r*Math.sin(a)*(m.k||1)).toFixed(1)})`); if(m.shade) m.shade.setAttribute('transform',`rotate(${shadeDeg(a).toFixed(0)})`); } }
 function orbitTick(now){
   MAP.raf=0;
   if(VIEW!=='world' || !MAP.movers.length || document.hidden || motionOff() || $('#app').classList.contains('narrow')) return;
@@ -2056,10 +2193,11 @@ $('#map').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') re
   if(b.dataset.team){ const r=b.getBoundingClientRect(); showBcard(+b.dataset.team, r.left+r.width/2, r.top+r.height/2); } else selectAgent(+b.dataset.agent); });
 
 /* ---------- Organigramm: drei Arten (Baum, Gliederung, Kreis) ---------- */
-const ORG = {box:null, sig:'', style:'baum'};
+const ORG = {box:null, sig:'', style:'baum', off:{}};
+try{ ORG.off = JSON.parse(localStorage.getItem('hs-orgpos')||'{}') || {}; }catch(e){}
 try{ ORG.style = localStorage.getItem('hs-org') || 'baum'; }catch(e){}
 const ORG_STYLES = {baum:'⬇ Baum', gliederung:'➡ Gliederung', kreis:'◎ Kreis'};
-function setOrgStyle(s){ ORG.style=s; try{ localStorage.setItem('hs-org', s); }catch(e){} ORG.sig=''; drawOrg(); fit(); }
+function setOrgStyle(s){ ORG.style=s; try{ localStorage.setItem('hs-org', s); }catch(e){} ORG.sig=''; markView(); drawOrg(); fit(); }
 function orgTree(g){
   const kids={}; g.agents.forEach(a=>{ if(a.parent_id && agentById(a.parent_id)) (kids[a.parent_id]=kids[a.parent_id]||[]).push(a); });
   const mk=(a,d)=>({a, d, kids:(kids[a.id]||[]).map(k=>mk(k,d+1))});
@@ -2076,85 +2214,173 @@ function orgCard(n, x, y, w, h){  // Karte mit Name, Rolle, Zustand und Rang
     <text x="14" y="${h/2+12}" class="orole">${esc(sub.length>28?sub.slice(0,27)+'…':sub)}</text>
     <circle cx="${w-12}" cy="12" r="5" fill="${ORG_COL[st]}" class="${st==='run'?'opulse':''}"/></g>`;
 }
+// Die drei Arten berechnen nur Positionen (nodes). orgRender verschiebt sie um die von Hand gezogenen Abstaende (ORG.off)
+// und zeichnet danach Karten und Linien, damit die Linien beim Verschieben mitgehen.
 function orgBaum(roots){  // klassisch von oben nach unten; Mitarbeiter ohne eigenes Team stehen untereinander, Teams nebeneinander
-  const W=170, H=54, GX=22, GY=56, out=[], lines=[];
+  const W=170, H=54, GX=22, GY=56, nodes=[];
   const split=n=>{ const lv=n.kids.filter(k=>!k.kids.length), tm=n.kids.filter(k=>k.kids.length);
     return lv.length>2 ? {stack:lv, row:tm} : {stack:[], row:n.kids}; };
   const width=n=>{ const sp=split(n); const w=(sp.stack.length?W+GX:0)+sp.row.reduce((s,k)=>s+width(k),0); return Math.max(W+GX, w); };
-  let maxY=0;
-  const place=(n,x0,y)=>{
-    const wd=width(n), cx=x0+wd/2; out.push(orgCard(n,cx-W/2,y,W,H)); maxY=Math.max(maxY,y+H);
+  const place=(n,x0,y,par)=>{
+    const wd=width(n), cx=x0+wd/2, me={n, x:cx-W/2, y, w:W, h:H, par, link:'v'}; nodes.push(me);
     if(!n.kids.length) return;
     const sp=split(n), inner=(sp.stack.length?W+GX:0)+sp.row.reduce((s,k)=>s+width(k),0);
-    let x=x0+(wd-inner)/2; const my=y+H+GY/2;
+    let x=x0+(wd-inner)/2;
     if(sp.stack.length){
-      const sx=x+GX/2, lx=sx+8;
-      lines.push(`M${cx},${y+H} V${my} H${lx}`);
-      sp.stack.forEach((k,i)=>{ const ky=y+H+GY+i*(H+12); out.push(orgCard(k,sx+18,ky,W-18,H)); maxY=Math.max(maxY,ky+H);
-        lines.push(`M${lx},${my} V${ky+H/2} H${sx+18}`); });
+      const sx=x+GX/2;
+      sp.stack.forEach((k,i)=>nodes.push({n:k, x:sx+18, y:y+H+GY+i*(H+12), w:W-18, h:H, par:me, link:'stack'}));
       x+=W+GX;
     }
-    sp.row.forEach(k=>{ const kw=width(k), kx=x+kw/2; lines.push(`M${cx},${y+H} V${my} H${kx} V${y+H+GY}`); place(k,x,y+H+GY); x+=kw; });
+    sp.row.forEach(k=>{ place(k,x,y+H+GY,me); x+=width(k); });
   };
-  let x=0; roots.forEach(r=>{ place(r,x,0); x+=width(r)+40; });
-  return {svg:`<g>${lines.map(d=>`<path class="oline" d="${d}"/>`).join('')}</g>${out.join('')}`, box:{x0:-20,y0:-20,x1:x,y1:maxY+20}};
+  let x=0; roots.forEach(r=>{ place(r,x,0,null); x+=width(r)+40; });
+  return {nodes, extra:''};
 }
 function orgGliederung(roots){  // von links nach rechts eingerueckt, eine Zeile je Agent (schmal, gut fuers Handy)
-  const W=200, H=48, IN=34, GAP=12, out=[], lines=[]; let row=0, maxX=0;
-  const walk=(n,par)=>{
-    const x=n.d*IN, y=row*(H+GAP); row++; out.push(orgCard(n,x,y,W,H)); maxX=Math.max(maxX,x+W);
-    if(par) lines.push(`M${par.x+12},${par.y+H} V${y+H/2} H${x}`);
-    n.kids.forEach(k=>walk(k,{x,y}));
-  };
+  const W=200, H=48, IN=34, GAP=12, nodes=[]; let row=0;
+  const walk=(n,par)=>{ const me={n, x:n.d*IN, y:row*(H+GAP), w:W, h:H, par, link:'side'}; row++; nodes.push(me); n.kids.forEach(k=>walk(k,me)); };
   roots.forEach(r=>walk(r,null));
-  return {svg:`<g>${lines.map(d=>`<path class="oline" d="${d}"/>`).join('')}</g>${out.join('')}`, box:{x0:-16,y0:-16,x1:maxX+16,y1:row*(H+GAP)+8}};
+  return {nodes, extra:''};
 }
 function orgKreis(roots){  // Leitung in der Mitte, jede Ebene ein Ring; Winkel nach Groesse der Teams
-  const RING=150, out=[], lines=[], rings=[];
+  const RING=150, nodes=[], rings=[];
   const leaves=n=>n.kids.length ? n.kids.reduce((s,k)=>s+leaves(k),0) : 1;
   const hub = roots.length>1;  // mehrere Leitungen: Projektname in der Mitte
-  const base = hub ? 1 : 0;
-  const pos=(d,ang)=>({x:Math.cos(ang)*d*RING, y:Math.sin(ang)*d*RING});
-  let maxD=0; const B={x0:-40,y0:-40,x1:40,y1:40};
+  const base = hub ? 1 : 0, H0={hub:1};
+  let maxD=0;
   const place=(n,a0,a1,par)=>{
-    const d=n.d+base, ang=(a0+a1)/2, p= d===0 ? {x:0,y:0} : pos(d,ang); maxD=Math.max(maxD,d);
-    B.x0=Math.min(B.x0,p.x-60); B.x1=Math.max(B.x1,p.x+60); B.y0=Math.min(B.y0,p.y-36); B.y1=Math.max(B.y1,p.y+52);
-    if(par) lines.push(`M${par.x},${par.y} L${p.x},${p.y}`);
-    const st=agentState(n.a), r=WORLD.g&&WORLD.g.ranks&&WORLD.g.ranks[n.a.id], rad= d===0?34:Math.max(16,26-d*3);
-    out.push(`<g class="ocard round${S.sel===n.a.id?' sel':''}" data-agent="${n.a.id}" tabindex="0" role="button" aria-label="${esc(n.a.name)}: ${STATE_TEXT[st]}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})">
+    const d=n.d+base, ang=(a0+a1)/2, x= d===0?0:Math.cos(ang)*d*RING, y= d===0?0:Math.sin(ang)*d*RING; maxD=Math.max(maxD,d);
+    const me={n, x, y, round:1, rad: d===0?34:Math.max(16,26-d*3), par, link:'line'}; nodes.push(me);
+    let a=a0; const tot=leaves(n);
+    n.kids.forEach(k=>{ const span=(a1-a0)*leaves(k)/tot; place(k,a,a+span,me); a+=span; });
+  };
+  const total=roots.reduce((s,r)=>s+leaves(r),0); let a=-Math.PI/2;
+  roots.forEach(r=>{ const span=2*Math.PI*leaves(r)/total; place(r, roots.length>1?a:-Math.PI/2, roots.length>1?a+span:3*Math.PI/2, hub?H0:null); a+=span; });
+  for(let d=1; d<=maxD; d++) rings.push(`<circle class="oring" r="${d*RING}"/>`);
+  const center = hub ? `<g><circle r="30" class="ohub"/><text class="oini" y="5">${esc(initials((S.graph&&S.graph.project.name)||'P'))}</text></g>` : '';
+  return {nodes, extra:`<g>${rings.join('')}</g>`, center};
+}
+function orgRound(n, x, y, rad){
+  const st=agentState(n.a), r=WORLD.g&&WORLD.g.ranks&&WORLD.g.ranks[n.a.id];
+  return `<g class="ocard round${S.sel===n.a.id?' sel':''}" data-agent="${n.a.id}" tabindex="0" role="button" aria-label="${esc(n.a.name)}: ${STATE_TEXT[st]}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">
       <title>${esc(n.a.name)} – ${esc(n.a.role||'')} · ${STATE_TEXT[st]}${r?' · '+r.icon+' '+r.name:''}</title>
       <circle r="${rad}" class="obox"/><circle r="${rad}" fill="none" stroke="${ORG_COL[st]}" stroke-width="3" class="${st==='run'?'opulse':''}"/>
       <text class="oini" y="5">${esc(initials(n.a.name))}</text>
       <text class="oname c" y="${rad+15}">${esc(n.a.name.length>16?n.a.name.slice(0,15)+'…':n.a.name)}</text>
-      ${n.a.role?`<text class="orole c" y="${rad+28}">${esc(n.a.role.length>18?n.a.role.slice(0,17)+'…':n.a.role)}</text>`:''}</g>`);
-    let a=a0; const tot=leaves(n);
-    n.kids.forEach(k=>{ const span=(a1-a0)*leaves(k)/tot; place(k,a,a+span,p); a+=span; });
-  };
-  const total=roots.reduce((s,r)=>s+leaves(r),0); let a=-Math.PI/2;
-  roots.forEach(r=>{ const span=2*Math.PI*leaves(r)/total; place(r, roots.length>1?a:-Math.PI/2, roots.length>1?a+span:3*Math.PI/2, hub?{x:0,y:0}:null); a+=span; });
-  for(let d=1; d<=maxD; d++) rings.push(`<circle class="oring" r="${d*RING}"/>`);
-  const center = hub ? `<g><circle r="30" class="ohub"/><text class="oini" y="5">${esc(initials((S.graph&&S.graph.project.name)||'P'))}</text></g>` : '';
-  return {svg:`<g>${rings.join('')}</g><g>${lines.map(d=>`<path class="oline" d="${d}"/>`).join('')}</g>${center}${out.join('')}`, box:B};
+      ${n.a.role?`<text class="orole c" y="${rad+28}">${esc(n.a.role.length>18?n.a.role.slice(0,17)+'…':n.a.role)}</text>`:''}</g>`;
+}
+function orgOffKey(){ return (S.pid||0)+':'+ORG.style; }
+function orgOff(){ return ORG.off[orgOffKey()] || {}; }
+function orgSaveOff(){ try{ localStorage.setItem('hs-orgpos', JSON.stringify(ORG.off)); }catch(e){} }
+function orgRender(L){  // Abstaende anwenden, Linien + Karten zeichnen, Rahmen fuer "Fit" bestimmen
+  const off=orgOff(), B={x0:Infinity,y0:Infinity,x1:-Infinity,y1:-Infinity}, cards=[], top=[], lines=[];
+  L.nodes.forEach(m=>{ const o=off[m.n.a.id]; m.X=m.x+(o?o[0]:0); m.Y=m.y+(o?o[1]:0); });
+  L.nodes.forEach(m=>{
+    if(m.round){ B.x0=Math.min(B.x0,m.X-60); B.x1=Math.max(B.x1,m.X+60); B.y0=Math.min(B.y0,m.Y-36); B.y1=Math.max(B.y1,m.Y+52); }
+    else { B.x0=Math.min(B.x0,m.X-20); B.x1=Math.max(B.x1,m.X+m.w+20); B.y0=Math.min(B.y0,m.Y-20); B.y1=Math.max(B.y1,m.Y+m.h+20); }
+    const p=m.par; if(p){
+      const px=p.hub?0:p.X, py=p.hub?0:p.Y;
+      if(m.link==='line') lines.push(`M${px},${py} L${m.X},${m.Y}`);
+      else if(m.link==='side') lines.push(`M${px+12},${py+p.h} V${m.Y+m.h/2} H${m.X}`);
+      else if(m.link==='stack'){ const lx=m.X-10; lines.push(`M${px+p.w/2},${py+p.h} V${py+p.h+28} H${lx} V${m.Y+m.h/2} H${m.X}`); }
+      else { const my=(py+p.h+m.Y)/2; lines.push(`M${px+p.w/2},${py+p.h} V${my} H${m.X+m.w/2} V${m.Y}`); }
+    }
+    const c=m.round ? orgRound(m.n, m.X, m.Y, m.rad) : orgCard(m.n, m.X, m.Y, m.w, m.h);
+    if(off[m.n.a.id]) top.push(c); else cards.push(c);  // verschobene Karten liegen oben
+  });
+  return {svg:`${L.extra}<g>${lines.map(d=>`<path class="oline" d="${d}"/>`).join('')}</g>${L.center||''}${cards.join('')}${top.join('')}`, box:B};
 }
 function initials(s){ const p=String(s).trim().split(/\s+/); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'')[1]||'')).toUpperCase(); }
 function drawOrg(){
-  const g=S.graph, svg=$('#orgsvg'), bar=$('#orgbar');
+  const g=S.graph, svg=$('#orgsvg');
   if(!g || VIEW!=='org'){ svg.innerHTML=''; ORG.box=null; ORG.sig=''; return; }
-  bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.org===ORG.style));
-  const sig=JSON.stringify([S.pid,S.sel,ORG.style,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts]),WORLD.g&&WORLD.g.ranks]);
+  const sig=JSON.stringify([S.pid,S.sel,ORG.style,orgOff(),g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts]),WORLD.g&&WORLD.g.ranks]);
   if(sig===ORG.sig && svg.firstChild) return; ORG.sig=sig;
   const roots=orgTree(g);
   if(!roots.length){ svg.innerHTML=''; ORG.box=null; return; }
-  const r = ORG.style==='kreis' ? orgKreis(roots) : ORG.style==='gliederung' ? orgGliederung(roots) : orgBaum(roots);
+  const r = orgRender(ORG.style==='kreis' ? orgKreis(roots) : ORG.style==='gliederung' ? orgGliederung(roots) : orgBaum(roots));
   svg.innerHTML=r.svg; ORG.box=r.box;
+  $('#orgReset').hidden = !Object.keys(orgOff()).length;
 }
-$('#orgbar').addEventListener('click', e=>{ const b=e.target.closest('[data-org]'); if(b) setOrgStyle(b.dataset.org); });
 function orgPick(e){
   if(MAP.down && Math.hypot(e.clientX-MAP.down.x, e.clientY-MAP.down.y)>6) return;
   const c=e.target.closest('.ocard'); if(c) selectAgent(+c.dataset.agent);
 }
 $('#orgsvg').addEventListener('click', orgPick);
+$('#orgReset').onclick=()=>{ delete ORG.off[orgOffKey()]; orgSaveOff(); ORG.sig=''; drawOrg(); fit(); };
 $('#orgsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const c=e.target.closest('.ocard'); if(c){ e.preventDefault(); selectAgent(+c.dataset.agent); } });
+
+/* ---------- Atom: Kern = oberste Leitung, je Abteilung eine Elektronenbahn, Teammitglieder kreisen mit ---------- */
+const ATOM = {box:null, sig:'', mv:[], raf:0, t0:0, hold:false, held:0, last:0};
+function atomNucleus(n, R){  // Protonen (rot) und Neutronen (grau) dicht gepackt, Anzahl nach Teamgroesse
+  const out=[], k=Math.max(8, Math.min(40, n*2)), r=Math.max(7, R/Math.sqrt(k)*1.05), RND=rnd((S.pid||1)*31);
+  const pts=[]; for(let i=0;i<k;i++){ const rr=R*.82*Math.sqrt((i+.5)/k), a=i*2.39996; pts.push([rr*Math.cos(a), rr*Math.sin(a), RND()]); }
+  pts.sort((p,q)=>Math.hypot(q[0],q[1])-Math.hypot(p[0],p[1]));  // aussen zuerst, innen oben drauf
+  pts.forEach((p,i)=>out.push(`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r.toFixed(1)}" fill="url(#${i%2?'aN':'aP'})"/>`));
+  return out.join('');
+}
+function drawAtom(){
+  const g=S.graph, svg=$('#atomsvg');
+  if(!g || VIEW!=='atom'){ svg.innerHTML=''; ATOM.box=null; ATOM.sig=''; ATOM.mv=[]; return; }
+  const sig=JSON.stringify([S.pid,S.sel,g.agents.map(a=>[a.id,a.parent_id,a.name,a.role,a.paused,a.counts]),motionOff()]);
+  if(sig===ATOM.sig && svg.firstChild) return; ATOM.sig=sig;
+  const roots=orgTree(g); if(!roots.length){ svg.innerHTML=''; ATOM.box=null; ATOM.mv=[]; return; }
+  const shells=[]; roots.forEach(r=>r.kids.forEach(k=>shells.push(k)));
+  const all=n=>[n,...n.kids.flatMap(all)];
+  const NR=34+Math.min(26, g.agents.length*1.4), R=230+shells.length*18, RY=R*.34;
+  const orbits=[], els=[]; ATOM.mv=[];
+  shells.forEach((sh,i)=>{
+    const rot=shells.length===1?0:i*180/shells.length, rx=R-(i%2)*24, ry=RY-(i%2)*8;
+    orbits.push(`<ellipse class="aorbit" rx="${rx}" ry="${ry.toFixed(1)}" transform="rotate(${rot})"/>`);
+    const team=all(sh), w=2*Math.PI/(14+i*3)*(i%2?-1:1);
+    team.forEach((n,j)=>{
+      const lead=j===0, a0=2*Math.PI*j/team.length+i*.9, st=agentState(n.a), er=lead?13:Math.max(6,9-n.d);
+      ATOM.mv.push({rx, ry, rot:rot*Math.PI/180, a0, w});
+      els.push(`<g class="amv"><g class="el${S.sel===n.a.id?' sel':''}" data-agent="${n.a.id}" tabindex="0" role="button" aria-label="${esc(n.a.name)}: ${STATE_TEXT[st]}">
+        <title>${esc(n.a.name)} – ${esc(n.a.role||'')} · ${STATE_TEXT[st]}</title>
+        <circle r="${er*2.6}" fill="url(#aGlow)"/><circle class="core" r="${er}" fill="url(#aE)"/>
+        ${st!=='idle'?`<circle r="${er+3.5}" fill="none" stroke="${ORG_COL[st]}" stroke-width="2.5" class="${st==='run'?'opulse':''}"/>`:''}
+        ${lead||team.length<=6?`<text class="albl" y="${er+15}">${esc(n.a.name.length>16?n.a.name.slice(0,15)+'…':n.a.name)}</text>`:''}
+        ${lead&&n.a.role?`<text class="albl2" y="${er+28}">${esc(n.a.role.length>20?n.a.role.slice(0,19)+'…':n.a.role)}</text>`:''}</g></g>`);
+    });
+  });
+  const st0=agentState(roots[0].a), names=roots.map(r=>r.a.name).join(' · ');
+  const nuc=`<g class="nuc el${S.sel===roots[0].a.id?' sel':''}" data-agent="${roots[0].a.id}" tabindex="0" role="button" aria-label="${esc(names)}: ${STATE_TEXT[st0]}">
+    <title>${esc(names)} – Kern · ${STATE_TEXT[st0]}</title>
+    <circle r="${(NR*2.4).toFixed(1)}" fill="url(#aNucGlow)"/>${atomNucleus(g.agents.length, NR)}
+    ${st0!=='idle'?`<circle r="${NR+6}" fill="none" stroke="${ORG_COL[st0]}" stroke-width="3" class="${st0==='run'?'opulse':''}"/>`:''}
+    <text class="nlbl" y="${NR+24}">${esc(names.length>30?names.slice(0,29)+'…':names)}</text>
+    ${roots.length===1&&roots[0].a.role?`<text class="albl2" y="${NR+39}">${esc(roots[0].a.role)}</text>`:''}</g>`;
+  const defs=`<defs><radialGradient id="aP" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#ffb4a8"/><stop offset=".45" stop-color="#e2463a"/><stop offset="1" stop-color="#5c0d0a"/></radialGradient>
+    <radialGradient id="aN" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#e5edf5"/><stop offset=".45" stop-color="#8495a8"/><stop offset="1" stop-color="#232c38"/></radialGradient>
+    <radialGradient id="aE" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#f0fbff"/><stop offset=".4" stop-color="#38bdf8"/><stop offset="1" stop-color="#075985"/></radialGradient>
+    <radialGradient id="aGlow"><stop offset="0" stop-color="#7dd3fc" stop-opacity=".55"/><stop offset="1" stop-color="#7dd3fc" stop-opacity="0"/></radialGradient>
+    <radialGradient id="aHalo"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".25" stop-color="#dbe6ff" stop-opacity=".25"/><stop offset="1" stop-color="#dbe6ff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="aNucGlow"><stop offset=".25" stop-color="#fca5a5" stop-opacity=".22"/><stop offset="1" stop-color="#fca5a5" stop-opacity="0"/></radialGradient></defs>`;
+  const back=`<g>${skySvg({x0:-R-300,x1:R+300,y0:-R-200,y1:R+200}, 0, 0, 0).replace(/<ellipse class="milky"[^>]*\/>/,'').replace(/url\(#gHalo\)/g,'url(#aHalo)')}</g>`;
+  svg.innerHTML=defs+back+`<g>${orbits.join('')}</g>`+nuc+els.join('');
+  ATOM.box={x0:-R-50, x1:R+50, y0:-R-40, y1:R+40};
+  ATOM.els=[...svg.querySelectorAll('.amv')];
+  atomPlace(motionOff()?0:(performance.now()-ATOM.held)/1000);
+  startAtom();
+}
+function atomPlace(t){
+  ATOM.mv.forEach((m,i)=>{ const el=ATOM.els[i]; if(!el) return; const a=m.a0+t*m.w, x=m.rx*Math.cos(a), y=m.ry*Math.sin(a), c=Math.cos(m.rot), s=Math.sin(m.rot);
+    el.setAttribute('transform',`translate(${(x*c-y*s).toFixed(1)},${(x*s+y*c).toFixed(1)})`); });
+}
+function atomTick(now){
+  ATOM.raf=0;
+  if(VIEW!=='atom' || !ATOM.mv.length || document.hidden || motionOff()) return;
+  if(ATOM.hold){ ATOM.held+=now-(ATOM.last||now); ATOM.last=now; }
+  else if(now-ATOM.last>40){ ATOM.last=now; atomPlace((now-ATOM.held)/1000); }
+  ATOM.raf=requestAnimationFrame(atomTick);
+}
+function startAtom(){ if(!ATOM.raf) ATOM.raf=requestAnimationFrame(atomTick); }
+document.addEventListener('visibilitychange', startAtom);
+$('#atomsvg').addEventListener('click', e=>{ if(MAP.down && Math.hypot(e.clientX-MAP.down.x, e.clientY-MAP.down.y)>6) return; const c=e.target.closest('[data-agent]'); if(c) selectAgent(+c.dataset.agent); });
+$('#atomsvg').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const c=e.target.closest('[data-agent]'); if(c){ e.preventDefault(); selectAgent(+c.dataset.agent); } });
+$('#atomsvg').addEventListener('pointerover', e=>{ ATOM.hold = e.pointerType==='mouse' && !!e.target.closest('.el'); });
+$('#atomsvg').addEventListener('pointerleave', ()=>{ ATOM.hold=false; });
 
 /* ---------- Start ---------- */
 (async function init(){

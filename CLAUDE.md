@@ -152,8 +152,13 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   dem Handy, haelt bei Maus ueber einem Koerper (`MAP.hold`). `drawMap` baut nur neu, wenn sich `MAP.sig` (Agenten, Zaehler, Stufe, Auswahl) aendert.
   Zustandsringe `agentState` (appr > run > fail > wait). Klick ueber `mapPick`: Sonne/Planet mit Team -> `#bcard`, Mond -> Agent. Handy <=820 px `#wlist`
   (Sonne, Planeten, Monde als eingerueckte Karten). Ansicht `VIEW` world|plan (localStorage `hs-view`).
-- Organigramm (Ansicht `VIEW='org'`, Umschalter `#gViews` world|org|plan): `#orgsvg` im `#world`-Transform, `#orgbar` mit drei Arten
-  (`ORG.style` baum|gliederung|kreis, localStorage `hs-org`): `orgBaum` (oben nach unten, mehr als 2 Mitarbeiter ohne Team werden gestapelt),
+- Grafik-Auswahl: aufklappbares Menue `#gViewBtn`/`#gViewMenu` (world, org+baum/gliederung/kreis, atom, plan; `markView`, `viewMenu`).
+  Dunkle Farbvariablen in `:root` NIE auf sich selbst zeigen lassen (`--edge:var(--edge)` machte die Bauplan-Linien unsichtbar). `untangle`: liegen
+  Agenten im Bauplan aufeinander, einmal je Projekt `autoLayout`. Verbinden (Port ziehen, Agent/Karte auf anderen ziehen) immer ueber `connectAsk` (confirm, Zyklus-Pruefung).
+- Atom (`VIEW='atom'`, `#atomsvg`, `drawAtom`/`atomTick`): Kern = Wurzel(n), je direkt Unterstellter eine gedrehte Ellipsenbahn, Team als Elektronen.
+- Organigramm (Ansicht `VIEW='org'`): `#orgsvg` im `#world`-Transform, drei Arten
+  (`ORG.style` baum|gliederung|kreis, localStorage `hs-org`), Layouts liefern nur `nodes`, `orgRender` wendet Verschiebungen `ORG.off` an
+  (localStorage `hs-orgpos`, je Projekt+Art, `#orgReset`) und zeichnet Linien neu: `orgBaum` (oben nach unten, mehr als 2 Mitarbeiter ohne Team werden gestapelt),
   `orgGliederung` (eine Zeile je Agent, eingerueckt; `fit` nur nach Breite), `orgKreis` (Wurzel in der Mitte, Ringe je Ebene, Winkel nach Blattzahl,
   mehrere Wurzeln -> Projektname in der Mitte). Karten `orgCard` mit Zustandsfarbe `ORG_COL`, Klick -> `selectAgent`. `drawOrg` baut nur bei neuer `ORG.sig`.
 - Betriebszentrale: `project_ops(pid)` / `GET /api/projects/<id>/ops` (aktive + fehlgeschlagene Aufgaben 7 Tage, offene Freigaben, Zeitplaene,

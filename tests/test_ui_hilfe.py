@@ -61,3 +61,17 @@ def test_postkorb_und_seitenmenue():
     for b in ("btnInbox", "btnApprovals", "btnOps", "btnGoals", "btnSched", "btnGroupAI", "btnModels", "btnKnow",
               "btnFiles", "btnCloud", "btnConn", "btnUsage", "btnAudit", "btnHelp", "btnLogout"):
         assert f'id="{b}"' in menu
+
+
+def test_grafik_auswahl_atom_und_farben():
+    html = HTML
+    # aufklappbare Auswahl mit allen sechs Grafiken
+    assert 'id="gViewMenu"' in html and 'aria-haspopup="true"' in html
+    for v in ('data-view="world"', 'data-view="atom"', 'data-view="plan"'):
+        assert v in html
+    assert "function drawAtom(" in html and "Atom" in html
+    # Organigramm-Karten verschiebbar
+    assert "type:'org'" in html and 'id="orgReset"' in html
+    # dunkles Design: Variablen duerfen nicht auf sich selbst zeigen (sonst sind die Bauplan-Linien unsichtbar)
+    for name in ("chip", "dotgrid", "edge", "hover", "toastbg"):
+        assert not re.search(r"--%s:var\(--%s\)" % (name, name), html)
