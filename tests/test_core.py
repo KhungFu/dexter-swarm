@@ -303,3 +303,39 @@ def test_rollenwechsel_passt_rechte_an(monkeypatch):
     drain()
     p = A.perms_of(A.q1("SELECT * FROM agents WHERE id=?", (m1,)))
     assert p["images"] and not p["web"] and not p["media"]
+
+
+# ------------------------------------------------------------ Postkorb loeschen/leeren
+def _post(pid, ceo, title, inbox="new"):
+    tid = make_task(pid, ceo, title, status="done")
+    A.ex("UPDATE tasks SET inbox=? WHERE id=?", (inbox, tid))
+    return tid
+
+
+def test_post_einzeln_loeschen_nur_ausgewaehlte(client):
+    pid, ceo, _ = team()
+    a, b, c = _post(pid, ceo, "A"), _post(pid, ceo, "B", "closed"), _post(pid, ceo, "C")
+    r = client.post("/api/inbox/delete", json={"ids": [a, b]})
+    assert r.status_code == 200 and r.json["deleted"] == 2
+    assert [x["id"] for x in client.get("/api/inbox").json] == [c]
+    assert task(a)["status"] == "done"  # Aufgabe bleibt, nur die Post ist weg
+    assert A.q1("SELECT COUNT(*) n FROM audit WHERE event='inbox_deleted'")["n"] == 2
+    assert client.post("/api/inbox/delete", json={"ids": []}).status_code == 400
+
+
+def test_post_teilaufgaben_nie_geloescht(client):
+    pid, ceo, kids = team()
+    top = _post(pid, ceo, "Top")
+    sub = A.ex("INSERT INTO tasks(project_id,agent_id,title,status,created,updated,parent_task_id,inbox) VALUES(?,?,?,?,0,0,?,?)",
+               (pid, kids[0], "Sub", "done", top, "new"))
+    assert client.post("/api/inbox/delete", json={"ids": [sub]}).json["deleted"] == 0
+
+
+def test_postkorb_leeren_braucht_bestaetigung(client):
+    pid, ceo, _ = team()
+    for i in range(3):
+        _post(pid, ceo, f"P{i}")
+    assert client.post("/api/inbox/clear", json={}).status_code == 400
+    assert len(client.get("/api/inbox").json) == 3
+    r = client.post("/api/inbox/clear", json={"confirm": True})
+    assert r.json["deleted"] == 3 and client.get("/api/inbox").json == []

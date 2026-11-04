@@ -49,3 +49,15 @@ def test_drei_organigramme():
     for art, fn in (("baum", "orgBaum"), ("gliederung", "orgGliederung"), ("kreis", "orgKreis")):
         assert f'data-org="{art}"' in html and f"function {fn}(" in html
     assert "🏢 Organigramm:</b>" in html
+
+
+def test_postkorb_und_seitenmenue():
+    """Post auswaehlen/loeschen/leeren mit Rueckfrage, Seitenleiste in aufklappbaren Kategorien."""
+    for i in ("in_all", "in_del", "in_clear"):
+        assert f'id="{i}"' in HTML
+    assert "/inbox/clear" in HTML and "confirm(" in HTML[HTML.index("in_clear"):]
+    assert HTML.count('class="side-grp"') >= 4
+    menu = HTML[HTML.index('id="sidemenu"'):HTML.index('<div class="side-h"><span>Projekte')]
+    for b in ("btnInbox", "btnApprovals", "btnOps", "btnGoals", "btnSched", "btnGroupAI", "btnModels", "btnKnow",
+              "btnFiles", "btnCloud", "btnConn", "btnUsage", "btnAudit", "btnHelp", "btnLogout"):
+        assert f'id="{b}"' in menu

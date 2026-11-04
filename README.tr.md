@@ -388,6 +388,9 @@ ffmpeg yavaş çalışır (720p videonun bir dakikası birkaç dakika sürebilir
 Size ait bir **üst düzey görev** (bir ajana, genellikle CEO'ya verdiğiniz görev) bittiğinde, başarısız olduğunda ya da
 engellendiğinde, sizin için bir gönderi hazır olur: kenar çubuğunda „📬 Post“ ve kuruluysa bir Telegram mesajı;
 tür, görev, ekip rakamları ve sonuçla. Altındaki hak ve rapor zinciri eskisi gibi işler.
+Post'ta mesajları işaretleyebilir (tek tek ya da „Alle auswählen“) ve „🗑 Ausgewählte löschen“ ile silebilirsiniz;
+„🧹 Postkorb leeren“ onaydan sonra hepsini siler. Yalnızca gönderi silinir, görevler, dosyalar ve geçmiş kalır.
+Kenar çubuğu açılır kapanır kategorilere ayrılmıştır (Tagesgeschäft, Team & KI, Dateien & Verbindungen, Auswertung).
 
 **Telegram'ı kurma (yaklaşık 2 dakika):**
 1. Telegram'da `@BotFather` → `/newbot` → belirteci kopyalayın → `.env`: `TELEGRAM_BOT_TOKEN=…`

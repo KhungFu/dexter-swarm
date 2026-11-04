@@ -394,6 +394,9 @@ ffmpeg is slow (one minute of 720p video can take several minutes), time limit `
 As soon as a **top-level task** (the one you gave to an agent, usually the CEO) is finished, failed or
 blocked, a post is ready for you: sidebar „📬 Post“ and, if set up, a Telegram message with the
 type, the task, team figures and the result. The chain of rights and reports underneath runs as before.
+In the post you can tick messages (one by one or „Alle auswählen“) and remove them with „🗑 Ausgewählte löschen“;
+„🧹 Postkorb leeren“ deletes all of them after a confirmation. Only the post is deleted, tasks, files and history stay.
+The sidebar is grouped into collapsible categories (Tagesgeschäft, Team & KI, Dateien & Verbindungen, Auswertung).
 
 **Set up Telegram (about 2 minutes):**
 1. In Telegram: `@BotFather` → `/newbot` → copy the token → `.env`: `TELEGRAM_BOT_TOKEN=…`

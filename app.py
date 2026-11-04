@@ -2439,7 +2439,8 @@ def task_tree(tid, depth=0):
 
 # ------------------------------------------------------- Post (Eingang des Besitzers)
 # "Post" = eine oberste Aufgabe (ohne Auftraggeber) ist fertig/fehlgeschlagen/blockiert.
-# inbox: '' = (noch) keine Post, 'new' = ungelesen/offen, 'closed' = vom Besitzer als erledigt markiert.
+# inbox: '' = (noch) keine Post, 'new' = ungelesen/offen, 'closed' = vom Besitzer als erledigt markiert,
+# 'deleted' = vom Besitzer aus dem Postkorb geloescht (Aufgabe bleibt).
 KIND_DE = {"done": ("✅", "Ergebnis fertig"), "failed": ("❌", "Fehlgeschlagen"), "blocked": ("⛔", "Blockiert")}
 OK_WORDS = {"ok", "erledigt", "fertig", "beendet", "abgeschlossen", "passt", "✅", "👍"}
 
@@ -2602,6 +2603,24 @@ def inbox_close(tid):
     ex("UPDATE tasks SET inbox='closed' WHERE id=?", (tid,))
     log("inbox_closed", t["title"], t["project_id"], t["agent_id"], tid)
     return True, f"✅ Auftrag #{tid} „{t['title']}“ ist als erledigt markiert."
+
+
+def inbox_delete(ids=None):
+    """Nimmt Post aus dem Postkorb (inbox='deleted'). ids=None = ganzen Postkorb leeren.
+    Die Aufgabe selbst, ihre Dateien und das Audit-Log bleiben, nur die Post verschwindet."""
+    sql = "SELECT id, title, project_id, agent_id FROM tasks WHERE parent_task_id IS NULL AND inbox IN ('new','closed')"
+    args = ()
+    if ids is not None:
+        ids = sorted({int(i) for i in ids if str(i).lstrip("-").isdigit()})[:500]
+        if not ids:
+            return 0
+        sql += f" AND id IN ({','.join('?' * len(ids))})"
+        args = tuple(ids)
+    rows = q(sql, args)
+    for r in rows:
+        ex("UPDATE tasks SET inbox='deleted' WHERE id=?", (r["id"],))
+        log("inbox_deleted", r["title"], r["project_id"], r["agent_id"], r["id"])
+    return len(rows)
 
 
 def inbox_rework(tid, feedback):
@@ -4423,6 +4442,23 @@ def api_inbox_close(tid):
     if not ok:
         abort(400, msg)
     return jsonify({"ok": True})
+
+
+@app.post("/api/inbox/delete")
+def api_inbox_delete():
+    d = request.get_json(force=True) or {}
+    ids = d.get("ids")
+    if not isinstance(ids, list) or not ids:
+        abort(400, "Keine Post ausgewählt.")
+    return jsonify({"ok": True, "deleted": inbox_delete(ids)})
+
+
+@app.post("/api/inbox/clear")
+def api_inbox_clear():
+    d = request.get_json(force=True) or {}
+    if d.get("confirm") is not True:  # Schutz: Leeren nur mit ausdruecklicher Bestaetigung aus dem Dialog
+        abort(400, "Postkorb leeren braucht eine Bestätigung.")
+    return jsonify({"ok": True, "deleted": inbox_delete(None)})
 
 
 @app.post("/api/inbox/<int:tid>/rework")
