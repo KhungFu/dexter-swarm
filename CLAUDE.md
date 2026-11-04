@@ -178,6 +178,12 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
 - Seitenleiste `#sidemenu`: Kategorien als `<details class="side-grp" data-grp=…>` (arbeit offen, team/daten/auswertung zu), Zustand localStorage `hs-side`,
   `sideDots()` (aus `refresh`) zeigt einen Punkt an zugeklappten Kategorien mit sichtbarem Zaehler. Neue Menueknoepfe in eine Kategorie einsortieren.
 
+## Alle Firmen (Uebersicht, Plan `docs/ebenen-plan.md`)
+- Firma = Projekt. `firms_overview()` / `GET /api/firms`: je Projekt Stufe, Agenten (nur id/name/role/parent_id/busy, keine Rechte/Anbieter),
+  `busy` (running+queued), `partners`; dazu `links`. Partnerschaften setzt nur der Besitzer: Tabelle `firm_links` (a<b, UNIQUE),
+  `POST /api/firms/links` (a, b, note; doppelt -> `exists`), `DELETE /api/firms/links/<id>`, Audit `firm_link`/`firm_unlink`, Projekt loeschen
+  entfernt seine Links. Agenten sehen davon nichts. Tests `tests/test_firmen.py`.
+
 ## Verbindungen (Webhooks)
 - Tabelle `connections` (Besitzer legt URL/Methode/Kopfzeilen fest, `${ENV}` in Kopfzeilen aus .env, `confirm`, `on_post`). Recht `connect`
   -> `connections_doc` im Werkzeugblock, `call_connection` in `run_with_tools` (confirm -> `approvals.kind='connect'`, Task endet `waiting_approval`).

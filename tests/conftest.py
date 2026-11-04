@@ -16,7 +16,7 @@ import app as A  # noqa: E402
 
 A.init_db()
 TABLES = ("tasks", "agents", "projects", "approvals", "goals", "llm_calls", "usage", "settings", "schedules", "chats", "audit",
-          "connections")
+          "connections", "firm_links")
 
 
 @pytest.fixture(autouse=True)
