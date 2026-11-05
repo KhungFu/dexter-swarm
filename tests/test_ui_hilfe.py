@@ -48,7 +48,7 @@ def test_drei_organigramme():
     assert 'data-view="org"' in html
     for art, fn in (("baum", "orgBaum"), ("gliederung", "orgGliederung"), ("kreis", "orgKreis")):
         assert f'data-org="{art}"' in html and f"function {fn}(" in html
-    assert "🏢 Org chart:</b>" in html
+    assert "<b>Org chart:</b>" in html
 
 
 def test_postkorb_und_seitenmenue():

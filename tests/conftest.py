@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 _TMP = tempfile.mkdtemp(prefix="pcl-test-")
-os.environ.update(PCL_DB=f"{_TMP}/test.db", PCL_WORKSPACE=f"{_TMP}/ws", PCL_WORKERS="3", PCL_SELF_CHECKS="0",
+os.environ.update(PCL_DB=f"{_TMP}/test.db", PCL_WORKSPACE=f"{_TMP}/ws", PCL_WORKERS="3", PCL_SELF_CHECKS="0", PCL_TRANSLATE="0",
                   APP_TOKEN="", TELEGRAM_BOT_TOKEN="", PCL_LLM_RETRIES="0")
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 

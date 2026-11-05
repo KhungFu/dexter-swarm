@@ -22,7 +22,7 @@ STORAGE = os.environ["PCL_STORAGE"]
 WARTEN_MIN = 60  # ANPASSEN: so lange darf MagicLight rechnen (lange Videos brauchen viel Zeit)
 
 if not Path(STORAGE).exists():
-    raise SystemExit("Keine gespeicherte Anmeldung: zuerst playwright codegen --save-storage ... ausfuehren (siehe oben)")
+    raise SystemExit("No saved sign-in: run playwright codegen --save-storage ... first (see above)")
 
 with sync_playwright() as pw:
     browser = pw.chromium.launch(headless=True, executable_path=os.environ.get("PCL_BROWSER_PATH") or None)
@@ -44,9 +44,9 @@ with sync_playwright() as pw:
         d = info.value
         d.save_as(OUT / (d.suggested_filename or "magiclight.mp4"))
         ctx.storage_state(path=STORAGE)  # verlaengerte Anmeldung merken
-        print("fertig:", d.suggested_filename)
+        print("done:", d.suggested_filename)
     except Exception:
-        page.screenshot(path=str(OUT / "fehler-bildschirm.png"))  # landet in output/, zeigt wo es haengt
+        page.screenshot(path=str(OUT / "error-screen.png"))  # landet in output/, zeigt wo es haengt
         raise
     finally:
         browser.close()

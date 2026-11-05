@@ -236,7 +236,10 @@ This list is extended with every change to the program. Each row says what the s
 | Browser stores nothing (private window) | Light/dark, the chosen graphic (space, org chart style, atom, blueprint), dragged org chart cards, motion and help mode fall back to the default on every load. | Use a normal window; the project data is not affected. |
 | Agents in the blueprint lie on top of each other (e.g. all in the same spot) | The connecting lines cannot be seen. When the blueprint opens, Hyperstead arranges them once automatically and says so. | Nothing, or press “🗂 Ordnen”. |
 | History for the ← button (previous graphic) | The history lives only in the open tab. After reloading or in a new tab ← is grey until you switch graphics again. | Nothing to do. |
-| A language other than English in the dashboard | The interface exists only in English. Agent texts, company template contents and Telegram messages stay German as before. | Let the browser translate (Chrome/Edge: right-click → “Translate”). |
+| A language other than English in the dashboard | Dashboard, agent instructions, templates and system texts are in English. What you type into fields yourself stays in your language, and the agents answer and report in the language you write in. | Let the browser translate (Chrome/Edge: right-click → “Translate”). |
+| No real AI in the project (only `mock` or no provider) | Fixed notices in Telegram and the mailbox (e.g. “✅ Done”, approval notes) stay in English because nobody can translate them. Agent reports still come in your language as soon as the agents have an AI. | Give the CEO (or another agent) a real AI; from then on that AI translates the notices automatically. |
+| `PCL_TRANSLATE` in `.env` (default `1`) | With `PCL_TRANSLATE=0` all fixed notices stay in English and there are no extra AI calls for translations. Without the entry, notices are translated. | Remove the line or set `PCL_TRANSLATE=1`, restart Hyperstead. |
+| Your language not detected yet (fresh install or only short messages like “ok”) | Until your first longer text (about 12 letters or more, not a command), fixed notices stay in English. | Write an assignment or a chat message in your language. |
 
 ## Access from the internet
 
@@ -316,6 +319,8 @@ Points are called stardust, tasks are called missions. The former worlds Guild, 
 **Atom:** ⚛️ shows the team as a molecular network: glossy spheres connected by rods. The large blue sphere is the top lead, medium coloured spheres are the team leads, small spheres the members. Every sphere hangs on its superior by a rod, so size and connections show the hierarchy; everything is arranged loosely and spatially like a molecular model, not in rigid rows. Every company has its own molecule: shape and colours come from the company, the large sphere carries the project colour. In the modern view, ⚛️ Molekül shows all companies as molecules side by side; partner companies are connected by a glowing rod between their leads, with sparks travelling along it (more when both are working). Tapping zooms into the molecule, every sphere opens its department and agent. The graphic stands still so you can read it calmly. As a world, the picture grows with the stage: as a quark three quarks glow in the nucleus, from molecule on neighbouring atoms are attached by bonds, from crystal an atomic lattice lies in the background, as a cell a cell wall and a DNA double helix are added. State and tapping work as in the org chart.
 
 **English interface, back and moons:** The dashboard is in international English; other languages come from the browser's translator. Some button names in this guide are still the old German ones (for example “🗂 Ordnen” is now “🗂 Arrange”). The **←** button to the left of the graphic menu returns to the previous graphic, in exactly the design you were in (also back into an opened company or department). The company info card no longer has the button “📐 Firma öffnen”; tapping a name opens the agent directly and the graphic stays the same. In 🌌 Cosmos the employees are moons that orbit their planet (department); planets and suns also spin on their own axis, the moons only orbit their planet.
+
+**Everything in English, communication in your language:** Everything Hyperstead writes itself is now in English: interface, hover hints, error messages, confirmations, instructions to the agents, company templates, tool messages and the self-test. What you enter yourself (assignments, chat, goals, names) stays in your language. The agents answer, report and write files for you in the language you write in, whether German, Turkish, Albanian, Swahili, Russian or Chinese; scheduled tasks and the inspection round also follow your latest language. Fixed notices in Telegram and the mailbox are translated into your language automatically by your CEO's AI (once per text, then from the cache). The Telegram commands are now /new, /project, /file and /help (the old German ones still work). In the graphic menu the “Classic” group shows text only, without symbols (“Org chart: Tree”, “Org chart: Outline”, “Org chart: Circle”, “Blueprint”). Folders and keys the agents already know (e.g. `wissen/`, `film/film.json` with German keys) are unchanged. The Rust package now contains `README.txt`, `TEST_REPORT.txt`, `source/` and `program/`.
 
 **Operations centre:** 🛰 in the sidebar (or a tap on the numbers in the growth bar) shows at a glance what is running and waiting, which approvals are open, what failed in the last 7 days (with ↻ Neu), the schedules (with ▶ Jetzt), error messages and the latest events. It also shows the estimated AI costs for today and the last 7 days; today's cost also appears as 💶 in the bar. All numbers come from the existing tasks, approvals, schedules and the history, nothing is made up.
 
@@ -570,13 +575,13 @@ Give an agent with the rights **„Darf programmieren“**, **„Darf Dateien sc
 1. With `write_code` it creates a Cargo project, e.g. `rust/rechner/Cargo.toml` and `rust/rechner/src/main.rs` with tests (`#[test]`).
 2. `rust_project` with `op=test` downloads the dependencies from crates.io, builds the program and runs the tests.
    Errors come back with file and line, the agent fixes them and tests again.
-3. `op=package` tests once more, builds the release version and stores **`output/<name>.zip`**. Inside: `programm/` (the finished
-   program), `quelle/` (source code with `Cargo.lock`), `TESTBERICHT.txt` and `LIESMICH.txt`. A package is only created if all tests pass.
+3. `op=package` tests once more, builds the release version and stores **`output/<name>.zip`**. Inside: `program/` (the finished
+   program), `source/` (source code with `Cargo.lock`), `TEST_REPORT.txt` and `README.txt`. A package is only created if all tests pass.
 
 You get the package in the inbox or under **📁 Dateien** (single file or in the project ZIP). More commands: `op=build`, `op=run` (with `args`, `stdin`).
 
-- **For which system?** The program in `programm/` fits the computer Hyperstead runs on: from the Pi a Linux program (ARM),
-  from the Windows laptop an `.exe`. For another system run `cargo build --release` yourself in the `quelle/` folder.
+- **For which system?** The program in `program/` fits the computer Hyperstead runs on: from the Pi a Linux program (ARM),
+  from the Windows laptop an `.exe`. For another system run `cargo build --release` yourself in the `source/` folder.
 - **Isolation (Pi/Linux):** Building, testing and running happen in bubblewrap like `run_code`: no internet, no `.env`, no home,
   only the project's build folder `.rust/` is writable. Only `cargo fetch` (downloads dependencies, runs nothing) has internet.
   Cargo settings (`.cargo/`) and `rust-toolchain` files from the project are not used.

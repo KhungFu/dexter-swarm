@@ -64,7 +64,7 @@ def test_fal_ablauf_und_download_ohne_schluessel(monkeypatch, tmp_path):
     assert all(h == {"Authorization": "Key geheim"} for _, h in gets)
     # Der fal-Schlüssel darf nicht an den Download-Server gehen
     assert dl == {"url": "https://cdn.example/clip.mp4", "key": None}
-    assert "Video erzeugt" in out
+    assert "Video created" in out
 
 
 def test_fal_bild_zu_video_nimmt_i2v_endpunkt(monkeypatch, tmp_path):

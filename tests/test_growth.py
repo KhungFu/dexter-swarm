@@ -93,7 +93,7 @@ def test_anwerben_haengt_von_der_stufe_ab():
     people = [{"name": f"P{i}"} for i in range(12)]
     A.recruit_team(ceo, {"id": pid, "name": "x"}, people, notes)
     assert A.q1("SELECT COUNT(*) c FROM agents WHERE project_id=?", (pid,))["c"] == G.STAGE_TEAM[0]
-    assert any("nicht eingestellt" in n for n in notes)
+    assert any("not hired" in n for n in notes)
 
 
 def test_anwerben_tiefe_begrenzt():

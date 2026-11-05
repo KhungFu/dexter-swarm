@@ -57,14 +57,14 @@ def test_lauf_legt_video_in_output(makros, tmp_path):
 def test_fehler_und_unbekannte_seite(makros, tmp_path):
     root = tmp_path / "proj"
     out, _ = T.run_tool({"tool": "site_macro", "site": "kaputt", "prompt": "x"}, root, {"media": True})
-    assert out.startswith("FEHLER") and "Knopf nicht gefunden" in out
-    assert "output/kaputt-fehler.png" in out and (root / "output/kaputt-fehler.png").exists()
+    assert out.startswith("ERROR") and "Knopf nicht gefunden" in out
+    assert "output/kaputt-error.png" in out and (root / "output/kaputt-error.png").exists()
     out, _ = T.run_tool({"tool": "site_macro", "site": "leer", "prompt": "x"}, root, {"media": True})
-    assert "keine Datei" in out
+    assert "saved no file" in out
     out, _ = T.run_tool({"tool": "site_macro", "site": "../demo", "prompt": "x"}, root, {"media": True})
-    assert "Unbekannte Seite" in out and "demo" in out
+    assert "Unknown site" in out and "demo" in out
     out, _ = T.run_tool({"tool": "site_macro", "site": "demo", "prompt": ""}, root, {"media": True})
-    assert "prompt fehlt" in out
+    assert "prompt missing" in out
 
 
 def test_vorlagen_sind_gueltiges_python():

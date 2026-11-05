@@ -59,8 +59,8 @@ def test_clean_folder():
 
 def test_status_without_keys(env):
     assert C.status("github")[0] is False
-    assert C.status("gdrive") == (False, False, "GDRIVE_CLIENT_ID und GDRIVE_CLIENT_SECRET fehlen in .env")
-    with pytest.raises(C.CloudError, match="nicht eingerichtet"):
+    assert C.status("gdrive") == (False, False, "GDRIVE_CLIENT_ID and GDRIVE_CLIENT_SECRET missing in .env")
+    with pytest.raises(C.CloudError, match="not set up"):
         C.upload("onedrive", __file__)
 
 
@@ -145,7 +145,7 @@ def test_onedrive_expired_login_message(env, tmp_path):
     Fake(env, {("POST", "/token"): Resp({"error": "invalid_grant"}, 400)})
     f = tmp_path / "a.txt"
     f.write_text("x")
-    with pytest.raises(C.CloudError, match="neu anmelden"):
+    with pytest.raises(C.CloudError, match="sign in again"):
         C.upload("onedrive", f)
 
 
@@ -170,11 +170,11 @@ def test_agent_upload_needs_approval_then_link_in_task(env, client, monkeypatch)
     (out / "film.mp4").write_bytes(b"film")
     perms = dict(A.DEFAULT_PERMS, upload=True)
     assert "cloud_upload" in A.cloud_doc(pid, perms) and A.cloud_doc(pid, A.DEFAULT_PERMS) == ""
-    assert A.request_upload({"to": "github", "path": "../.env"}, pid, aid, tid).startswith("FEHLER")
-    assert A.request_upload({"to": "gdrive", "path": "output/film.mp4"}, pid, aid, tid).startswith("FEHLER: Ziel")
+    assert A.request_upload({"to": "github", "path": "../.env"}, pid, aid, tid).startswith("ERROR")
+    assert A.request_upload({"to": "gdrive", "path": "output/film.mp4"}, pid, aid, tid).startswith("ERROR: target")
     msg = A.request_upload({"to": "github", "path": "output/film.mp4", "folder": "Szene 1"}, pid, aid, tid)
-    assert "Freigabe" in msg
-    assert "wartet schon" in A.request_upload({"to": "github", "path": "output/film.mp4", "folder": "Szene 1"}, pid, aid, tid)
+    assert "approval" in msg
+    assert "already waiting" in A.request_upload({"to": "github", "path": "output/film.mp4", "folder": "Szene 1"}, pid, aid, tid)
     ap = A.q1("SELECT * FROM approvals WHERE task_id=?", (tid,))
     assert ap["kind"] == "upload" and "Filmfirma/Szene 1" in ap["payload"]
     A.set_task(tid, "waiting_approval", "Film fertig.")
@@ -247,6 +247,6 @@ def test_ceo_chat_knows_cloud_setup(env):
     kid = make_agent(pid, "Helfer", parent=ceo)
     p = A.q1("SELECT * FROM projects WHERE id=?", (pid,))
     txt = A.chat_system(A.q1("SELECT * FROM agents WHERE id=?", (ceo,)), p)
-    assert "CLOUD-UPLOAD" in txt and "GitHub: bereit" in txt and "GDRIVE_CLIENT_ID" in txt and "NIE" in txt
+    assert "CLOUD UPLOAD" in txt and "GitHub: ready" in txt and "GDRIVE_CLIENT_ID" in txt and "NEVER" in txt
     assert "ghp_x" not in txt
-    assert "CLOUD-UPLOAD" not in A.chat_system(A.q1("SELECT * FROM agents WHERE id=?", (kid,)), p)
+    assert "CLOUD UPLOAD" not in A.chat_system(A.q1("SELECT * FROM agents WHERE id=?", (kid,)), p)

@@ -14,7 +14,7 @@ import tempfile
 import time
 from pathlib import Path
 
-TEST_PRINTER = "Testdrucker (Datei)"
+TEST_PRINTER = "Test printer (file)"
 TIMEOUT = 30
 
 
@@ -30,10 +30,10 @@ def _run(cmd, env=None, input_text=None):
 def system_status():
     """(bereit, Hinweis) - ob das Betriebssystem ueberhaupt drucken kann."""
     if is_windows():
-        return (bool(shutil.which("powershell")), "Windows: Drucker unter Einstellungen > Drucker & Scanner verbinden.")
+        return (bool(shutil.which("powershell")), "Windows: connect printers under Settings > Printers & scanners.")
     if shutil.which("lp") and shutil.which("lpstat"):
-        return True, "CUPS ist installiert."
-    return False, "CUPS fehlt. Auf dem Pi: sudo apt install cups-client (oder ./install.sh --print)."
+        return True, "CUPS is installed."
+    return False, "CUPS missing. On the Pi: sudo apt install cups-client (or ./install.sh --print)."
 
 
 def list_printers():
@@ -54,11 +54,11 @@ def list_printers():
                 r = _run(["lpstat", "-a"])
                 names = [x.split()[0] for x in r.stdout.splitlines() if x.strip()]
         if r.returncode and not names:
-            err = (r.stderr or r.stdout or "").strip()[:300] or "Drucker konnten nicht gelesen werden."
+            err = (r.stderr or r.stdout or "").strip()[:300] or "Could not read the printers."
     except (OSError, subprocess.SubprocessError) as e:
-        err = f"Drucker konnten nicht gelesen werden: {e}"
+        err = f"Could not read the printers: {e}"
     if not names and not err:
-        err = "Kein Drucker eingerichtet." + ("" if is_windows() else " Netzwerkdrucker in CUPS hinzufuegen (siehe docs/drucken.md).")
+        err = "No printer set up." + ("" if is_windows() else " Add a network printer in CUPS (see docs/drucken.md).")
     return names + [TEST_PRINTER], err
 
 
@@ -70,17 +70,17 @@ def valid_name(name):
 def print_text(printer, title, text, out_dir):
     """Druckt Text. Gibt (ok, Meldung) zurueck. out_dir: Ablage fuer den Testdrucker."""
     if not valid_name(printer):
-        return False, "Ungültiger Druckername."
+        return False, "Invalid printer name."
     if printer == TEST_PRINTER:
         d = Path(out_dir)
         d.mkdir(parents=True, exist_ok=True)
-        f = d / time.strftime("druck-%Y%m%d-%H%M%S.txt")
+        f = d / time.strftime("print-%Y%m%d-%H%M%S.txt")
         n = 1
         while f.exists():
             n += 1
-            f = d / time.strftime(f"druck-%Y%m%d-%H%M%S-{n}.txt")
+            f = d / time.strftime(f"print-%Y%m%d-%H%M%S-{n}.txt")
         f.write_text(text, encoding="utf-8")
-        return True, f"Testdrucker: gespeichert als {f.name}"
+        return True, f"Test printer: saved as {f.name}"
     ok, hint = system_status()
     if not ok:
         return False, hint
@@ -93,13 +93,13 @@ def print_text(printer, title, text, out_dir):
             r = _run(["powershell", "-NoProfile", "-NonInteractive", "-Command",
                       "Get-Content -Raw -Encoding UTF8 -LiteralPath $env:PCL_PRN_FILE | Out-Printer -Name $env:PCL_PRN"], env=env)
         else:
-            r = _run(["lp", "-d", printer, "-t", (title or "Abendbericht")[:100], "--", tmp.name])
+            r = _run(["lp", "-d", printer, "-t", (title or "Evening report")[:100], "--", tmp.name])
         if r.returncode:
-            return False, "Drucker meldet einen Fehler: " + ((r.stderr or r.stdout or "").strip()[:300] or f"Code {r.returncode}")
+            return False, "Printer reports an error: " + ((r.stderr or r.stdout or "").strip()[:300] or f"Code {r.returncode}")
         job = (r.stdout or "").strip()
-        return True, "An den Drucker gesendet." + (f" ({job[:120]})" if job else "")
+        return True, "Sent to the printer." + (f" ({job[:120]})" if job else "")
     except (OSError, subprocess.SubprocessError) as e:
-        return False, f"Drucken fehlgeschlagen: {e}"
+        return False, f"Printing failed: {e}"
     finally:
         try:
             os.unlink(tmp.name)

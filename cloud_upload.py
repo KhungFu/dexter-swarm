@@ -85,17 +85,17 @@ def status(svc):
     """(eingerichtet, angemeldet, Hinweis)."""
     if svc == "github":
         if not env("GITHUB_UPLOAD_TOKEN"):
-            return False, False, "GITHUB_UPLOAD_TOKEN fehlt in .env"
+            return False, False, "GITHUB_UPLOAD_TOKEN missing in .env"
         if "/" not in env("GITHUB_UPLOAD_REPO"):
-            return False, False, "GITHUB_UPLOAD_REPO fehlt in .env (Form: besitzer/repo)"
+            return False, False, "GITHUB_UPLOAD_REPO missing in .env (format: owner/repo)"
         return True, True, env("GITHUB_UPLOAD_REPO")
     if svc == "gdrive":
         if not (env("GDRIVE_CLIENT_ID") and env("GDRIVE_CLIENT_SECRET")):
-            return False, False, "GDRIVE_CLIENT_ID und GDRIVE_CLIENT_SECRET fehlen in .env"
+            return False, False, "GDRIVE_CLIENT_ID and GDRIVE_CLIENT_SECRET missing in .env"
         return True, bool(load_token(svc).get("refresh_token")), ""
     if svc == "onedrive":
         if not env("ONEDRIVE_CLIENT_ID"):
-            return False, False, "ONEDRIVE_CLIENT_ID fehlt in .env"
+            return False, False, "ONEDRIVE_CLIENT_ID missing in .env"
         return True, bool(load_token(svc).get("refresh_token")), ""
     return False, False, "unbekannter Dienst"
 
@@ -143,7 +143,7 @@ def _device_urls(svc):
 def device_start(svc):
     """Startet die Anmeldung. Gibt dict mit user_code, url, device_code, interval, expires zurueck."""
     if svc not in ("gdrive", "onedrive"):
-        raise CloudError("Anmeldung per Code gibt es nur fuer Google Drive und OneDrive.")
+        raise CloudError("Sign-in by code exists only for Google Drive and OneDrive.")
     ok, _, hint = status(svc)
     if not ok:
         raise CloudError(hint)
@@ -174,9 +174,9 @@ def device_poll(svc, dc):
     if err in ("access_denied", "authorization_declined"):
         raise CloudError("Anmeldung abgelehnt.")
     if err in ("expired_token", "code_expired"):
-        raise CloudError("Der Code ist abgelaufen. Bitte neu anmelden.")
+        raise CloudError("The code has expired. Please sign in again.")
     if err or not d.get("refresh_token"):
-        raise CloudError(f"Anmeldung fehlgeschlagen: {d.get('error_description') or err or 'kein Erneuerungs-Token (offline_access?)'}")
+        raise CloudError(f"Anmeldung fehlgeschlagen: {d.get('error_description') or err or 'no refresh token (offline_access?)'}")
     save_token(svc, {"refresh_token": d["refresh_token"], "access_token": d.get("access_token", ""),
                      "expires": time.time() + int(d.get("expires_in") or 3000) - 60, "created": time.time()})
     return "ok"
@@ -186,7 +186,7 @@ def access_token(svc):
     with _lock:
         t = load_token(svc)
         if not t.get("refresh_token"):
-            raise CloudError(f"{LABELS[svc]}: noch nicht angemeldet (im Fenster ☁️ Cloud auf „Anmelden“).")
+            raise CloudError(f"{LABELS[svc]}: not signed in yet (in the ☁️ Cloud window click “Sign in”).")
         if t.get("access_token") and t.get("expires", 0) > time.time():
             return t["access_token"]
         _, tok, scope, cid, secret = _device_urls(svc)
@@ -197,7 +197,7 @@ def access_token(svc):
             data["scope"] = scope
         r = requests.post(tok, data=data, timeout=TIMEOUT)
         if r.status_code >= 400:
-            raise CloudError(f"{LABELS[svc]}: Anmeldung abgelaufen oder widerrufen (HTTP {r.status_code}). Bitte im Fenster ☁️ Cloud neu anmelden.")
+            raise CloudError(f"{LABELS[svc]}: sign-in expired or revoked (HTTP {r.status_code}). Please sign in again in the ☁️ Cloud window.")
         d = r.json()
         t["access_token"] = d["access_token"]
         t["expires"] = time.time() + int(d.get("expires_in") or 3000) - 60
@@ -222,7 +222,7 @@ def github_upload(path, folder, name):
     repo = env("GITHUB_UPLOAD_REPO")
     size = path.stat().st_size
     if size > GITHUB_RELEASE_MAX:
-        raise CloudError("GitHub: Datei ist groesser als 2 GB.")
+        raise CloudError("GitHub: file is larger than 2 GB.")
     if size > GITHUB_CONTENTS_MAX:
         return _github_release(repo, path, name, size)
     target = join_folder(folder, name)
@@ -246,7 +246,7 @@ def _github_release(repo, path, name, size):
     if r.status_code == 404:
         r = _check(requests.post(f"{GITHUB_API}/repos/{repo}/releases", headers=_gh_headers(),
                                  json={"tag_name": tag, "name": "Hyperstead-Ablage",
-                                       "body": "Grosse Dateien aus Hyperstead (ueber 50 MB)."}, timeout=TIMEOUT), "GitHub-Release")
+                                       "body": "Large files from Hyperstead (over 50 MB)."}, timeout=TIMEOUT), "GitHub-Release")
     rel = _check(r, "GitHub-Release").json()
     for a in rel.get("assets") or []:
         if a.get("name") == name:  # gleicher Name: alte Datei ersetzen
@@ -273,7 +273,7 @@ def _drive_folder(tok, folder):
             parent = found[0]["id"]
         else:
             r = _check(requests.post(f"{DRIVE_API}/files", headers=h, params={"fields": "id"}, timeout=TIMEOUT, json={
-                "name": part, "mimeType": "application/vnd.google-apps.folder", "parents": [parent]}), "Google Drive (Ordner)")
+                "name": part, "mimeType": "application/vnd.google-apps.folder", "parents": [parent]}), "Google Drive (folder)")
             parent = r.json()["id"]
     return parent
 
@@ -288,7 +288,7 @@ def gdrive_upload(path, folder, name):
                              json={"name": name, "parents": [parent]}), "Google Drive")
     loc = r.headers.get("Location") or r.headers.get("location")
     if not loc:
-        raise CloudError("Google Drive: keine Upload-Adresse erhalten.")
+        raise CloudError("Google Drive: no upload address received.")
     d = _chunked_put(loc, path, size, DRIVE_CHUNK, {"Authorization": f"Bearer {tok}"}, "Google Drive")
     return d.get("webViewLink") or f"https://drive.google.com/file/d/{d.get('id', '')}/view"
 
@@ -326,7 +326,7 @@ def _chunked_put(url, path, size, chunk, headers, what):
                 _check(r, what)
                 raise CloudError(f"{what}: unerwartete Antwort HTTP {r.status_code}")
             pos = end + 1
-    raise CloudError(f"{what}: Upload nicht abgeschlossen.")
+    raise CloudError(f"{what}: upload not completed.")
 
 
 UPLOADERS = {"github": github_upload, "gdrive": gdrive_upload, "onedrive": onedrive_upload}
@@ -338,14 +338,14 @@ def upload(svc, path, folder="", name=""):
         raise CloudError(f"Unbekannter Dienst '{svc}'. Moeglich: {', '.join(UPLOADERS)}")
     ok, logged, hint = status(svc)
     if not ok:
-        raise CloudError(f"{LABELS[svc]} ist nicht eingerichtet: {hint}")
+        raise CloudError(f"{LABELS[svc]} is not set up: {hint}")
     if not logged:
-        raise CloudError(f"{LABELS[svc]}: noch nicht angemeldet (im Fenster ☁️ Cloud auf „Anmelden“).")
+        raise CloudError(f"{LABELS[svc]}: not signed in yet (in the ☁️ Cloud window click “Sign in”).")
     path = Path(path)
     if not path.is_file():
-        raise CloudError(f"Datei nicht gefunden: {path.name}")
-    name = clean_folder(name or path.name).replace("/", "_") or "datei"
+        raise CloudError(f"File not found: {path.name}")
+    name = clean_folder(name or path.name).replace("/", "_") or "file"
     try:
         return UPLOADERS[svc](path, clean_folder(folder), name)
     except requests.RequestException as e:
-        raise CloudError(f"{LABELS[svc]} nicht erreichbar ({type(e).__name__}).")
+        raise CloudError(f"{LABELS[svc]} not reachable ({type(e).__name__}).")

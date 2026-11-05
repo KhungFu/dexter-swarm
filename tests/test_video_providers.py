@@ -78,14 +78,14 @@ def test_aus_ohne_video_provider(proj):
     assert not T.video_enabled()
     assert "video_generate" not in T.available({"media": True})
     out, made = T.run_tool({"tool": "video_generate", "prompt": "x"}, proj, {"media": True})
-    assert out.startswith("FEHLER") and made is None
+    assert out.startswith("ERROR") and made is None
 
 
 def test_mehrere_anbieter_und_auswahl(proj, monkeypatch):
     use(monkeypatch, "kling, runway,unbekannt", KLING_ACCESS_KEY="ak", KLING_SECRET_KEY="sk", RUNWAYML_API_SECRET="rw")
     assert VP.providers() == ["kling", "runway"]
     assert "video_generate" in T.available({"media": True})
-    with pytest.raises(T.ToolError, match="nicht eingeschaltet"):
+    with pytest.raises(T.ToolError, match="not switched on"):
         VP.generate(proj, {"prompt": "x", "provider": "luma"})
     with pytest.raises(T.ToolError, match="continue_id"):
         VP.generate(proj, {"prompt": "x", "continue_id": "abc"})
@@ -94,7 +94,7 @@ def test_mehrere_anbieter_und_auswahl(proj, monkeypatch):
 def test_fehlender_key(proj, monkeypatch):
     use(monkeypatch, "minimax")
     monkeypatch.delenv("MINIMAX_API_KEY", raising=False)
-    with pytest.raises(T.ToolError, match="MINIMAX_API_KEY fehlt"):
+    with pytest.raises(T.ToolError, match="MINIMAX_API_KEY is missing"):
         VP.generate(proj, {"prompt": "x"})
 
 
@@ -216,7 +216,7 @@ def test_higgsfield_nsfw(proj, monkeypatch):
         ("POST", "/minimax/h3/text-to-video"): Resp({"status": "queued", "request_id": "r1"}),
         ("GET", "/requests/r1/status"): Resp({"status": "nsfw"}),
     })
-    with pytest.raises(T.ToolError, match="Inhaltspruefung"):
+    with pytest.raises(T.ToolError, match="content check"):
         VP.generate(proj, {"prompt": "x"})
 
 
@@ -272,7 +272,7 @@ def test_runway_luma_seedance(proj, monkeypatch):
     assert f.find("POST", "image_to_video")[0][2]["headers"]["X-Runway-Version"] == "2024-11-06"
     VP.generate(proj, {"prompt": "Wald", "provider": "seedance", "aspect": "9:16", "seconds": 5})
     assert f.find("POST", "/generations/tasks")[0][2]["json"]["content"][0]["text"] == "Wald --ratio 9:16 --duration 5"
-    with pytest.raises(T.ToolError, match="https-Adresse"):
+    with pytest.raises(T.ToolError, match="https address"):
         VP.generate(proj, {"prompt": "x", "provider": "luma", "image": "assets/figur.png"})
     VP.generate(proj, {"prompt": "x", "provider": "luma", "image": "https://example.com/a.png"})
     assert f.find("POST", "dream-machine")[-1][2]["json"]["keyframes"]["frame0"]["url"] == "https://example.com/a.png"
@@ -326,7 +326,7 @@ def test_video_ai(proj, monkeypatch):
     body = f.find("POST", "sync-lipsync")[0][2]["json"]
     assert body["video_url"].startswith("data:video/mp4") and body["audio_url"].startswith("data:audio/mpeg")
     out, _ = T.run_tool({"tool": "video_ai", "op": "upscale", "input": "output/stimme.mp3"}, proj, {"media": True})
-    assert "passendes Format" in out
+    assert "suitable format" in out
 
 
 def test_sound_generate_elevenlabs(proj, monkeypatch):

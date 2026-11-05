@@ -88,7 +88,7 @@ def _base_env():
 
 def _slug(name):
     s = re.sub(r"[^a-z0-9_-]+", "-", str(name or "").lower()).strip("-")
-    return s[:60] or "programm"
+    return s[:60] or "program"
 
 
 def _crate_files(src):
@@ -101,7 +101,7 @@ def _crate_files(src):
         size += f.stat().st_size
         files.append(rel)
         if len(files) > COPY_MAX_FILES or size > COPY_MAX_BYTES:
-            raise T.ToolError(f"Projekt zu gross (max. {COPY_MAX_FILES} Dateien / {COPY_MAX_BYTES // 1048576} MB, ohne target/)")
+            raise T.ToolError(f"Project too large (max. {COPY_MAX_FILES} files / {COPY_MAX_BYTES // 1048576} MB, without target/)")
     return files
 
 
@@ -190,8 +190,8 @@ def _binaries(target, cargo_exe):
 def rust_project(root, call):
     mode = sandbox_mode()
     if not mode:
-        raise T.ToolError("Rust bauen ist auf diesem Server nicht eingerichtet (cargo fehlt, unter Linux bubblewrap fehlt, "
-                          "unter Windows PCL_CARGO_UNSAFE=1 noetig, oder PCL_ALLOW_RUN=0/PCL_CARGO=0)")
+        raise T.ToolError("Building Rust is not set up on this server (cargo missing, bubblewrap missing on Linux, "
+                          "PCL_CARGO_UNSAFE=1 needed on Windows, or PCL_ALLOW_RUN=0/PCL_CARGO=0)")
     root = Path(root).resolve()
     op = str(call.get("op") or "test").lower().strip()
     if op not in OPS:
@@ -200,14 +200,14 @@ def rust_project(root, call):
     try:
         src = T._inside(root, rel)
     except ValueError:
-        raise T.ToolError("Pfad liegt ausserhalb des Projektordners")
+        raise T.ToolError("Path is outside the project folder")
     if src.is_file():
         src = src.parent
     if any(x.startswith(".") for x in src.relative_to(root).parts):
-        raise T.ToolError("Versteckte Ordner sind nicht erlaubt")
+        raise T.ToolError("Hidden folders are not allowed")
     if not (src / "Cargo.toml").is_file():
-        raise T.ToolError(f"In '{rel}' fehlt Cargo.toml. Erst mit write_code anlegen: {rel}/Cargo.toml und {rel}/src/main.rs")
-    name = _slug(call.get("name") or (src.name if src != root else "programm"))
+        raise T.ToolError(f"Cargo.toml is missing in '{rel}'. Create it first with write_code: {rel}/Cargo.toml and {rel}/src/main.rs")
+    name = _slug(call.get("name") or (src.name if src != root else "program"))
     files = _crate_files(src)
     base = root / ".rust"
     build, home = base / name, base / "cargo-home"
@@ -224,12 +224,12 @@ def rust_project(root, call):
         env.update({"CARGO_HOME": str(home), "CARGO_TARGET_DIR": str(build / "target"), "CARGO_TERM_COLOR": "never",
                     "CARGO_BUILD_JOBS": CARGO_JOBS})
         env["PATH"] = os.pathsep.join(x for x in (str(sysroot / "bin") if sysroot else "", cargo_bin_dir, env.get("PATH", "")) if x)
-        report = [f"Rust ({'abgeschottet' if mode == 'bwrap' else 'OHNE Sandbox, PCL_CARGO_UNSAFE=1'}), Projekt {rel}"]
+        report = [f"Rust ({'sandboxed' if mode == 'bwrap' else 'WITHOUT sandbox, PCL_CARGO_UNSAFE=1'}), project {rel}"]
         # 1. Abhaengigkeiten laden (Netz, kein Code wird ausgefuehrt)
         code, out, to, secs = _run([cargo, "fetch"], crate, env, timeout=min(CARGO_TIMEOUT, 600))
         if code != 0:
-            return "\n".join(report + [f"FEHLER beim Laden der Abhaengigkeiten (cargo fetch, Exit {code}"
-                                       f"{', Zeitlimit' if to else ''}):", T._clip(_tidy(out, build), 5000)])
+            return "\n".join(report + [f"ERROR loading the dependencies (cargo fetch, exit {code}"
+                                       f"{', time limit' if to else ''}):", T._clip(_tidy(out, build), 5000)])
 
         def cargo_step(sub, extra=(), stdin=None):
             argv = [cargo, *sub, "--release", "--offline", *extra]
@@ -240,19 +240,19 @@ def rust_project(root, call):
 
         def step_text(label, res):
             code, out, to, secs = res
-            head = f"{label}: " + (f"ABGEBROCHEN nach {CARGO_TIMEOUT} s (Zeitlimit)" if to else
-                                   ("OK" if code == 0 else f"FEHLER (Exit {code})")) + f", {secs:.0f} s"
+            head = f"{label}: " + (f"ABORTED after {CARGO_TIMEOUT} s (time limit)" if to else
+                                   ("OK" if code == 0 else f"ERROR (exit {code})")) + f", {secs:.0f} s"
             if code in (-9, 137) and not to:
-                head += " (vermutlich RAM-Limit PCL_CARGO_MEM_MB erreicht)"
-            return head + "\n" + (T._clip(_tidy(out, build), 6000) or "(keine Ausgabe)")
+                head += " (probably RAM limit PCL_CARGO_MEM_MB reached)"
+            return head + "\n" + (T._clip(_tidy(out, build), 6000) or "(no output)")
 
         if op == "build":
             res = cargo_step(["build"])
             report.append(step_text("cargo build --release", res))
             if res[0] == 0:
                 bins = _binaries(build / "target", cargo)
-                report.append("Programm(e) gebaut: " + (", ".join(b.name for b in bins) or "(nur Bibliothek)") +
-                              ". Fertiges Paket mit op=package.")
+                report.append("Program(s) built: " + (", ".join(b.name for b in bins) or "(library only)") +
+                              ". Finished package with op=package.")
         elif op == "run":
             res = cargo_step(["run"], ["--", *args] if args else (), call.get("stdin"))
             report.append(step_text("cargo run --release", res))
@@ -263,11 +263,11 @@ def rust_project(root, call):
             counts = [int(n) for n in re.findall(r"running (\d+) tests?", out)]
             no_tests = res[0] == 0 and sum(counts) == 0
             if no_tests:
-                report.append("WARNUNG: Es gibt keine Tests. Schreibe #[test]-Funktionen (z. B. in src/main.rs unter "
-                              "#[cfg(test)] mod tests) und teste erneut.")
+                report.append("WARNING: There are no tests. Write #[test] functions (e.g. in src/main.rs under "
+                              "#[cfg(test)] mod tests) and test again.")
             if op == "package":
                 if res[0] != 0:
-                    report.append("KEIN PAKET: Erst die Fehler beheben, dann erneut op=package.")
+                    report.append("NO PACKAGE: Fix the errors first, then op=package again.")
                 else:
                     b = cargo_step(["build"])
                     report.append(step_text("cargo build --release", b))
@@ -283,34 +283,34 @@ def _package(root, src, crate, build, files, name, rel, test_out, no_tests, rust
     try:
         host = subprocess.run([rustc, "-vV"], capture_output=True, text=True, encoding="utf-8", errors="replace",
                               timeout=60, env=_base_env()).stdout
-        host = next((ln.split(":", 1)[1].strip() for ln in host.splitlines() if ln.startswith("host:")), "unbekannt")
+        host = next((ln.split(":", 1)[1].strip() for ln in host.splitlines() if ln.startswith("host:")), "unknown")
     except (OSError, subprocess.TimeoutExpired):
-        host = "unbekannt"
-    exe = ", ".join(b.name for b in bins) or "(keins, nur Bibliothek)"
-    liesmich = (f"{name}\n{'=' * len(name)}\n\n"
-                f"Gebaut und getestet von Hyperstead am {time.strftime('%d.%m.%Y %H:%M')}.\n"
-                f"Programm in programm/: {exe}\nFuer System: {host}\n"
-                + ("Tests: keine vorhanden.\n" if no_tests else "Tests: alle bestanden (siehe TESTBERICHT.txt).\n") +
-                "\nStarten: das Programm in programm/ ausfuehren (Windows: Doppelklick bzw. in PowerShell .\\programm\\name.exe).\n"
-                "Laeuft es auf deinem Rechner nicht (anderes System), selbst bauen: im Ordner quelle/\n"
+        host = "unknown"
+    exe = ", ".join(b.name for b in bins) or "(none, library only)"
+    readme = (f"{name}\n{'=' * len(name)}\n\n"
+                f"Built and tested by Hyperstead on {time.strftime('%Y-%m-%d %H:%M')}.\n"
+                f"Program in program/: {exe}\nFor system: {host}\n"
+                + ("Tests: none present.\n" if no_tests else "Tests: all passed (see TEST_REPORT.txt).\n") +
+                "\nStart: run the program in program/ (Windows: double-click, or in PowerShell .\\program\\name.exe).\n"
+                "If it does not run on your computer (different system), build it yourself in the folder source/:\n"
                 "  cargo build --release   -> target/release/\n  cargo test             -> Tests\n"
-                "Rust installieren: https://rustup.rs\n")
+                "Install Rust: https://rustup.rs\n")
     out_dir = root / "output"
     out_dir.mkdir(parents=True, exist_ok=True)
     target = out_dir / f"{name}.zip"
     lock = crate / "Cargo.lock"
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr(f"{name}/LIESMICH.txt", liesmich)
-        z.writestr(f"{name}/TESTBERICHT.txt", _tidy(test_out, build) or "(keine Ausgabe)")
+        z.writestr(f"{name}/README.txt", readme)
+        z.writestr(f"{name}/TEST_REPORT.txt", _tidy(test_out, build) or "(no output)")
         for f in files:
-            z.write(src / f, f"{name}/quelle/{f.as_posix()}")
+            z.write(src / f, f"{name}/source/{f.as_posix()}")
         if lock.is_file() and Path("Cargo.lock") not in files:
-            z.write(lock, f"{name}/quelle/Cargo.lock")
+            z.write(lock, f"{name}/source/Cargo.lock")
         for b in bins:
-            zi = zipfile.ZipInfo(f"{name}/programm/{b.name}", time.localtime(b.stat().st_mtime)[:6])
+            zi = zipfile.ZipInfo(f"{name}/program/{b.name}", time.localtime(b.stat().st_mtime)[:6])
             zi.external_attr = 0o755 << 16
             zi.compress_type = zipfile.ZIP_DEFLATED
             z.writestr(zi, b.read_bytes())
     size = target.stat().st_size
-    return (f"PAKET FERTIG: output/{name}.zip ({size // 1024 or 1} KB) mit Quelltext, Programm ({exe}, fuer {host}), "
-            f"TESTBERICHT.txt und LIESMICH.txt.")
+    return (f"PACKAGE DONE: output/{name}.zip ({size // 1024 or 1} KB) with source code, program ({exe}, for {host}), "
+            f"TEST_REPORT.txt and README.txt.")

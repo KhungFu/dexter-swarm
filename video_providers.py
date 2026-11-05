@@ -51,13 +51,13 @@ def keys_of(prov):
         kid, sec = T._env("HIGGSFIELD_API_KEY_ID"), T._env("HIGGSFIELD_API_KEY_SECRET")
         k = f"{kid}:{sec}" if kid and sec else T._env("HIGGSFIELD_API_KEY")
         if ":" not in k:
-            raise ToolError("VIDEO_PROVIDER=higgsfield, aber HIGGSFIELD_API_KEY_ID und HIGGSFIELD_API_KEY_SECRET fehlen")
+            raise ToolError("VIDEO_PROVIDER=higgsfield, but HIGGSFIELD_API_KEY_ID and HIGGSFIELD_API_KEY_SECRET are missing")
         return (k,)
     vals = []
     for k in VIDEO[prov][0]:
         v = T._env(k).split(",")[0].strip()
         if not v:
-            raise ToolError(f"VIDEO_PROVIDER={prov}, aber {k} fehlt in .env")
+            raise ToolError(f"VIDEO_PROVIDER={prov}, but {k} is missing in .env")
         vals.append(v)
     return tuple(vals)
 
@@ -81,7 +81,7 @@ def _json(r, who):
     except ValueError:
         d = {}
     if r.status_code >= 400:
-        raise ToolError(f"{who} antwortet mit HTTP {r.status_code}: " + T._clip(_errmsg(d) or r.text, 300))
+        raise ToolError(f"{who} answers with HTTP {r.status_code}: " + T._clip(_errmsg(d) or r.text, 300))
     return d if isinstance(d, dict) else {"data": d}
 
 
@@ -102,7 +102,7 @@ def _errmsg(d):
 
 def _wait(deadline):
     if time.time() > deadline:
-        raise ToolError("Zeitlimit fuer die Videoerzeugung erreicht (PCL_VIDEO_TIMEOUT)")
+        raise ToolError("Time limit for video generation reached (PCL_VIDEO_TIMEOUT)")
     time.sleep(POLL)
 
 
@@ -110,14 +110,14 @@ def _seconds(call, lo=1, hi=60):
     try:
         s = int(float(call.get("seconds") or 0))
     except (TypeError, ValueError):
-        raise ToolError("seconds muss eine Zahl sein")
+        raise ToolError("seconds must be a number")
     return max(lo, min(s, hi)) if s else None
 
 
 def _aspect(call):
     a = str(call.get("aspect") or "").strip()
     if a and a not in ("16:9", "9:16", "1:1"):
-        raise ToolError("aspect muss 16:9, 9:16 oder 1:1 sein")
+        raise ToolError("aspect must be 16:9, 9:16 or 1:1")
     return a or None
 
 
@@ -137,7 +137,7 @@ def image_input(root, ref):
     data = f.read_bytes()
     mime = {"png": "image/png", "jpg": "image/jpeg", "webp": "image/webp"}.get(T._sniff(data))
     if not mime:
-        raise ToolError(f"'{ref}' ist kein Bild (PNG, JPEG, WEBP)")
+        raise ToolError(f"'{ref}' is not an image (PNG, JPEG, WEBP)")
     return mime, data, f"data:{mime};base64," + base64.b64encode(data).decode()
 
 
@@ -146,12 +146,12 @@ def media_input(root, rel, kinds=("video", "audio"), max_mb=50):
     f = T._inside_existing(root, rel)
     size = f.stat().st_size
     if size > max_mb * 1_000_000:
-        raise ToolError(f"'{rel}' ist groesser als {max_mb} MB, vorher mit video_edit kuerzen oder verkleinern")
+        raise ToolError(f"'{rel}' is larger than {max_mb} MB, shorten or shrink it with video_edit first")
     ext = f.suffix.lower().lstrip(".")
     mime = {"mp4": "video/mp4", "mov": "video/quicktime", "webm": "video/webm", "mp3": "audio/mpeg", "wav": "audio/wav",
             "m4a": "audio/mp4", "ogg": "audio/ogg"}.get(ext)
     if not mime or mime.split("/")[0] not in kinds:
-        raise ToolError(f"'{rel}' hat kein passendes Format ({', '.join(kinds)})")
+        raise ToolError(f"'{rel}' has no suitable format ({', '.join(kinds)})")
     return f"data:{mime};base64," + base64.b64encode(f.read_bytes()).decode()
 
 
@@ -162,7 +162,7 @@ def save_url(url, dst, headers=None, limit=None):
     for _ in range(6):
         u = urlparse(url)
         if u.scheme != "https":
-            raise ToolError("Anbieter lieferte keine https-Adresse fuer das Ergebnis")
+            raise ToolError("Provider returned no https address for the result")
         T.check_public(u.hostname)
         h = dict(headers or {}) if u.hostname == host0 else {}
         with requests.get(url, headers=h, stream=True, timeout=300, allow_redirects=False) as r:
@@ -170,16 +170,16 @@ def save_url(url, dst, headers=None, limit=None):
                 url = urljoin(url, r.headers["Location"])
                 continue
             if r.status_code >= 400:
-                raise ToolError(f"Download des Ergebnisses fehlgeschlagen (HTTP {r.status_code})")
+                raise ToolError(f"Downloading the result failed (HTTP {r.status_code})")
             size = 0
             with open(dst, "wb") as fh:
                 for chunk in r.iter_content(1 << 16):
                     size += len(chunk)
                     if size > limit:
-                        raise ToolError("Ergebnis ist zu gross")
+                        raise ToolError("Result is too large")
                     fh.write(chunk)
             return
-    raise ToolError("Zu viele Weiterleitungen beim Download")
+    raise ToolError("Too many redirects during download")
 
 
 def find_url(d, prefer=("video", "videos", "output", "audio", "audio_file", "file")):
@@ -210,7 +210,7 @@ def _extra(prov):
     try:
         d = json.loads(raw)
     except ValueError:
-        raise ToolError(f"{name} in .env ist kein gueltiges JSON")
+        raise ToolError(f"{name} in .env is not valid JSON")
     return d if isinstance(d, dict) else {}
 
 
@@ -249,7 +249,7 @@ def gen_openai(keys, model, call, root, deadline):
         img = image_input(root, call.get("image"))
         if img:
             if not img[1]:
-                raise ToolError("Sora nimmt Startbilder nur aus dem Projektordner (z. B. assets/figur.png)")
+                raise ToolError("Sora takes start images only from the project folder (e.g. assets/figure.png)")
             files = {"input_reference": ("start.png", _fit_image(img[1], size), "image/png")}
         d = _json(requests.post(f"{base}/videos", headers=h, data=fields, files=files, timeout=120), "OpenAI Sora")
     vid = d.get("id")
@@ -257,7 +257,7 @@ def gen_openai(keys, model, call, root, deadline):
         _wait(deadline)
         d = _json(requests.get(f"{base}/videos/{vid}", headers=h, timeout=60), "OpenAI Sora")
     if d["status"] == "failed":
-        raise ToolError("Sora hat kein Video erzeugt: " + T._clip(_errmsg(d) or "unbekannter Fehler", 300))
+        raise ToolError("Sora did not create a video: " + T._clip(_errmsg(d) or "unknown error", 300))
     return None, f"{base}/videos/{vid}/content", h, vid
 
 
@@ -301,7 +301,7 @@ def gen_runway(keys, model, call, root, deadline):
         _wait(deadline)
         d = _json(requests.get(f"{base}/v1/tasks/{tid}", headers=h, timeout=60), "Runway")
     if d["status"] != "SUCCEEDED":
-        raise ToolError("Runway hat kein Video erzeugt: " + T._clip(_errmsg(d) or d["status"], 300))
+        raise ToolError("Runway did not create a video: " + T._clip(_errmsg(d) or d["status"], 300))
     return None, find_url(d.get("output")), None, None
 
 
@@ -316,7 +316,7 @@ def gen_luma(keys, model, call, root, deadline):
     img = image_input(root, call.get("image"))
     if img:
         if img[1]:
-            raise ToolError("Luma nimmt Startbilder nur als oeffentliche https-Adresse, nicht aus dem Projektordner")
+            raise ToolError("Luma takes start images only as a public https address, not from the project folder")
         body["keyframes"] = {"frame0": {"type": "image", "url": img[2]}}
     d = _json(requests.post(base + "/generations", headers=h, json=body, timeout=120), "Luma")
     gid = d.get("id")
@@ -324,7 +324,7 @@ def gen_luma(keys, model, call, root, deadline):
         _wait(deadline)
         d = _json(requests.get(f"{base}/generations/{gid}", headers=h, timeout=60), "Luma")
     if d["state"] == "failed":
-        raise ToolError("Luma hat kein Video erzeugt: " + T._clip(_errmsg(d) or "unbekannter Fehler", 300))
+        raise ToolError("Luma did not create a video: " + T._clip(_errmsg(d) or "unknown error", 300))
     return None, ((d.get("assets") or {}).get("video")), None, None
 
 
@@ -362,7 +362,7 @@ def gen_kling(keys, model, call, root, deadline):
         data = d.get("data") or {}
         st = data.get("task_status")
     if st == "failed":
-        raise ToolError("Kling hat kein Video erzeugt: " + T._clip(data.get("task_status_msg") or "unbekannter Fehler", 300))
+        raise ToolError("Kling did not create a video: " + T._clip(data.get("task_status_msg") or "unknown error", 300))
     return None, find_url((data.get("task_result") or {}).get("videos")), None, None
 
 
@@ -386,7 +386,7 @@ def gen_minimax(keys, model, call, root, deadline):
         d = _json(requests.get(base + "/v1/query/video_generation", params={"task_id": tid}, headers=h, timeout=60), "MiniMax")
         st = str(d.get("status") or "").lower()
     if st == "fail":
-        raise ToolError("MiniMax hat kein Video erzeugt: " + T._clip(_errmsg(d) or "unbekannter Fehler", 300))
+        raise ToolError("MiniMax did not create a video: " + T._clip(_errmsg(d) or "unknown error", 300))
     f = _json(requests.get(base + "/v1/files/retrieve", params={"file_id": d.get("file_id")}, headers=h, timeout=60), "MiniMax")
     return None, (f.get("file") or {}).get("download_url"), None, None
 
@@ -416,7 +416,7 @@ def gen_wan(keys, model, call, root, deadline):
                     "Wan (DashScope)").get("output") or {}
         st = out.get("task_status")
     if st != "SUCCEEDED":
-        raise ToolError("Wan hat kein Video erzeugt: " + T._clip(out.get("message") or st, 300))
+        raise ToolError("Wan did not create a video: " + T._clip(out.get("message") or st, 300))
     return None, out.get("video_url"), None, None
 
 
@@ -437,7 +437,7 @@ def gen_seedance(keys, model, call, root, deadline):
         _wait(deadline)
         d = _json(requests.get(f"{base}/contents/generations/tasks/{tid}", headers=h, timeout=60), "Seedance (BytePlus)")
     if d["status"] != "succeeded":
-        raise ToolError("Seedance hat kein Video erzeugt: " + T._clip(_errmsg(d) or d["status"], 300))
+        raise ToolError("Seedance did not create a video: " + T._clip(_errmsg(d) or d["status"], 300))
     return None, (d.get("content") or {}).get("video_url"), None, None
 
 
@@ -470,7 +470,7 @@ def gen_higgsfield(keys, model, call, root, deadline):
         _wait(deadline)
         d = _json(requests.get(poll, headers=h, timeout=60), "Higgsfield")
     if d["status"] == "nsfw":
-        raise ToolError("Higgsfield hat den Auftrag wegen der Inhaltspruefung abgelehnt (nsfw)")
+        raise ToolError("Higgsfield rejected the job because of the content check (nsfw)")
     if d["status"] != "completed":
         raise ToolError(f"Higgsfield: Video {d['status']}: " + T._clip(_errmsg(d), 300))
     return None, find_url(d), None, None
@@ -489,7 +489,7 @@ def fal_run(key, model, body, deadline, who="fal.ai"):
             break
     res = _json(requests.get(resp_url, headers=h, timeout=120), who)
     if not find_url(res):
-        raise ToolError(f"{who} ({model}) lieferte kein Ergebnis: " + T._clip(_errmsg(res) or _errmsg(d) or json.dumps(res)[:300], 300))
+        raise ToolError(f"{who} ({model}) returned no result: " + T._clip(_errmsg(res) or _errmsg(d) or json.dumps(res)[:300], 300))
     return res
 
 
@@ -525,7 +525,7 @@ def gen_replicate(keys, model, call, root, deadline):
         d = _json(requests.get((d.get("urls") or {}).get("get") or f"https://api.replicate.com/v1/predictions/{d.get('id')}",
                                headers={"Authorization": h["Authorization"]}, timeout=60), "Replicate")
     if d["status"] != "succeeded":
-        raise ToolError("Replicate hat kein Video erzeugt: " + T._clip(_errmsg(d) or d["status"], 300))
+        raise ToolError("Replicate did not create a video: " + T._clip(_errmsg(d) or d["status"], 300))
     return None, find_url(d.get("output")), None, None
 
 
@@ -537,14 +537,14 @@ GEN = {"gemini": gen_gemini, "openai": gen_openai, "openrouter": gen_openrouter,
 def generate(root, call):
     provs = providers()
     if not provs:
-        raise ToolError("Videoerzeugung ist aus (VIDEO_PROVIDER in .env setzen, z. B. VIDEO_PROVIDER=kling)")
+        raise ToolError("Video generation is off (set VIDEO_PROVIDER in .env, e.g. VIDEO_PROVIDER=kling)")
     if not _prompt(call):
-        raise ToolError("prompt fehlt")
+        raise ToolError("prompt missing")
     prov = str(call.get("provider") or provs[0]).strip().lower()
     if prov not in provs:
-        raise ToolError(f"Anbieter '{prov}' ist nicht eingeschaltet. Moeglich: {', '.join(provs)}")
+        raise ToolError(f"Provider '{prov}' is not switched on. Possible: {', '.join(provs)}")
     if call.get("continue_id") and prov not in ("gemini", "openai"):
-        raise ToolError("continue_id geht nur mit gemini (Omni) oder openai (Sora-Remix)")
+        raise ToolError("continue_id only works with gemini (Omni) or openai (Sora remix)")
     keys = keys_of(prov)
     model = model_of(prov, bool(call.get("image")), provs[0])
     deadline = time.time() + int(T._env("PCL_VIDEO_TIMEOUT", "900") or 900)
@@ -552,7 +552,7 @@ def generate(root, call):
     dst = T._out_path(root, call, "video", "mp4")
     if data is not None:
         if len(data) > T.MAX_VIDEO_BYTES:
-            raise ToolError("Video ist zu gross")
+            raise ToolError("Video is too large")
         dst.write_bytes(data)
     elif url:
         if prov == "gemini":
@@ -560,15 +560,15 @@ def generate(root, call):
         else:
             save_url(url, dst, headers)
     else:
-        raise ToolError(f"{prov} ({model}) meldete Erfolg, aber ohne Videoadresse")
+        raise ToolError(f"{prov} ({model}) reported success, but without a video address")
     rel = T._rel(root, dst)
     try:
         p = T._probe(dst)
         info = " " + T._describe_probe(p) + "." if p["video"] else ""
     except Exception:  # ffprobe fehlt: Video ist trotzdem da
         info = ""
-    return (f"Video erzeugt mit {prov} ({model}): {rel} ({dst.stat().st_size // 1024} KB).{info}"
-            + (f" Fortsetzen mit continue_id: {iid}" if iid else ""))
+    return (f"Video created with {prov} ({model}): {rel} ({dst.stat().st_size // 1024} KB).{info}"
+            + (f" Continue with continue_id: {iid}" if iid else ""))
 
 
 # --------------------------------------------------------------------------- video_ai: Hochskalieren, Lippensync, Ton zum Video (fal.ai)
@@ -585,25 +585,25 @@ def video_ai_enabled():
 
 def video_ai(root, call):
     if not video_ai_enabled():
-        raise ToolError("video_ai ist aus (VIDEO_AI=fal und FAL_KEY in .env setzen)")
+        raise ToolError("video_ai is off (set VIDEO_AI=fal and FAL_KEY in .env)")
     key = T._env("FAL_KEY").split(",")[0].strip()
     if not key:
-        raise ToolError("VIDEO_AI=fal, aber FAL_KEY fehlt")
+        raise ToolError("VIDEO_AI=fal, but FAL_KEY is missing")
     op = str(call.get("op") or "").strip().lower()
     if op not in AI_OPS:
-        raise ToolError("op muss upscale, lipsync oder sound sein")
+        raise ToolError("op must be upscale, lipsync or sound")
     if not call.get("input"):
-        raise ToolError("input fehlt (Video im Projektordner, z. B. output/szene1.mp4)")
+        raise ToolError("input missing (video in the project folder, e.g. output/scene1.mp4)")
     model = T._model_env(*AI_OPS[op])
     body = {"video_url": media_input(root, call["input"], ("video",))}
     if op == "upscale":
         try:
             body["scale"] = max(1, min(int(call.get("scale") or 2), 4))
         except (TypeError, ValueError):
-            raise ToolError("scale muss 2, 3 oder 4 sein")
+            raise ToolError("scale must be 2, 3 or 4")
     elif op == "lipsync":
         if not call.get("audio"):
-            raise ToolError("audio fehlt (Sprachaufnahme, z. B. aus speak)")
+            raise ToolError("audio missing (voice recording, e.g. from speak)")
         body["audio_url"] = media_input(root, call["audio"], ("audio",))
     elif op == "sound":
         body["prompt"] = str(call.get("prompt") or "").strip()[:1000]
@@ -611,7 +611,7 @@ def video_ai(root, call):
     url = find_url(fal_run(key, model, body, deadline))
     dst = T._out_path(root, {"name": call.get("name") or f"{op}"}, op, "mp4")
     save_url(url, dst)
-    return f"video_ai {op} fertig ({model}): {T._rel(root, dst)} ({dst.stat().st_size // 1024} KB)"
+    return f"video_ai {op} done ({model}): {T._rel(root, dst)} ({dst.stat().st_size // 1024} KB)"
 
 
 # --------------------------------------------------------------------------- sound_generate: Geraeusche und Musik
@@ -623,17 +623,17 @@ def audio_provider():
 def sound_generate(root, call):
     prov = audio_provider()
     if not prov:
-        raise ToolError("sound_generate ist aus (AUDIO_PROVIDER=elevenlabs oder fal in .env setzen)")
+        raise ToolError("sound_generate is off (set AUDIO_PROVIDER=elevenlabs or fal in .env)")
     prompt = str(call.get("prompt") or "").strip()[:2000]
     if not prompt:
-        raise ToolError("prompt fehlt (z. B. 'Regen auf Blechdach, entfernter Donner')")
+        raise ToolError("prompt missing (e.g. 'rain on a tin roof, distant thunder')")
     kind = str(call.get("kind") or "sfx").lower()
     if kind not in ("sfx", "music"):
-        raise ToolError("kind muss sfx (Geraeusch) oder music sein")
+        raise ToolError("kind must be sfx (sound effect) or music")
     try:
         secs = float(call.get("seconds") or (30 if kind == "music" else 5))
     except (TypeError, ValueError):
-        raise ToolError("seconds muss eine Zahl sein")
+        raise ToolError("seconds must be a number")
     outdir = root / "output" / "audio"
     outdir.mkdir(parents=True, exist_ok=True)
     base, i = T._safe_name(call.get("name"), kind), 0
@@ -643,7 +643,7 @@ def sound_generate(root, call):
     if prov == "elevenlabs":
         key = T._env("ELEVENLABS_API_KEY")
         if not key:
-            raise ToolError("AUDIO_PROVIDER=elevenlabs, aber ELEVENLABS_API_KEY fehlt")
+            raise ToolError("AUDIO_PROVIDER=elevenlabs, but ELEVENLABS_API_KEY is missing")
         h = {"xi-api-key": key}
         if kind == "music":
             r = requests.post("https://api.elevenlabs.io/v1/music", headers=h, params={"output_format": "mp3_44100_128"},
@@ -652,13 +652,13 @@ def sound_generate(root, call):
             r = requests.post("https://api.elevenlabs.io/v1/sound-generation", headers=h, params={"output_format": "mp3_44100_128"},
                               json={"text": prompt, "duration_seconds": max(0.5, min(secs, 30))}, timeout=300)
         if r.status_code >= 400:
-            raise ToolError(f"ElevenLabs antwortet mit HTTP {r.status_code}: " + T._clip(r.text, 300))
+            raise ToolError(f"ElevenLabs answers with HTTP {r.status_code}: " + T._clip(r.text, 300))
         dst = outdir / f"{stem}.mp3"
         dst.write_bytes(r.content)
     else:
         key = T._env("FAL_KEY").split(",")[0].strip()
         if not key:
-            raise ToolError("AUDIO_PROVIDER=fal, aber FAL_KEY fehlt")
+            raise ToolError("AUDIO_PROVIDER=fal, but FAL_KEY is missing")
         model = T._model_env("FAL_AUDIO_MODEL", "fal-ai/stable-audio")
         res = fal_run(key, model, {"prompt": prompt, "seconds_total": int(max(1, min(secs, 47)))},
                       time.time() + int(T._env("PCL_VIDEO_TIMEOUT", "900") or 900))
@@ -666,7 +666,7 @@ def sound_generate(root, call):
         ext = "mp3" if urlparse(url).path.lower().endswith(".mp3") else "wav"
         dst = outdir / f"{stem}.{ext}"
         save_url(url, dst, limit=100_000_000)
-    return f"Ton erzeugt mit {prov}: {T._rel(root, dst)} ({dst.stat().st_size // 1024} KB). Ins Video: video_edit add_audio mode mix."
+    return f"Sound created with {prov}: {T._rel(root, dst)} ({dst.stat().st_size // 1024} KB). Into the video: video_edit add_audio mode mix."
 
 
 # --------------------------------------------------------------------------- Cloud-Stimmen fuer speak (TTS_ENGINE=elevenlabs | openai)
@@ -674,7 +674,7 @@ def cloud_tts(engine, text, voice, rate, target):
     if engine == "elevenlabs":
         key = T._env("ELEVENLABS_API_KEY")
         if not key:
-            raise ToolError("TTS_ENGINE=elevenlabs, aber ELEVENLABS_API_KEY fehlt")
+            raise ToolError("TTS_ENGINE=elevenlabs, but ELEVENLABS_API_KEY is missing")
         vid = voice if voice and not voice.endswith(".onnx") and len(voice) >= 16 else T._env("ELEVENLABS_VOICE", "JBFqnCBsd6RMkjVDRZzb")
         body = {"text": text, "model_id": T._model_env("ELEVENLABS_TTS_MODEL", "eleven_multilingual_v2")}
         if rate:
@@ -685,7 +685,7 @@ def cloud_tts(engine, text, voice, rate, target):
     else:
         key = T._env("OPENAI_API_KEY").split(",")[0].strip()
         if not key:
-            raise ToolError("TTS_ENGINE=openai, aber OPENAI_API_KEY fehlt")
+            raise ToolError("TTS_ENGINE=openai, but OPENAI_API_KEY is missing")
         base = T._env("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
         ov = voice if voice in ("alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse") \
             else T._env("OPENAI_TTS_VOICE", "alloy")
@@ -693,9 +693,9 @@ def cloud_tts(engine, text, voice, rate, target):
         if rate:
             body["speed"] = max(0.25, min(rate, 4.0))
         r = requests.post(base + "/audio/speech", headers={"Authorization": "Bearer " + key}, json=body, timeout=300)
-        who = "OpenAI-Stimme"
+        who = "OpenAI voice"
     if r.status_code >= 400:
-        raise ToolError(f"{who} antwortet mit HTTP {r.status_code}: " + T._clip(r.text, 300))
+        raise ToolError(f"{who} answers with HTTP {r.status_code}: " + T._clip(r.text, 300))
     target.write_bytes(r.content)
 
 
@@ -703,16 +703,16 @@ def elevenlabs_voices(lang=None):
     """Stimmen des ElevenLabs-Kontos (inkl. Standardstimmen) als kurze Liste fuer die Agenten."""
     key = T._env("ELEVENLABS_API_KEY")
     if not key:
-        raise ToolError("ElevenLabs ist nicht eingerichtet (ELEVENLABS_API_KEY in .env fehlt). Ohne Key gibt es nur die lokalen Stimmen.")
+        raise ToolError("ElevenLabs is not set up (ELEVENLABS_API_KEY missing in .env). Without a key there are only the local voices.")
     r = requests.get("https://api.elevenlabs.io/v1/voices", headers={"xi-api-key": key}, timeout=60)
     if r.status_code >= 400:
-        raise ToolError(f"ElevenLabs antwortet mit HTTP {r.status_code}: " + T._clip(r.text, 300))
+        raise ToolError(f"ElevenLabs answers with HTTP {r.status_code}: " + T._clip(r.text, 300))
     rows = []
     for v in (r.json() or {}).get("voices") or []:
         lab = v.get("labels") or {}
         info = ", ".join(str(lab[k]) for k in ("gender", "age", "accent", "description", "use_case", "language") if lab.get(k))
         rows.append(f"- {v.get('name', '?')}: {v.get('voice_id', '')}" + (f" ({info})" if info else ""))
     if not rows:
-        return "Keine Stimmen im ElevenLabs-Konto gefunden."
-    return ("ElevenLabs-Stimmen (voice = ID, alle sprechen mit eleven_multilingual_v2 auch Deutsch/Tuerkisch):\n"
+        return "No voices found in the ElevenLabs account."
+    return ("ElevenLabs voices (voice = ID, with eleven_multilingual_v2 all of them also speak German/Turkish etc.):\n"
             + "\n".join(rows[:80]) + ("\n..." if len(rows) > 80 else ""))

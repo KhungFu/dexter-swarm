@@ -236,7 +236,10 @@ Ova lista se dopunjava pri svakoj promjeni programa. Svaki red kaže šta sistem
 | Preglednik ništa ne čuva (privatni prozor) | Svijetlo/tamno, izabrana grafika (svemir, vrsta organigrama, atom, nacrt), pomjerene kartice organigrama, pokreti i režim pomoći se pri svakom učitavanju vraćaju na zadano. | Koristite običan prozor; podaci projekata nisu pogođeni. |
 | Agenti u nacrtu leže jedan preko drugog (npr. svi na istom mjestu) | Linije veza se ne vide. Pri otvaranju nacrta Hyperstead ih jednom automatski raspoređuje i javlja to. | Ništa, ili pritisnite „🗂 Ordnen“. |
 | Historija za dugme ← (prethodna grafika) | Historija postoji samo u otvorenoj kartici. Nakon ponovnog učitavanja ili u novoj kartici ← je sivo dok ponovo ne promijenite grafiku. | Ništa. |
-| Neki drugi jezik osim engleskog na kontrolnoj ploči | Interfejs postoji samo na engleskom. Tekstovi agenata, sadržaji šablona firmi i Telegram poruke ostaju na njemačkom kao do sada. | Neka preglednik prevede (Chrome/Edge: desni klik → „Prevedi“). |
+| Neki drugi jezik osim engleskog na kontrolnoj ploči | Kontrolna ploča, upute agentima, šabloni i sistemski tekstovi su na engleskom. Ono što sami upisujete u polja ostaje na vašem jeziku, a agenti odgovaraju i izvještavaju na jeziku na kojem pišete. | Neka preglednik prevede (Chrome/Edge: desni klik → „Prevedi“). |
+| Nema prave vještačke inteligencije u projektu (samo `mock` ili bez dobavljača) | Fiksne poruke u Telegramu i u poštanskom sandučiću (npr. „✅ Done“, napomene o odobrenju) ostaju na engleskom jer nema ko da ih prevede. Izvještaji agenata ipak stižu na vašem jeziku čim agenti imaju vještačku inteligenciju. | Dajte CEO-u (ili drugom agentu) pravu vještačku inteligenciju; od tada ona automatski prevodi poruke. |
+| `PCL_TRANSLATE` u `.env` (zadano `1`) | Sa `PCL_TRANSLATE=0` sve fiksne poruke ostaju na engleskom i nema dodatnih poziva vještačkoj inteligenciji za prijevode. Bez unosa se prevodi. | Uklonite red ili postavite `PCL_TRANSLATE=1`, ponovo pokrenite Hyperstead. |
+| Vaš jezik još nije prepoznat (svježa instalacija ili samo kratke poruke kao „ok“) | Do vašeg prvog dužeg teksta (otprilike od 12 slova, ne komanda) fiksne poruke ostaju na engleskom. | Napišite zadatak ili poruku u chatu na svom jeziku. |
 
 ## Pristup sa interneta
 
@@ -316,6 +319,8 @@ Bodovi se zovu zvjezdana prašina, zadaci se zovu misije. Raniji svjetovi Ceh, T
 **Atom:** ⚛️ prikazuje tim kao molekularnu mrežu: sjajne kugle povezane štapićima. Velika plava kugla je najviše rukovodstvo, srednje šarene kugle su vođe timova, male kugle uposlenici. Svaka kugla je štapićem vezana za svog nadređenog, pa se hijerarhija vidi po veličini i vezama; sve je raspoređeno slobodno i prostorno kao model molekula, a ne u krutim redovima. Svaka firma ima vlastiti molekul: oblik i boje proizlaze iz firme, velika kugla nosi boju projekta. U modernom prikazu ⚛️ Molekül prikazuje sve firme kao molekule jedne pored drugih; partnerske firme povezane su svijetlećim štapićem između svojih rukovodstava, po kojem putuju iskre (više kada obje rade). Dodir uvećava molekul, svaka kugla otvara odjel i agenta. Grafika miruje, da bi se mogla čitati na miru. Kao svijet, slika raste s nivoom: kao kvark u jezgru svijetle tri kvarka, od molekula su susjedni atomi povezani vezama, od kristala u pozadini leži atomska rešetka, kao ćelija dodaju se ćelijski zid i dvostruka spirala DNK. Stanje i dodir rade kao u organigramu.
 
 **Engleski interfejs, nazad i mjeseci:** Kontrolna ploča je na međunarodnom engleskom; ostale jezike daje prevodilac preglednika. Neki nazivi dugmadi u ovom uputstvu su još stari njemački (npr. „🗂 Ordnen“ se sada zove „🗂 Arrange“). Dugme **←** lijevo od menija grafike vraća na prethodnu grafiku, tačno u dizajnu u kojem ste bili (i nazad u otvorenu firmu ili odjel). U info-kartici firme više nema dugmeta „📐 Firma öffnen“; dodir na ime direktno otvara agenta, a grafika ostaje ista. U 🌌 Kosmosu su saradnici mjeseci koji kruže oko svoje planete (odjela); planete i sunca se uz to okreću oko vlastite ose, a mjeseci samo kruže oko svoje planete.
+
+**Sve na engleskom, komunikacija na vašem jeziku:** Sve što Hyperstead sam piše sada je na engleskom: interfejs, savjeti pri prelasku mišem, poruke o greškama, pitanja za potvrdu, upute agentima, šabloni firmi, poruke alata i samotest. Ono što sami unosite (zadaci, chat, ciljevi, imena) ostaje na vašem jeziku. Agenti odgovaraju, izvještavaju i prave datoteke za vas na jeziku na kojem pišete, bilo da je to njemački, turski, albanski, svahili, ruski ili kineski; zakazani zadaci i kontrolni obilazak također prate vaš posljednji jezik. Fiksne poruke u Telegramu i u poštanskom sandučiću vještačka inteligencija vašeg CEO-a automatski prevodi na vaš jezik (jednom po tekstu, zatim iz keša). Telegram komande se sada zovu /new, /project, /file i /help (stare njemačke i dalje rade). U meniju grafike grupa „Classic“ prikazuje samo tekst bez simbola („Org chart: Tree“, „Org chart: Outline“, „Org chart: Circle“, „Blueprint“). Folderi i ključevi koje agenti već poznaju (npr. `wissen/`, `film/film.json` s njemačkim ključevima) ostali su isti. Rust paket sada sadrži `README.txt`, `TEST_REPORT.txt`, `source/` i `program/`.
 
 **Operativni centar:** 🛰 u bočnoj traci (ili dodir na brojeve u traci rasta) na prvi pogled prikazuje šta trenutno radi i čeka, koja odobrenja su otvorena, šta nije uspjelo u posljednjih 7 dana (sa ↻ Neu), rasporede (sa ▶ Jetzt), poruke o greškama i posljednje događaje. Uz to prikazuje procijenjene troškove vještačke inteligencije za danas i posljednjih 7 dana; današnji trošak stoji i kao 💶 u traci. Svi brojevi dolaze iz postojećih zadataka, odobrenja, rasporeda i historije, ništa nije izmišljeno.
 
@@ -569,13 +574,13 @@ Agentu s pravima **„Darf programmieren“**, **„Darf Dateien schreiben“** 
 1. Pomoću `write_code` pravi Cargo projekat, npr. `rust/rechner/Cargo.toml` i `rust/rechner/src/main.rs` s testovima (`#[test]`).
 2. `rust_project` s `op=test` preuzima zavisnosti s crates.io, gradi program i pokreće testove.
    Greške se vraćaju s fajlom i redom, agent ih ispravlja i ponovo testira.
-3. `op=package` još jednom testira, gradi release verziju i sprema **`output/<ime>.zip`**. Unutra: `programm/` (gotov
-   program), `quelle/` (izvorni kod s `Cargo.lock`), `TESTBERICHT.txt` i `LIESMICH.txt`. Paket nastaje samo ako svi testovi prođu.
+3. `op=package` još jednom testira, gradi release verziju i sprema **`output/<ime>.zip`**. Unutra: `program/` (gotov
+   program), `source/` (izvorni kod s `Cargo.lock`), `TEST_REPORT.txt` i `README.txt`. Paket nastaje samo ako svi testovi prođu.
 
 Paket dobijate u pošti ili pod **📁 Dateien** (pojedinačno ili u ZIP-u projekta). Ostale naredbe: `op=build`, `op=run` (s `args`, `stdin`).
 
-- **Za koji sistem?** Program u `programm/` odgovara računaru na kojem radi Hyperstead: s Pi-ja Linux program (ARM),
-  s Windows laptopa `.exe`. Za drugi sistem sami pokrenite `cargo build --release` u folderu `quelle/`.
+- **Za koji sistem?** Program u `program/` odgovara računaru na kojem radi Hyperstead: s Pi-ja Linux program (ARM),
+  s Windows laptopa `.exe`. Za drugi sistem sami pokrenite `cargo build --release` u folderu `source/`.
 - **Izolacija (Pi/Linux):** Izrada, testiranje i pokretanje idu u bubblewrapu kao `run_code`: bez interneta, bez `.env`, bez home foldera,
   upisiv je samo folder za izradu `.rust/` projekta. Internet ima samo `cargo fetch` (preuzima zavisnosti, ništa ne pokreće).
   Cargo postavke (`.cargo/`) i `rust-toolchain` fajlovi iz projekta se ne koriste.

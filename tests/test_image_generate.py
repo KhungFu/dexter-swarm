@@ -47,7 +47,7 @@ def test_openai_mit_referenzbildern_und_zielpfad(openai, tmp_path):
     (tmp_path / "input/stil.jpg").write_bytes(JPG)
     out = T.image_generate(tmp_path, {"prompt": "K1 und K6 spielen", "refs": ["input/figuren.png", "input/stil.jpg"],
                                       "path": "karten/bilder/k01.png", "quality": "high"})
-    assert "mit 2 Referenzbild" in out and (tmp_path / "karten/bilder/k01.png").exists()
+    assert "with 2 reference image" in out and (tmp_path / "karten/bilder/k01.png").exists()
     url, kw = openai[0]
     assert url.endswith("/images/edits")
     assert [f[0] for f in kw["files"]] == ["image[]", "image[]"]
@@ -59,15 +59,15 @@ def test_openai_mit_referenzbildern_und_zielpfad(openai, tmp_path):
 
 
 @pytest.mark.parametrize("call, msg", [
-    ({"prompt": "x", "path": "../weg.png"}, "ausserhalb"),
-    ({"prompt": "x", "path": "input/x.png"}, "path muss in"),
-    ({"prompt": "x", "path": "karten.png"}, "path muss in"),
-    ({"prompt": "x", "refs": ["input/fehlt.png"]}, "nicht gefunden"),
-    ({"prompt": "x", "refs": ["../../etc/passwd"]}, "nicht gefunden"),
+    ({"prompt": "x", "path": "../weg.png"}, "outside"),
+    ({"prompt": "x", "path": "input/x.png"}, "path must be in"),
+    ({"prompt": "x", "path": "karten.png"}, "path must be in"),
+    ({"prompt": "x", "refs": ["input/fehlt.png"]}, "not found"),
+    ({"prompt": "x", "refs": ["../../etc/passwd"]}, "not found"),
     ({"prompt": "x", "refs": ["a.png"] * 5}, "Hoechstens"),
     ({"prompt": "x", "format": "rund"}, "format"),
     ({"prompt": "x", "quality": "ultra"}, "quality"),
-    ({"prompt": ""}, "prompt fehlt"),
+    ({"prompt": ""}, "prompt missing"),
 ])
 def test_ungueltige_eingaben_kosten_nichts(openai, tmp_path, call, msg):
     with pytest.raises(T.ToolError, match=msg):
@@ -77,7 +77,7 @@ def test_ungueltige_eingaben_kosten_nichts(openai, tmp_path, call, msg):
 
 def test_referenz_muss_bild_sein(openai, tmp_path):
     (tmp_path / "notiz.txt").write_text("kein Bild")
-    with pytest.raises(T.ToolError, match="PNG, JPG oder WEBP"):
+    with pytest.raises(T.ToolError, match="PNG, JPG or WEBP"):
         T.image_generate(tmp_path, {"prompt": "x", "refs": "notiz.txt"})
 
 
@@ -92,7 +92,7 @@ def test_openai_fehler_wird_gemeldet(monkeypatch, tmp_path):
 def test_openai_ohne_key(monkeypatch, tmp_path):
     monkeypatch.setenv("IMAGE_PROVIDER", "openai")
     monkeypatch.setenv("OPENAI_API_KEY", "")
-    with pytest.raises(T.ToolError, match="OPENAI_API_KEY fehlt"):
+    with pytest.raises(T.ToolError, match="OPENAI_API_KEY is missing"):
         T.image_generate(tmp_path, {"prompt": "x"})
 
 
@@ -124,7 +124,7 @@ def test_gemini_bildgroesse_und_abrechnungshinweis(monkeypatch, tmp_path):
         seen.update(kw)
         return Resp({"error": {"code": 429, "message": "quota exceeded, limit: 0"}}, 429)
     monkeypatch.setattr(T.requests, "post", post)
-    with pytest.raises(T.ToolError, match="HTTP 429.*Abrechnung"):
+    with pytest.raises(T.ToolError, match="HTTP 429.*billing"):
         T.image_generate(tmp_path, {"prompt": "x"})
     assert seen["json"]["generationConfig"]["imageConfig"]["imageSize"] == "2K"
 
@@ -132,7 +132,7 @@ def test_gemini_bildgroesse_und_abrechnungshinweis(monkeypatch, tmp_path):
 def test_pollinations_lehnt_referenzen_ab(monkeypatch, tmp_path):
     monkeypatch.setenv("IMAGE_PROVIDER", "pollinations")
     (tmp_path / "ref.png").write_bytes(PNG)
-    with pytest.raises(T.ToolError, match="nur mit IMAGE_PROVIDER=openai, gemini, openrouter, sdcpp, cloudflare, nvidia"):
+    with pytest.raises(T.ToolError, match="only work with IMAGE_PROVIDER=openai, gemini, openrouter, sdcpp, cloudflare, nvidia"):
         T.image_generate(tmp_path, {"prompt": "x", "refs": ["ref.png"]})
 
 
@@ -143,7 +143,7 @@ def test_recht_bilder_oder_medien(openai, tmp_path):
     text, made = T.run_tool({"tool": "image_generate", "prompt": "x", "path": "karten/k02.png"}, tmp_path, {"media": 1})
     assert made == "karten/k02.png", text
     text, _ = T.run_tool({"tool": "image_generate", "prompt": "x"}, tmp_path, {"web": 1})
-    assert "nicht erlaubt" in text
+    assert "not allowed" in text
 
 
 @pytest.mark.parametrize("value, expected", [
@@ -189,11 +189,11 @@ def test_openrouter_mit_referenz(monkeypatch, tmp_path):
 def test_openrouter_fehler_und_key(monkeypatch, tmp_path):
     monkeypatch.setenv("IMAGE_PROVIDER", "openrouter")
     monkeypatch.setenv("OPENROUTER_API_KEY", "")
-    with pytest.raises(T.ToolError, match="OPENROUTER_API_KEY fehlt"):
+    with pytest.raises(T.ToolError, match="OPENROUTER_API_KEY is missing"):
         T.image_generate(tmp_path, {"prompt": "x"})
     monkeypatch.setenv("OPENROUTER_API_KEY", "or-test")
     monkeypatch.setattr(T.requests, "post", lambda url, **kw: Resp({"error": {"message": "Insufficient credits"}}, 402))
-    with pytest.raises(T.ToolError, match="HTTP 402 .*Guthaben.*Insufficient credits"):
+    with pytest.raises(T.ToolError, match="HTTP 402 .*credit.*Insufficient credits"):
         T.image_generate(tmp_path, {"prompt": "x"})
 
 
@@ -216,8 +216,8 @@ def test_rueckfall_auf_pollinations(monkeypatch, tmp_path):
     monkeypatch.setenv("IMAGE_FALLBACK", "pollinations")
     out = T.image_generate(tmp_path, call)
     assert "pollinations" in got[0] and (tmp_path / "karten/k1.png").exists()
-    assert out.startswith("HINWEIS: Auf Pollinations umgestiegen") and "bei openrouter" in out and "HTTP 402" in out[:150]
-    assert "OHNE Referenzbilder" in out and "mit 1 Referenzbild" not in out
+    assert out.startswith("NOTE: switched to Pollinations") and "with openrouter" in out and "HTTP 402" in out[:150]
+    assert "WITHOUT reference images" in out and "with 1 reference image" not in out
     text, made = T.run_tool({"tool": "image_generate", **call}, tmp_path, {"media": 1})
     assert made == "karten/k1.png", text
 
@@ -235,7 +235,7 @@ def test_pollinations_mit_key_modell_und_referenzen(monkeypatch, tmp_path):
     monkeypatch.setattr(T.requests, "post", post)
     (tmp_path / "ref.png").write_bytes(PNG)
     out = T.image_generate(tmp_path, {"prompt": "K1 winkt", "refs": ["ref.png"], "format": "hoch", "path": "karten/k1.png"})
-    assert "mit 1 Referenzbild" in out and (tmp_path / "karten/k1.png").read_bytes() == PNG
+    assert "with 1 reference image" in out and (tmp_path / "karten/k1.png").read_bytes() == PNG
     body = seen["json"]
     assert seen["url"] == "https://gen.pollinations.ai/v1/images/generations"
     assert seen["headers"]["Authorization"] == "Bearer sk_test"
@@ -279,7 +279,7 @@ def test_rueckfall_mit_pollinations_key_behaelt_referenzen(monkeypatch, tmp_path
     monkeypatch.setattr(T.requests, "post", post)
     (tmp_path / "ref.png").write_bytes(PNG)
     out = T.image_generate(tmp_path, {"prompt": "x", "refs": ["ref.png"]})
-    assert "gen.pollinations.ai" in urls[-1] and "mit 1 Referenzbild" in out and "Referenzbildern erzeugt" in out
+    assert "gen.pollinations.ai" in urls[-1] and "with 1 reference image" in out and "pollen credit and reference images" in out
 
 
 def test_sdcpp_laptop_mit_referenz(monkeypatch, tmp_path):
@@ -294,7 +294,7 @@ def test_sdcpp_laptop_mit_referenz(monkeypatch, tmp_path):
     monkeypatch.setattr(T.requests, "post", post)
     (tmp_path / "ref.png").write_bytes(PNG)
     out = T.image_generate(tmp_path, {"prompt": "K1 winkt", "refs": ["ref.png"], "format": "quer", "path": "karten/k1.png"})
-    assert "mit 1 Referenzbild" in out and (tmp_path / "karten/k1.png").read_bytes() == PNG
+    assert "with 1 reference image" in out and (tmp_path / "karten/k1.png").read_bytes() == PNG
     body = seen["json"]
     assert seen["url"] == "http://192.168.1.50:1234/sdapi/v1/txt2img"
     assert (body["width"], body["height"]) == (1024, 672) and body["steps"] == 4 and body["cfg_scale"] == 1.0
@@ -305,7 +305,7 @@ def test_sdcpp_laptop_mit_referenz(monkeypatch, tmp_path):
 def test_sdcpp_groesse_fehler_und_url(monkeypatch, tmp_path):
     monkeypatch.setenv("IMAGE_PROVIDER", "sdcpp")
     monkeypatch.delenv("SDCPP_URL", raising=False)
-    with pytest.raises(T.ToolError, match="SDCPP_URL fehlt"):
+    with pytest.raises(T.ToolError, match="SDCPP_URL is missing"):
         T.image_generate(tmp_path, {"prompt": "x"})
     monkeypatch.setenv("SDCPP_URL", "http://laptop:1234")
     monkeypatch.setenv("SDCPP_SIZE", "768")
@@ -327,7 +327,7 @@ def test_sdcpp_laptop_aus_rueckfall(monkeypatch, tmp_path):
     monkeypatch.setattr(T.requests, "post", post)
     monkeypatch.setattr(T.requests, "get", lambda url, **kw: Raw())
     out = T.image_generate(tmp_path, {"prompt": "x"})
-    assert out.startswith("HINWEIS: Auf Pollinations umgestiegen") and "bei sdcpp" in out
+    assert out.startswith("NOTE: switched to Pollinations") and "with sdcpp" in out
 
 
 class Img:
@@ -350,7 +350,7 @@ def test_nvidia_schnell_und_kontext(monkeypatch, tmp_path):
     monkeypatch.setenv("IMAGE_MODEL", "black-forest-labs/flux.1-kontext-dev")
     (tmp_path / "ref.png").write_bytes(PNG)
     out = T.image_generate(tmp_path, {"prompt": "x", "refs": ["ref.png"], "format": "quadrat"})
-    assert "mit 1 Referenzbild" in out and seen["json"]["image"].startswith("data:image/png;base64,")
+    assert "with 1 reference image" in out and seen["json"]["image"].startswith("data:image/png;base64,")
     assert (seen["json"]["width"], seen["json"]["height"]) == (1024, 1024)
     (tmp_path / "ref2.png").write_bytes(PNG)
     with pytest.raises(T.ToolError, match="hoechstens 1 Referenzbild"):
@@ -373,12 +373,12 @@ def test_cloudflare_flux2_multipart_mit_refs(monkeypatch, tmp_path):
     monkeypatch.setattr(T.requests, "post", post)
     (tmp_path / "ref.png").write_bytes(PNG)
     out = T.image_generate(tmp_path, {"prompt": "K1", "refs": ["ref.png"], "format": "quer"})
-    assert "mit 1 Referenzbild" in out
+    assert "with 1 reference image" in out
     assert seen["url"] == "https://api.cloudflare.com/client/v4/accounts/acc1/ai/run/@cf/black-forest-labs/flux-2-klein-4b"
     assert seen["files"]["prompt"] == (None, "K1") and "input_image_0" in seen["files"]
     assert seen["files"]["width"] == (None, "1024")
     monkeypatch.setenv("IMAGE_MODEL", "@cf/black-forest-labs/flux-1-schnell")
-    with pytest.raises(T.ToolError, match="kann keine Referenzbilder"):
+    with pytest.raises(T.ToolError, match="cannot take reference images"):
         T.image_generate(tmp_path, {"prompt": "K1", "refs": ["ref.png"]})
     monkeypatch.delenv("CF_ACCOUNT_ID")
     with pytest.raises(T.ToolError, match="CF_ACCOUNT_ID"):

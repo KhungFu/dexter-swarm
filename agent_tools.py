@@ -2,7 +2,7 @@
 Werkzeuge der Agenten: Websuche, Webseiten lesen, Bilder suchen/laden/erzeugen, Projektdateien lesen.
 
 Eigenstaendiges Modul (keine Imports aus app.py). Alle Funktionen werfen nie nach aussen:
-run_tool() liefert immer Text, Fehler beginnen mit "FEHLER:", damit das Modell sie lesen und reagieren kann.
+run_tool() liefert immer Text, Fehler beginnen mit "ERROR:", damit das Modell sie lesen und reagieren kann.
 Konfiguration nur ueber Umgebungsvariablen (zur Laufzeit gelesen), siehe .env.example.
 
 Sicherheit:
@@ -59,105 +59,105 @@ def enabled():
     return _env("PCL_ALLOW_WEB", "1") != "0"
 
 
-# --------------------------------------------------------------------- Beschreibung fuers Modell
+# --------------------------------------------------------------------- Beschreibung fuers Modell (Englisch, Wunsch ABI 2026-11-05)
 TOOLS = {
-    "web_search": ("web", '{"tool": "web_search", "query": "Suchbegriff"}  Websuche: aktuelle Infos, Gesetze, Preise, Wettbewerb, Quellen. '
-                          'PDFs/Dokumente finden: Suchbegriff + " filetype:pdf"'),
-    "fetch_url": ("web", '{"tool": "fetch_url", "url": "https://..."}  Webseite oder PDF (Textinhalt) lesen'),
-    "browse_page": ("web", '{"tool": "browse_page", "url": "https://...", "screenshot": true}  Seite in einem ECHTEN Browser oeffnen (JavaScript laeuft): '
-                           'fuer Seiten, bei denen fetch_url leer/unvollstaendig ist (Web-Apps, Shops, Karten). screenshot true = du siehst die Seite als Bild; '
-                           'optional wait (Sekunden, max. 10), save "name" = Screenshot in assets/screenshots/ ablegen. Langsamer als fetch_url'),
-    "download_file": ("web", '{"tool": "download_file", "url": "https://.../x.pdf", "name": "kurzname"}  Datei (PDF, EPUB, Office, Audio, Video, ZIP) '
-                             'in downloads/ speichern. Urheberrecht/Lizenz beachten, nur fuer erlaubte Nutzung'),
-    "image_search": ("images", '{"tool": "image_search", "query": "mountain lake sunrise"}  frei nutzbare Fotos suchen (Lizenz/Urheber werden mitgeliefert)'),
-    "image_save": ("images", '{"tool": "image_save", "url": "https://...jpg", "name": "hero"}  Bild in assets/ des Projekts speichern'),
-    "image_generate": ("images", """{"tool": "image_generate", "prompt": "detaillierte Bildbeschreibung inkl. Stil", "name": "logo"}  Bild per KI erzeugen (PNG), Standard: neu in assets/.
-     Optional: "refs": ["input/vorlage.png", "karten/figuren.png"] = bis zu 4 Referenzbilder aus dem Projektordner, damit Figuren und Stil
-     ueber viele Bilder gleich bleiben (bei Serien IMMER dieselben Referenzbilder mitgeben); "format": "quadrat" | "hoch" | "quer";
-     "path": "karten/bilder/k01.png" = fester Zielpfad in assets/, output/ oder karten/ (vorhandene Datei wird ersetzt);
-     "quality": "low" | "medium" | "high" (nur OpenAI, high kostet mehr). Danach mit view_image pruefen."""),
-    "video_generate": ("media", """{"tool": "video_generate", "prompt": "Szene: Ort, Figuren, Handlung, Kamera, Licht, Ton", "name": "szene1"}  Kurzen Videoclip per KI erzeugen (ca. 4-15 s, kostet pro Clip/Sekunde), Ergebnis in output/.
-     optional: provider (einer der eingeschalteten Videoanbieter, Standard = erster), aspect 16:9|9:16|1:1, resolution 720p|1080p, seconds (Laenge),
-     image (Startbild im Projekt, z.B. assets/figur.png, oder https-Adresse), continue_id (ID aus einem frueheren Ergebnis: Clip fortsetzen, nur gemini/openai).
-     Laengere Filme: mehrere Clips erzeugen und mit video_edit op=concat zusammensetzen. Gleiche Figuren in jedem Prompt gleich beschreiben"""),
-    "video_ai": ("media", """{"tool": "video_ai", "op": "upscale", "input": "output/szene1.mp4"}  KI-Nachbearbeitung eines Videos (fal.ai, kostet), Ergebnis in output/:
-     op=upscale: input, scale 2-4 (hoehere Aufloesung, schaerfer) | op=lipsync: input (Video mit Gesicht), audio (Sprache, z.B. aus speak) = Lippen passend zur Sprache |
-     op=sound: input, prompt (welche Geraeusche) = passender Ton/Geraeusche zum stummen Video. Videos max. 50 MB"""),
-    "sound_generate": ("media", '{"tool": "sound_generate", "prompt": "Regen auf Blechdach, entfernter Donner", "kind": "sfx", "seconds": 8, "name": "regen"}  '
-                                'Geraeusch (kind sfx) oder Musik (kind music, z.B. "ruhige Klaviermusik, traurig") per KI erzeugen, Ergebnis in output/audio/. '
-                                'Ins Video mit video_edit add_audio mode mix'),
-    "site_macro": ("media", """{"tool": "site_macro", "site": "magiclight", "prompt": "Geschichte / Szenenbeschreibung", "name": "folge1"}  Video auf einer Webseite mit dem
-     Konto des Besitzers erzeugen (z. B. MagicLight fuer lange Geschichten-Videos mit gleichbleibenden Figuren, Google Flow). Ein Browser-Roboter
-     bedient die Seite, das kann viele Minuten dauern. Ergebnis in output/. Verfuegbare site-Namen stehen in der Fehlermeldung, wenn du einen falschen nimmst"""),
-    "list_files": ("read_files", '{"tool": "list_files", "path": ""}  Dateien im Projektordner auflisten (input/ = vom Besitzer hochgeladen, '
-                                 'assets/ = Bilder, downloads/ = geladene Dateien, output/ = fertige Medien/Dokumente)'),
-    "read_file": ("read_files", '{"tool": "read_file", "path": "datei.pdf", "offset": 0}  Datei lesen: Text, Markdown, HTML, PDF, DOCX, EPUB. '
-                                'Lange Dateien in Teilen lesen (offset = Zeichenposition, steht am Ende der Ausgabe)'),
-    "view_image": ("read_files", '{"tool": "view_image", "path": "input/foto.jpg"}  Bild ANSEHEN (Karten, Layouts, Fotos, Screenshots). '
-                                 'Auch Seiten gescannter PDFs: {"tool": "view_image", "path": "input/scan.pdf", "page": 1} (bis 4 Seiten ab page). '
-                                 'Das Bild haengt nur an der naechsten Runde: schreib dir sofort auf, was du siehst'),
-    "copy_files": ("write_files", '{"tool": "copy_files", "from": "site", "to": "www", "move": false}  Datei oder ganzen Ordner innerhalb des Projektordners kopieren '
-                                  '(move true = verschieben). Beispiel: fertige Seite von site/ nach www/ uebernehmen. Vorhandene Dateien werden ueberschrieben'),
-    "write_file": ("write_files", '{"tool": "write_file", "path": "buch/kapitel-01.md", "content": "..."}  Textdatei im Projektordner anlegen/ueberschreiben '
-                                  '(Markdown, HTML, CSS, TXT, CSV, JSON, SVG ...; nicht input/, max. 500 KB). Sofort vorhanden, z. B. danach make_document mit sources'),
-    "write_code": ("code", '{"tool": "write_code", "path": "src/main.py", "content": "..."}  Quellcode-Datei im Projektordner anlegen/ueberschreiben '
-                           '(jede Sprache: .py .rs .java .js .ts .go .c .cpp .sh .rb .php .lua .kt .cs .html .css ...). Danach mit check_code pruefen'),
-    "check_code": ("code", '{"tool": "check_code", "path": "src/main.py"}  Syntax pruefen bzw. kompilieren OHNE das Programm auszufuehren; '
-                           'liefert Fehler mit Zeilennummer. Bei Fehlern korrigieren und erneut pruefen'),
-    "run_code": ("run_code", '{"tool": "run_code", "path": "src/analyse.py"}  Skript AUSFUEHREN (Python, JavaScript, Bash, Ruby, PHP, Lua) '
-                             'in einer abgeschotteten Umgebung: KEIN Internet, Zeit-/RAM-Limit, Projektdateien nur lesbar unter /projekt (z. B. /projekt/input/daten.csv). '
-                             'Was das Skript in sein aktuelles Verzeichnis schreibt, landet danach in output/run/<zeit>/. '
-                             'Statt path auch "code": "print(1+1)", "lang": "python". Optional args [..], stdin. Nur Standardbibliothek/Systempakete'),
-    "rust_project": ("run_code", '{"tool": "rust_project", "op": "test", "dir": "rust/rechner"}  RUST-PROGRAMM FERTIG BAUEN: dir = Ordner mit '
-                                 'Cargo.toml (vorher mit write_code anlegen: Cargo.toml, src/main.rs, Tests als #[test] unter #[cfg(test)]). '
-                                 'Laedt Abhaengigkeiten aus crates.io, baut und testet abgeschottet (beim Bauen/Testen kein Internet). '
-                                 'op=test (cargo test) | build | run (args [..], stdin) | package = Tests + Release-Build + output/<name>.zip '
-                                 'mit Quelltext, Programm, Testbericht und LIESMICH.txt. Ablauf: schreiben -> test -> Fehler beheben -> '
-                                 'erneut test -> package. Ein Paket entsteht nur, wenn alle Tests bestehen. Optional name (Dateiname des Pakets)'),
-    "media_info": ("media", '{"tool": "media_info", "path": "input/video.mp4"}  Dauer, Aufloesung, Codecs einer Video-/Audio-/Bilddatei'),
-    "video_edit": ("media", """{"tool": "video_edit", "op": "...", ...}  Video/Audio bearbeiten (ffmpeg). Pfade relativ zum Projektordner, Ergebnis landet in output/.
-     op=trim: input, start, end (Sekunden oder MM:SS)
-     op=concat: inputs [..] (werden auf gleiche Groesse/Bildrate gebracht), optional width, height, fps
-     op=slideshow: images [..], seconds (je Bild, Standard 4), kenburns true/false (Zoom/Schwenk), audio (optional Musik/Sprecher), width, height
+    "web_search": ("web", '{"tool": "web_search", "query": "search term"}  Web search: current information, laws, prices, competition, sources. '
+                          'Find PDFs/documents: search term + " filetype:pdf"'),
+    "fetch_url": ("web", '{"tool": "fetch_url", "url": "https://..."}  Read a web page or PDF (text content)'),
+    "browse_page": ("web", '{"tool": "browse_page", "url": "https://...", "screenshot": true}  Open a page in a REAL browser (JavaScript runs): '
+                           'for pages where fetch_url is empty/incomplete (web apps, shops, maps). screenshot true = you see the page as an image; '
+                           'optional wait (seconds, max. 10), save "name" = store the screenshot in assets/screenshots/. Slower than fetch_url'),
+    "download_file": ("web", '{"tool": "download_file", "url": "https://.../x.pdf", "name": "shortname"}  Save a file (PDF, EPUB, Office, audio, video, ZIP) '
+                             'in downloads/. Respect copyright/licence, only for permitted use'),
+    "image_search": ("images", '{"tool": "image_search", "query": "mountain lake sunrise"}  Search freely usable photos (licence/author are included)'),
+    "image_save": ("images", '{"tool": "image_save", "url": "https://...jpg", "name": "hero"}  Save an image in the project\'s assets/'),
+    "image_generate": ("images", """{"tool": "image_generate", "prompt": "detailed image description incl. style", "name": "logo"}  Create an image with AI (PNG), default: new in assets/.
+     Optional: "refs": ["input/template.png", "karten/characters.png"] = up to 4 reference images from the project folder, so that characters and style
+     stay the same across many images (for series ALWAYS pass the same reference images); "format": "square" | "portrait" | "landscape";
+     "path": "karten/bilder/k01.png" = fixed target path in assets/, output/ or karten/ (an existing file is replaced);
+     "quality": "low" | "medium" | "high" (OpenAI only, high costs more). Then check with view_image."""),
+    "video_generate": ("media", """{"tool": "video_generate", "prompt": "scene: place, characters, action, camera, light, sound", "name": "scene1"}  Create a short video clip with AI (approx. 4-15 s, costs per clip/second), result in output/.
+     optional: provider (one of the enabled video providers, default = first), aspect 16:9|9:16|1:1, resolution 720p|1080p, seconds (length),
+     image (start image in the project, e.g. assets/character.png, or https address), continue_id (ID from an earlier result: continue the clip, gemini/openai only).
+     Longer films: create several clips and join them with video_edit op=concat. Describe the same characters the same way in every prompt"""),
+    "video_ai": ("media", """{"tool": "video_ai", "op": "upscale", "input": "output/scene1.mp4"}  AI post-processing of a video (fal.ai, costs), result in output/:
+     op=upscale: input, scale 2-4 (higher resolution, sharper) | op=lipsync: input (video with a face), audio (speech, e.g. from speak) = lips matching the speech |
+     op=sound: input, prompt (which sounds) = matching sound/noises for a silent video. Videos max. 50 MB"""),
+    "sound_generate": ("media", '{"tool": "sound_generate", "prompt": "rain on a tin roof, distant thunder", "kind": "sfx", "seconds": 8, "name": "rain"}  '
+                                'Create a sound effect (kind sfx) or music (kind music, e.g. "calm piano music, sad") with AI, result in output/audio/. '
+                                'Into the video with video_edit add_audio mode mix'),
+    "site_macro": ("media", """{"tool": "site_macro", "site": "magiclight", "prompt": "story / scene description", "name": "episode1"}  Create a video on a website with the
+     owner's account (e.g. MagicLight for long story videos with consistent characters, Google Flow). A browser robot
+     operates the site, this can take many minutes. Result in output/. Available site names are in the error message if you pick a wrong one"""),
+    "list_files": ("read_files", '{"tool": "list_files", "path": ""}  List files in the project folder (input/ = uploaded by the owner, '
+                                 'assets/ = images, downloads/ = downloaded files, output/ = finished media/documents)'),
+    "read_file": ("read_files", '{"tool": "read_file", "path": "file.pdf", "offset": 0}  Read a file: text, Markdown, HTML, PDF, DOCX, EPUB. '
+                                'Read long files in parts (offset = character position, stated at the end of the output)'),
+    "view_image": ("read_files", '{"tool": "view_image", "path": "input/photo.jpg"}  LOOK AT an image (maps, layouts, photos, screenshots). '
+                                 'Also pages of scanned PDFs: {"tool": "view_image", "path": "input/scan.pdf", "page": 1} (up to 4 pages from page). '
+                                 'The image is only attached to the next round: write down right away what you see'),
+    "copy_files": ("write_files", '{"tool": "copy_files", "from": "site", "to": "www", "move": false}  Copy a file or a whole folder within the project folder '
+                                  '(move true = move). Example: take over a finished site from site/ to www/. Existing files are overwritten'),
+    "write_file": ("write_files", '{"tool": "write_file", "path": "book/chapter-01.md", "content": "..."}  Create/overwrite a text file in the project folder '
+                                  '(Markdown, HTML, CSS, TXT, CSV, JSON, SVG ...; not input/, max. 500 KB). Available immediately, e.g. then make_document with sources'),
+    "write_code": ("code", '{"tool": "write_code", "path": "src/main.py", "content": "..."}  Create/overwrite a source code file in the project folder '
+                           '(any language: .py .rs .java .js .ts .go .c .cpp .sh .rb .php .lua .kt .cs .html .css ...). Then check with check_code'),
+    "check_code": ("code", '{"tool": "check_code", "path": "src/main.py"}  Check syntax or compile WITHOUT running the program; '
+                           'returns errors with line numbers. On errors fix them and check again'),
+    "run_code": ("run_code", '{"tool": "run_code", "path": "src/analysis.py"}  RUN a script (Python, JavaScript, Bash, Ruby, PHP, Lua) '
+                             'in an isolated environment: NO internet, time/RAM limit, project files read-only under /projekt (e.g. /projekt/input/data.csv). '
+                             'What the script writes into its current directory ends up in output/run/<time>/ afterwards. '
+                             'Instead of path also "code": "print(1+1)", "lang": "python". Optional args [..], stdin. Standard library/system packages only'),
+    "rust_project": ("run_code", '{"tool": "rust_project", "op": "test", "dir": "rust/calculator"}  BUILD A FINISHED RUST PROGRAM: dir = folder with '
+                                 'Cargo.toml (create it first with write_code: Cargo.toml, src/main.rs, tests as #[test] under #[cfg(test)]). '
+                                 'Loads dependencies from crates.io, builds and tests isolated (no internet while building/testing). '
+                                 'op=test (cargo test) | build | run (args [..], stdin) | package = tests + release build + output/<name>.zip '
+                                 'with source code, program, test report and README.txt. Flow: write -> test -> fix errors -> '
+                                 'test again -> package. A package is only created when all tests pass. Optional name (file name of the package)'),
+    "media_info": ("media", '{"tool": "media_info", "path": "input/video.mp4"}  Duration, resolution, codecs of a video/audio/image file'),
+    "video_edit": ("media", """{"tool": "video_edit", "op": "...", ...}  Edit video/audio (ffmpeg). Paths relative to the project folder, the result goes to output/.
+     op=trim: input, start, end (seconds or MM:SS)
+     op=concat: inputs [..] (brought to the same size/frame rate), optional width, height, fps
+     op=slideshow: images [..], seconds (per image, default 4), kenburns true/false (zoom/pan), audio (optional music/narrator), width, height
      op=text_overlay: input, text, start, end, position top|center|bottom, size, color
-     op=burn_subtitles: input, srt (Untertiteldatei)
-     op=overlay_image: input, image (Logo/Wasserzeichen), position tl|tr|bl|br|center, width
+     op=burn_subtitles: input, srt (subtitle file)
+     op=overlay_image: input, image (logo/watermark), position tl|tr|bl|br|center, width
      op=add_audio: input (Video), audio, mode replace|mix, volume (0.0-2.0)
      op=extract_audio: input, format mp3|wav
      op=speed: input, factor (0.25-4)
      op=convert: input, format mp4|webm|gif|mp3|wav, optional width, height, fps
-     op=frame: input, at (Sekunde) -> PNG-Standbild
-     optional bei allen: name (Dateiname des Ergebnisses ohne Endung)"""),
-    "speak": ("media", '{"tool": "speak", "text": "Sprechertext", "lang": "de", "name": "sprecher1"}  Text zu gesprochener Audiodatei (output/audio/). lang: de, en, tr ... '
-                       'Optional eigene Stimme: voice (espeak-Variante m1-m7/f1-f5, Piper-Modell x.onnx, Edge-Stimme, ElevenLabs-Stimmen-ID oder OpenAI-Stimme '
-                       'wie nova/onyx, je nach TTS_ENGINE), pitch 0-99 (50 normal), rate 0.5-2. '
-                       'engine (optional, nur fuer diesen Aufruf): auto | piper | espeak | edge | elevenlabs | openai'),
-    "film": ("media", """{"tool": "film", "op": "...", ...}  ANIMATIONSFILM (Blender, Figuren mit Stimmen, Lippensync, Kamera). Drehbuch = film/film.json:
-     {"titel": "Bello und der Ball", "aufloesung": "640x360", "fps": 12,
-      "figuren": {"Bello": {"art": "hund", "farbe": "#c8843c", "farbe2": "#f6e7d0", "stimme": {"lang": "de", "voice": "m3", "pitch": 40}},
+     op=frame: input, at (second) -> PNG still image
+     optional for all: name (file name of the result without extension)"""),
+    "speak": ("media", '{"tool": "speak", "text": "narrator text", "lang": "en", "name": "narrator1"}  Text to a spoken audio file (output/audio/). lang: de, en, tr ... '
+                       'Optional own voice: voice (espeak variant m1-m7/f1-f5, Piper model x.onnx, Edge voice, ElevenLabs voice ID or OpenAI voice '
+                       'like nova/onyx, depending on TTS_ENGINE), pitch 0-99 (50 normal), rate 0.5-2. '
+                       'engine (optional, only for this call): auto | piper | espeak | edge | elevenlabs | openai'),
+    "film": ("media", """{"tool": "film", "op": "...", ...}  ANIMATED FILM (Blender, characters with voices, lip sync, camera). Script = film/film.json (keys are German, use them exactly):
+     {"titel": "Bello and the ball", "aufloesung": "640x360", "fps": 12,
+      "figuren": {"Bello": {"art": "hund", "farbe": "#c8843c", "farbe2": "#f6e7d0", "stimme": {"lang": "en", "voice": "m3", "pitch": 40}},
                   "Mimi": {"art": "bild", "bild": "assets/mimi.png", "groesse": 1.6, "blickrichtung": "rechts"}},
       "szenen": [{"id": "s01", "ort": {"himmel": "#9fd7ff", "boden": "#7cc96b", "licht": "tag"},
                   "requisiten": [{"typ": "baum", "pos": [-4, 3]}, {"id": "ball", "typ": "ball", "pos": [1, 0]}],
                   "figuren": {"Bello": {"pos": [-3, 0]}, "Mimi": {"pos": [2.5, 0], "blick": "links"}},
                   "aktionen": [{"zeit": 0.5, "figur": "Bello", "tun": "gehen", "nach": [0, 0]}, {"zeit": 3, "figur": "Mimi", "tun": "winken"}],
-                  "dialog": [{"figur": "Bello", "text": "Hallo Mimi!"}, {"figur": "Mimi", "text": "Hallo Bello!"}],
+                  "dialog": [{"figur": "Bello", "text": "Hello Mimi!"}, {"figur": "Mimi", "text": "Hello Bello!"}],
                   "kamera": {"einstellung": "total", "bewegung": "keine"}, "dauer": 5}]}
-     art: hund katze hase baer maus mensch (eingebaut, haar = Haarfarbe) | bild (Figurbild aus image_generate, Hintergrund wird freigestellt) | blend (datei, objekt, aktion).
-     pos [x, tiefe]: x -6..6 links/rechts, tiefe 0 vorne bis 8 hinten. blick/richtung: vorne links rechts hinten.
-     tun: gehen (nach, dauer), springen (hoehe), winken, drehen (richtung), nicken, erscheinen, verschwinden. Requisiten auch per id bewegen.
-     requisiten typ: baum busch haus stein ball wolke blume kiste bild. ort: himmel, boden (false = keiner), hintergrund (Bild), licht tag|abend|nacht.
-     kamera: einstellung total|halbtotal|nah, ziel (Figur), bewegung keine|zoom_rein|zoom_raus|schwenk_links|schwenk_rechts|folgen.
-     stimme/erzaehler_stimme: lang, voice, pitch, rate, optional engine (z. B. elevenlabs nur fuer die Figuren, die besonders gut klingen sollen).
-     dialog ohne figur = Erzaehler (erzaehler_stimme). Optional: musik, musik_lautstaerke, titelkarte (Sekunden), renderer eevee|workbench|cycles.
-     Ablauf: op=save mit "film": {...} (prueft + speichert) -> op=check -> op=voices -> op=preview, szene "s01" (Standbild, danach view_image)
-     -> op=render (szene "s01" oder alle; nur geaenderte Szenen, kann lange dauern) -> op=assemble, name "film", untertitel true -> output/<name>.mp4"""),
-    "make_document": ("media", """{"tool": "make_document", "format": "pdf", "title": "Buchtitel", "author": "Name", "sources": ["kapitel1.md", "kapitel2.md"], "name": "buch"}
-     Erzeugt aus Markdown-Dateien ein fertiges Dokument in output/. format: pdf | docx | epub | html. Optional: content (Markdown direkt statt sources),
-     cover (Bildpfad, nur epub), page A4|A5 (pdf). Markdown: # Kapitel, ## Abschnitt, ### Unterabschnitt, - Listen, 1. nummeriert, > Zitat, **fett**, *kursiv*, ![Text](assets/bild.png)""
-     Freies Layout (Vorlage nachbauen: Farben, Spalten, Kästen, Reiter): {"tool": "make_document", "html": "<!doctype html><html><head><style>
-     @page { size: A4; margin: 0 } ...</style></head><body>...</body></html>", "name": "Spiel_A"} -> PDF in output/ (das HTML wird als
-     work/<name>.html gespeichert und kann später als "html": "work/spiel_a.html" wieder gerendert werden). Bilder im HTML mit Pfaden
-     relativ zu work/ (z. B. ../input/karte.png), Internetadressen werden nicht geladen."""),
+     art (kind): hund=dog katze=cat hase=rabbit baer=bear maus=mouse mensch=human (built in, haar = hair colour) | bild (character image from image_generate, background is removed) | blend (datei, objekt, aktion).
+     pos [x, tiefe]: x -6..6 left/right, tiefe (depth) 0 front to 8 back. blick/richtung (look/direction): vorne=front links=left rechts=right hinten=back.
+     tun (do): gehen=walk (nach=to, dauer=duration), springen=jump (hoehe=height), winken=wave, drehen=turn (richtung), nicken=nod, erscheinen=appear, verschwinden=disappear. Props can also be moved by id.
+     requisiten (props) typ: baum=tree busch=bush haus=house stein=stone ball wolke=cloud blume=flower kiste=box bild=picture. ort (place): himmel=sky, boden=ground (false = none), hintergrund=background (image), licht=light tag|abend|nacht (day|evening|night).
+     kamera: einstellung (shot) total|halbtotal|nah (wide|medium|close), ziel (target character), bewegung (movement) keine|zoom_rein|zoom_raus|schwenk_links|schwenk_rechts|folgen (none|zoom in|zoom out|pan left|pan right|follow).
+     stimme/erzaehler_stimme (voice/narrator voice): lang, voice, pitch, rate, optional engine (e.g. elevenlabs only for the characters that should sound especially good).
+     dialog without figur = narrator (erzaehler_stimme). Optional: musik, musik_lautstaerke (volume), titelkarte (title card, seconds), renderer eevee|workbench|cycles.
+     Flow: op=save with "film": {...} (checks + saves) -> op=check -> op=voices -> op=preview, szene "s01" (still image, then view_image)
+     -> op=render (szene "s01" or all; only changed scenes, can take long) -> op=assemble, name "film", untertitel (subtitles) true -> output/<name>.mp4"""),
+    "make_document": ("media", """{"tool": "make_document", "format": "pdf", "title": "Book title", "author": "Name", "sources": ["chapter1.md", "chapter2.md"], "name": "book"}
+     Creates a finished document in output/ from Markdown files. format: pdf | docx | epub | html. Optional: content (Markdown directly instead of sources),
+     cover (image path, epub only), page A4|A5 (pdf). Markdown: # Chapter, ## Section, ### Subsection, - lists, 1. numbered, > quote, **bold**, *italic*, ![Text](assets/image.png)
+     Free layout (rebuild a template: colours, columns, boxes, tabs): {"tool": "make_document", "html": "<!doctype html><html><head><style>
+     @page { size: A4; margin: 0 } ...</style></head><body>...</body></html>", "name": "Game_A"} -> PDF in output/ (the HTML is saved as
+     work/<name>.html and can later be rendered again as "html": "work/game_a.html"). Images in the HTML with paths
+     relative to work/ (e.g. ../input/map.png), internet addresses are not loaded."""),
 }
 
 
@@ -186,10 +186,10 @@ def describe(names):
     return "\n".join(out)
 
 
-TTS_PREMIUM_HINT = ("     ELEVENLABS IST EINGERICHTET: Wenn eine Stimme wirklich gut klingen muss (Hoerbuch, Werbung, Film-Figuren, Erzaehler), "
-                    "\"engine\": \"elevenlabs\" setzen (bei film in stimme bzw. erzaehler_stimme). Kostet pro Zeichen, fuer Tests und Entwuerfe "
-                    "die lokale Stimme lassen. Passende Stimmen-IDs: {\"tool\": \"speak\", \"list_voices\": true}, dann als voice eintragen. "
-                    "Ohne voice nimmt ElevenLabs die Standardstimme. Klappt ElevenLabs nicht, kommt automatisch die lokale Stimme.")
+TTS_PREMIUM_HINT = ("     ELEVENLABS IS SET UP: if a voice really has to sound good (audiobook, advertising, film characters, narrator), "
+                    "set \"engine\": \"elevenlabs\" (for film in stimme or erzaehler_stimme). Costs per character, for tests and drafts "
+                    "keep the local voice. Matching voice IDs: {\"tool\": \"speak\", \"list_voices\": true}, then enter one as voice. "
+                    "Without voice ElevenLabs uses the default voice. If ElevenLabs fails, the local voice is used automatically.")
 
 
 # ------------------------------------------------------------------------- Sicherer Abruf
@@ -200,13 +200,13 @@ def check_public(host):
     try:
         infos = socket.getaddrinfo(host, None)
     except OSError:
-        raise ToolError(f"Host '{host}' nicht auffindbar")
+        raise ToolError(f"Host '{host}' not found")
     for i in infos:
         ip = ipaddress.ip_address(i[4][0].split("%")[0])
         if getattr(ip, "ipv4_mapped", None):
             ip = ip.ipv4_mapped
         if not ip.is_global:
-            raise ToolError("Zugriff auf lokale/private Adressen ist gesperrt")
+            raise ToolError("Access to local/private addresses is blocked")
 
 
 def safe_get(url, max_bytes, hops=5):
@@ -214,7 +214,7 @@ def safe_get(url, max_bytes, hops=5):
     for _ in range(hops):
         u = urlparse(url)
         if u.scheme not in ("http", "https"):
-            raise ToolError("Nur http(s)-Adressen sind erlaubt")
+            raise ToolError("Only http(s) addresses are allowed")
         check_public(u.hostname)
         r = requests.get(url, headers={"User-Agent": UA, "Accept": "*/*"}, timeout=(6, 20),
                          stream=True, allow_redirects=False)
@@ -232,9 +232,9 @@ def safe_get(url, max_bytes, hops=5):
                 break
         r.close()
         if r.status_code >= 400:
-            raise ToolError(f"HTTP {r.status_code} von {urlparse(url).netloc}")
+            raise ToolError(f"HTTP {r.status_code} from {urlparse(url).netloc}")
         return r, bytes(buf[:max_bytes]), cut
-    raise ToolError("Zu viele Weiterleitungen")
+    raise ToolError("Too many redirects")
 
 
 class _Text(HTMLParser):
@@ -280,14 +280,14 @@ def html_to_text(html):
 
 
 def _clip(text, n):
-    return text if len(text) <= n else text[:n] + f"\n[... gekuerzt, {len(text) - n} Zeichen weggelassen]"
+    return text if len(text) <= n else text[:n] + f"\n[... shortened, {len(text) - n} characters left out]"
 
 
 # ------------------------------------------------------------------------------ Werkzeuge
 def web_search(query, n=6):
     query = str(query or "").strip()[:300]
     if not query:
-        raise ToolError("query fehlt")
+        raise ToolError("query missing")
     n = min(max(int(n or 6), 1), 10)
     rows = []  # (titel, url, text)
     if _env("SEARXNG_URL"):
@@ -315,7 +315,7 @@ def web_search(query, n=6):
             rows.append((clean(m.group(2)), href, clean(sn.group(1)) if sn else ""))
     rows = [r for r in rows if r[1]][:n]
     if not rows:
-        return "Keine Treffer (oder die Suche ist gerade nicht erreichbar). Formuliere die Suche anders."
+        return "No results (or the search is not reachable right now). Phrase the search differently."
     return "\n".join(f"{i}. {t}\n   {u}\n   {_clip(s, 300)}" for i, (t, u, s) in enumerate(rows, 1))
 
 
@@ -325,17 +325,17 @@ def fetch_url(url):
     if "pdf" in ctype or data[:4] == b"%PDF":
         txt = pdf_text(data)
         if not txt.strip():
-            return f"Quelle: {url}\nPDF ohne auslesbaren Text (Scan?). Mit download_file speichern."
-        return (f"Quelle: {url} (PDF, {len(data) // 1024} KB)\n\n" + _clip(txt, PAGE_CHARS) +
-                "\n\nFuer das ganze Dokument: download_file, dann read_file mit offset.")
+            return f"Source: {url}\nPDF without readable text (scan?). Save it with download_file."
+        return (f"Source: {url} (PDF, {len(data) // 1024} KB)\n\n" + _clip(txt, PAGE_CHARS) +
+                "\n\nFor the whole document: download_file, then read_file with offset.")
     if any(x in ctype for x in ("image/", "video/", "audio/", "zip", "octet-stream")):
-        raise ToolError(f"Kein Text-Inhalt ({ctype.split(';')[0]}). Fuer Bilder image_save nutzen.")
+        raise ToolError(f"No text content ({ctype.split(';')[0]}). Use image_save for images.")
     text = data.decode(r.encoding or "utf-8", errors="replace")
     if "html" in ctype or text.lstrip()[:1] == "<":
         title, body = html_to_text(text)
     else:
         title, body = "", text
-    head = f"Quelle: {url}" + (f"\nTitel: {title}" if title else "") + ("\n(Seite war sehr gross, nur der Anfang wurde gelesen)" if cut else "")
+    head = f"Source: {url}" + (f"\nTitle: {title}" if title else "") + ("\n(The page was very large, only the beginning was read)" if cut else "")
     return head + "\n\n" + _clip(body, PAGE_CHARS)
 
 
@@ -364,7 +364,7 @@ def browse_page(root, url, screenshot=False, wait=0, save=None):
     url = str(url or "").strip()
     u = urlparse(url)
     if u.scheme not in ("http", "https"):
-        raise ToolError("Nur http(s)-Adressen sind erlaubt")
+        raise ToolError("Only http(s) addresses are allowed")
     check_public(u.hostname)
     from playwright.sync_api import Error as PwError, sync_playwright
     ok_hosts, blocked = {}, set()
@@ -399,7 +399,7 @@ def browse_page(root, url, screenshot=False, wait=0, save=None):
 
     wait = min(max(float(wait or 0), 0), 10)
     if not _browser_lock.acquire(timeout=BROWSER_TIMEOUT * 2):
-        raise ToolError("Der Browser ist gerade belegt, gleich noch einmal versuchen")
+        raise ToolError("The browser is busy right now, try again in a moment")
     try:
         with sync_playwright() as pw:
             # WebRTC darf nicht am Proxy/Routing vorbei ins LAN, Downloads gibt es nicht
@@ -423,10 +423,10 @@ def browse_page(root, url, screenshot=False, wait=0, save=None):
                     if wait:
                         page.wait_for_timeout(wait * 1000)
                 except PwError as e:
-                    raise ToolError("Seite liess sich nicht laden: " + str(e).splitlines()[0][:200])
+                    raise ToolError("The page could not be loaded: " + str(e).splitlines()[0][:200])
                 final = page.url
                 if not public(final):
-                    raise ToolError("Die Seite leitet auf eine lokale/private Adresse um")
+                    raise ToolError("The page redirects to a local/private address")
                 title = page.title()
                 body = page.inner_text("body") if page.query_selector("body") else ""
                 links = page.eval_on_selector_all(
@@ -444,10 +444,10 @@ def browse_page(root, url, screenshot=False, wait=0, save=None):
             rows.append(f"- {t} -> {h}")
         if len(rows) >= 25:
             break
-    out = f"Quelle: {final} (im Browser geoeffnet, JavaScript an)" + (f"\nTitel: {title}" if title else "")
+    out = f"Source: {final} (opened in the browser, JavaScript on)" + (f"\nTitle: {title}" if title else "")
     if blocked:
-        out += "\n(Blockiert, weil lokal/privat: " + ", ".join(sorted(blocked))[:200] + ")"
-    out += "\n\n" + (_clip(body, PAGE_CHARS) or "(kein sichtbarer Text)")
+        out += "\n(Blocked because local/private: " + ", ".join(sorted(blocked))[:200] + ")"
+    out += "\n\n" + (_clip(body, PAGE_CHARS) or "(no visible text)")
     if rows:
         out += "\n\nLinks:\n" + "\n".join(rows)
     imgs = []
@@ -458,14 +458,14 @@ def browse_page(root, url, screenshot=False, wait=0, save=None):
             d = Path(root) / "assets" / "screenshots"
             d.mkdir(parents=True, exist_ok=True)
             (d / f"{name}.jpg").write_bytes(shot)
-            out += f"\n\nScreenshot gespeichert: assets/screenshots/{name}.jpg"
+            out += f"\n\nScreenshot saved: assets/screenshots/{name}.jpg"
     return out, imgs
 
 
 def image_search(query, n=6):
     query = str(query or "").strip()[:200]
     if not query:
-        raise ToolError("query fehlt")
+        raise ToolError("query missing")
     n = min(max(int(n or 6), 1), 10)
     items = []
     if _env("PEXELS_API_KEY"):
@@ -484,10 +484,10 @@ def image_search(query, n=6):
                           x.get("foreign_landing_url", "")))
     items = [i for i in items if i[0]]
     if not items:
-        return "Keine Bilder gefunden. Versuche englische oder allgemeinere Suchbegriffe."
-    return "\n".join(f"{i}. {t}\n   Bild-URL: {u}\n   Urheber: {c} | Lizenz: {lic} | Seite: {page}"
+        return "No images found. Try English or more general search terms."
+    return "\n".join(f"{i}. {t}\n   Image URL: {u}\n   Author: {c} | Licence: {lic} | Page: {page}"
                      for i, (u, t, c, lic, page) in enumerate(items, 1)) + \
-        "\nHinweis: Bei CC-Lizenzen den Urheber im Impressum/Bildnachweis nennen. Danach mit image_save speichern."
+        "\nNote: for CC licences name the author in the imprint/image credits. Then save with image_save."
 
 
 _IMG_TYPES = {"image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp", "image/svg+xml": "svg"}
@@ -533,7 +533,7 @@ def video_enabled():
 def _gemini_key():
     key = _env("GEMINI_API_KEY").split(",")[0].strip()
     if not key:
-        raise ToolError("VIDEO_PROVIDER=gemini, aber GEMINI_API_KEY fehlt")
+        raise ToolError("VIDEO_PROVIDER=gemini, but GEMINI_API_KEY is missing")
     return key
 
 
@@ -544,7 +544,7 @@ def _gjson(r):
         d = {}
     if r.status_code >= 400:
         msg = (d.get("error") or {}).get("message") if isinstance(d.get("error"), dict) else None
-        raise ToolError(f"Video-API antwortet mit HTTP {r.status_code}: " + _clip(msg or r.text, 300))
+        raise ToolError(f"Video API answers with HTTP {r.status_code}: " + _clip(msg or r.text, 300))
     return d
 
 
@@ -553,7 +553,7 @@ def _video_image(root, rel):
     data = f.read_bytes()
     mime = {"png": "image/png", "jpg": "image/jpeg", "webp": "image/webp"}.get(_sniff(data))
     if not mime:
-        raise ToolError(f"'{rel}' ist kein Bild (PNG, JPEG, WEBP)")
+        raise ToolError(f"'{rel}' is not an image (PNG, JPEG, WEBP)")
     return mime, base64.b64encode(data).decode()
 
 
@@ -566,7 +566,7 @@ def _download_video(url, key, dst):
             for chunk in r.iter_content(1 << 16):
                 size += len(chunk)
                 if size > MAX_VIDEO_BYTES:
-                    raise ToolError("Video ist zu gross")
+                    raise ToolError("Video is too large")
                 fh.write(chunk)
 
 
@@ -586,7 +586,7 @@ def _omni_video(key, model, call, root, deadline):
     d = _gjson(requests.post(GEMINI_BASE + "/interactions", headers={"x-goog-api-key": key}, json=body, timeout=900))
     while d.get("status") not in (None, "completed") and time.time() < deadline:
         if d.get("status") in ("failed", "cancelled", "incomplete"):
-            raise ToolError("Video wurde nicht erzeugt: " + _clip(json.dumps(d.get("error") or d.get("status")), 300))
+            raise ToolError("Video was not created: " + _clip(json.dumps(d.get("error") or d.get("status")), 300))
         time.sleep(10)
         d = _gjson(requests.get(f"{GEMINI_BASE}/interactions/{d.get('id')}", headers={"x-goog-api-key": key}, timeout=300))
     for step in d.get("steps") or []:
@@ -597,7 +597,7 @@ def _omni_video(key, model, call, root, deadline):
                 return base64.b64decode(c["data"]), None, d.get("id")
             if c.get("type") == "video" and c.get("uri"):
                 return None, c["uri"], d.get("id")
-    raise ToolError("Kein Video in der Antwort (Prompt evtl. vom Sicherheitsfilter abgelehnt): " + _clip(json.dumps(d)[:600], 300))
+    raise ToolError("No video in the answer (prompt possibly rejected by the safety filter): " + _clip(json.dumps(d)[:600], 300))
 
 
 def _veo_video(key, model, call, root, deadline):
@@ -614,15 +614,15 @@ def _veo_video(key, model, call, root, deadline):
                               json={"instances": [inst], "parameters": params}, timeout=120))
     while not op.get("done"):
         if time.time() > deadline:
-            raise ToolError("Zeitlimit fuer die Videoerzeugung erreicht (PCL_VIDEO_TIMEOUT)")
+            raise ToolError("Time limit for the video creation reached (PCL_VIDEO_TIMEOUT)")
         time.sleep(10)
         op = _gjson(requests.get(f"{GEMINI_BASE}/{op['name']}", headers={"x-goog-api-key": key}, timeout=60))
     if op.get("error"):
-        raise ToolError("Video wurde nicht erzeugt: " + _clip(json.dumps(op["error"]), 300))
+        raise ToolError("Video was not created: " + _clip(json.dumps(op["error"]), 300))
     samples = ((op.get("response") or {}).get("generateVideoResponse") or {}).get("generatedSamples") or []
     uri = ((samples[0] if samples else {}).get("video") or {}).get("uri")
     if not uri:
-        raise ToolError("Kein Video in der Antwort (Prompt evtl. vom Sicherheitsfilter abgelehnt)")
+        raise ToolError("No video in the answer (prompt possibly rejected by the safety filter)")
     return None, uri, None
 
 
@@ -660,14 +660,14 @@ def site_macro(root, call):
     sites = macro_sites()
     site = str(call.get("site") or "").strip().lower()
     if site not in sites:
-        raise ToolError(f"Unbekannte Seite '{site}'. Verfuegbar: {', '.join(sites) or 'keine'}")
+        raise ToolError(f"Unknown site '{site}'. Available: {', '.join(sites) or 'none'}")
     prompt = str(call.get("prompt") or "").strip()[:8000]
     if not prompt:
-        raise ToolError("prompt fehlt")
+        raise ToolError("prompt missing")
     d = macro_dir()
     timeout = int(_env("PCL_MACRO_TIMEOUT", "3600") or 3600)
     if not _macro_lock.acquire(timeout=60):
-        raise ToolError("Ein anderes Makro laeuft gerade, spaeter noch einmal versuchen")
+        raise ToolError("Another macro is running right now, try again later")
     try:
         out_dir = root / "output"
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -682,20 +682,20 @@ def site_macro(root, call):
                 r = subprocess.run([sys.executable, str(d / f"{site}.py")], cwd=tmp, env=env, capture_output=True,
                                    text=True, encoding="utf-8", errors="replace", timeout=timeout)
             except subprocess.TimeoutExpired:
-                raise ToolError(f"Makro '{site}' hat das Zeitlimit ueberschritten (PCL_MACRO_TIMEOUT={timeout} s)")
+                raise ToolError(f"Macro '{site}' exceeded the time limit (PCL_MACRO_TIMEOUT={timeout} s)")
             log = _clip((r.stdout or "") + (r.stderr or ""), 600).strip()
             if r.returncode != 0:
                 shot = next((f for f in Path(tmp).glob("*.png") if f.is_file() and not f.is_symlink()), None)
                 hint = ""
                 if shot:  # Bildschirmfoto der Vorlage bleibt fuer den Besitzer erhalten
-                    dst = _out_path(root, {"name": f"{site}-fehler"}, site, "png")
+                    dst = _out_path(root, {"name": f"{site}-error"}, site, "png")
                     shutil.move(str(shot), dst)
-                    hint = f" Bildschirmfoto: {_rel(root, dst)}."
-                raise ToolError(f"Makro '{site}' ist fehlgeschlagen (Code {r.returncode}). Die Seite hat sich evtl. geaendert oder "
-                                f"die Anmeldung ist abgelaufen.{hint} Ausgabe: {log or '(leer)'}")
+                    hint = f" Screenshot: {_rel(root, dst)}."
+                raise ToolError(f"Macro '{site}' failed (code {r.returncode}). The site may have changed or "
+                                f"the sign-in has expired.{hint} Output: {log or '(empty)'}")
             files = sorted((f for f in Path(tmp).rglob("*") if f.is_file() and not f.is_symlink()), key=lambda f: f.stat().st_size, reverse=True)
             if not files:
-                raise ToolError(f"Makro '{site}' lief durch, hat aber keine Datei gespeichert. Ausgabe: {log or '(leer)'}")
+                raise ToolError(f"Macro '{site}' ran through but saved no file. Output: {log or '(empty)'}")
             made = []
             for i, f in enumerate(files[:5]):
                 if f.stat().st_size > MAX_VIDEO_BYTES:
@@ -705,10 +705,10 @@ def site_macro(root, call):
                 shutil.move(str(f), dst)
                 made.append(_rel(root, dst))
             if not made:
-                raise ToolError("Die gespeicherte Datei ist zu gross")
+                raise ToolError("The saved file is too large")
     finally:
         _macro_lock.release()
-    return f"Ergebnis von {site}: {' | '.join(made)} " + (f"(Hinweis des Makros: {log[-300:]})" if log else "")
+    return f"Result of {site}: {' | '.join(made)} " + (f"(note from the macro: {log[-300:]})" if log else "")
 
 
 def _safe_name(name, default):
@@ -719,7 +719,7 @@ def _safe_name(name, default):
 def _store_image(root, data, name, default):
     ext = _sniff(data)
     if not ext:
-        raise ToolError("Das ist keine gueltige Bilddatei (PNG, JPG, GIF, WEBP oder SVG).")
+        raise ToolError("This is not a valid image file (PNG, JPG, GIF, WEBP or SVG).")
     assets = root / "assets"
     assets.mkdir(parents=True, exist_ok=True)
     base, i = _safe_name(name, default), 0
@@ -735,9 +735,9 @@ def _store_image(root, data, name, default):
 def image_save(root, url, name=""):
     r, data, cut = safe_get(str(url or "").strip(), MAX_IMAGE_BYTES)
     if cut:
-        raise ToolError(f"Bild ist groesser als {MAX_IMAGE_BYTES // 1_000_000} MB")
+        raise ToolError(f"Image is larger than {MAX_IMAGE_BYTES // 1_000_000} MB")
     rel, size = _store_image(root, data, name, "bild")
-    return f"Gespeichert: {rel} ({size // 1024} KB). Im HTML so einbinden: <img src=\"{rel}\" alt=\"...\">"
+    return f"Saved: {rel} ({size // 1024} KB). Embed it in HTML like this: <img src=\"{rel}\" alt=\"...\">"
 
 
 IMAGE_DIRS = ("assets", "output", "karten")  # erlaubte Zielordner fuer image_generate
@@ -756,7 +756,7 @@ def _img_format(call):
         return _IMG_FORMATS["quer" if _env("IMAGE_PROVIDER", "pollinations").lower() == "pollinations" else "quadrat"]
     f = _IMG_ALIASES.get(f, f)
     if f not in _IMG_FORMATS:
-        raise ToolError("format muss quadrat, hoch oder quer sein")
+        raise ToolError("format must be square, portrait or landscape")
     return _IMG_FORMATS[f]
 
 
@@ -771,13 +771,13 @@ def _ref_images(root, refs):
     for rel in refs:
         f = _img_path(root, rel)
         if not f:
-            raise ToolError(f"Referenzbild nicht gefunden: {rel}")
+            raise ToolError(f"Reference image not found: {rel}")
         data = f.read_bytes()
         if len(data) > MAX_IMAGE_BYTES:
-            raise ToolError(f"Referenzbild zu gross (max. {MAX_IMAGE_BYTES // 1_000_000} MB): {rel}")
+            raise ToolError(f"Reference image too large (max. {MAX_IMAGE_BYTES // 1_000_000} MB): {rel}")
         ext = _sniff(data)
         if ext not in ("png", "jpg", "webp"):
-            raise ToolError(f"Referenzbild muss PNG, JPG oder WEBP sein: {rel}")
+            raise ToolError(f"Reference image must be PNG, JPG or WEBP: {rel}")
         out.append((f"ref{len(out) + 1}.{ext}", data, {"png": "image/png", "jpg": "image/jpeg", "webp": "image/webp"}[ext]))
     return out
 
@@ -790,10 +790,10 @@ def _img_target(root, call, ext):
     try:
         t = _inside(root, path)
     except ValueError:
-        raise ToolError("Pfad liegt ausserhalb des Projektordners")
+        raise ToolError("Path is outside the project folder")
     parts = t.relative_to(Path(root).resolve()).parts
     if len(parts) < 2 or parts[0] not in IMAGE_DIRS or any(p.startswith(".") for p in parts):
-        raise ToolError("path muss in " + ", ".join(d + "/" for d in IMAGE_DIRS) + " liegen, z. B. karten/bilder/k01.png")
+        raise ToolError("path must be in " + ", ".join(d + "/" for d in IMAGE_DIRS) + ", e.g. karten/bilder/k01.png")
     t = t.with_name(_safe_name(t.stem, "bild") + "." + ext)
     t.parent.mkdir(parents=True, exist_ok=True)
     return t
@@ -805,7 +805,7 @@ GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"  # breit verfuegbar, Abschaltung f
 def _gen_gemini(prompt, refs, fmt, call):
     key = _env("GEMINI_API_KEY").split(",")[0].strip()
     if not key:
-        raise ToolError("IMAGE_PROVIDER=gemini, aber GEMINI_API_KEY fehlt")
+        raise ToolError("IMAGE_PROVIDER=gemini, but GEMINI_API_KEY is missing")
     model = _model_env("IMAGE_MODEL", GEMINI_IMAGE_MODEL)
     parts = [{"text": prompt}] + [{"inline_data": {"mime_type": mime, "data": base64.b64encode(d).decode()}} for _, d, mime in refs]
     img_cfg = {"aspectRatio": fmt[1]}
@@ -824,20 +824,20 @@ def _gen_gemini(prompt, refs, fmt, call):
         blob = part.get("inlineData") or part.get("inline_data")
         if blob:
             return base64.b64decode(blob["data"])
-    hint = " (Bildmodelle brauchen meist ein Google-Konto mit Abrechnung)" if r.status_code == 429 else ""
-    raise ToolError(f"Gemini ({model}) hat kein Bild geliefert (HTTP {r.status_code}){hint}: " + _clip(r.text, 300))
+    hint = " (image models usually need a Google account with billing)" if r.status_code == 429 else ""
+    raise ToolError(f"Gemini ({model}) returned no image (HTTP {r.status_code}){hint}: " + _clip(r.text, 300))
 
 
 def _gen_openai(prompt, refs, fmt, call):
     key = _env("OPENAI_API_KEY").split(",")[0].strip()
     if not key:
-        raise ToolError("IMAGE_PROVIDER=openai, aber OPENAI_API_KEY fehlt")
+        raise ToolError("IMAGE_PROVIDER=openai, but OPENAI_API_KEY is missing")
     base = _env("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
     fields = {"model": _model_env("IMAGE_MODEL", "gpt-image-1"), "prompt": prompt, "size": fmt[0]}
     quality = str(call.get("quality") or _env("IMAGE_QUALITY")).strip().lower()
     if quality:
         if quality not in ("low", "medium", "high", "auto"):
-            raise ToolError("quality muss low, medium, high oder auto sein")
+            raise ToolError("quality must be low, medium, high or auto")
         fields["quality"] = quality
     head = {"Authorization": "Bearer " + key}
     if refs:  # Bearbeiten-Endpunkt: Referenzbilder halten Figuren und Stil gleich
@@ -851,13 +851,13 @@ def _gen_openai(prompt, refs, fmt, call):
         body = {}
     if r.status_code >= 400 or body.get("error"):
         msg = (body.get("error") or {}).get("message") if isinstance(body.get("error"), dict) else None
-        raise ToolError(f"OpenAI-Bild-API ({fields['model']}): HTTP {r.status_code} " + _clip(msg or r.text, 300))
+        raise ToolError(f"OpenAI image API ({fields['model']}): HTTP {r.status_code} " + _clip(msg or r.text, 300))
     d = (body.get("data") or [{}])[0]
     if d.get("b64_json"):
         return base64.b64decode(d["b64_json"])
     if d.get("url"):
         return safe_get(d["url"], MAX_IMAGE_BYTES)[1]
-    raise ToolError("Bildanbieter hat kein Bild geliefert: " + _clip(r.text, 300))
+    raise ToolError("Image provider returned no image: " + _clip(r.text, 300))
 
 
 OPENROUTER_IMAGE_MODEL = "google/gemini-2.5-flash-image"
@@ -867,7 +867,7 @@ def _gen_openrouter(prompt, refs, fmt, call):
     """OpenRouter Image API (/api/v1/images): ein Key, viele Bildmodelle, Referenzbilder als data-URL."""
     key = _env("OPENROUTER_API_KEY").split(",")[0].strip()
     if not key:
-        raise ToolError("IMAGE_PROVIDER=openrouter, aber OPENROUTER_API_KEY fehlt")
+        raise ToolError("IMAGE_PROVIDER=openrouter, but OPENROUTER_API_KEY is missing")
     model = _model_env("IMAGE_MODEL", OPENROUTER_IMAGE_MODEL)
     body = {"model": model, "prompt": prompt, "aspect_ratio": fmt[1], "output_format": "png"}
     size = _env("IMAGE_SIZE").upper()
@@ -884,14 +884,14 @@ def _gen_openrouter(prompt, refs, fmt, call):
     if r.status_code >= 400 or data.get("error"):
         err = data.get("error")
         msg = err.get("message") if isinstance(err, dict) else None
-        hint = " (Guthaben bei OpenRouter pruefen)" if r.status_code == 402 else ""
+        hint = " (check your OpenRouter credit)" if r.status_code == 402 else ""
         raise ToolError(f"OpenRouter ({model}): HTTP {r.status_code}{hint} " + _clip(msg or r.text, 300))
     d = (data.get("data") or [{}])[0]
     if d.get("b64_json"):
         return base64.b64decode(d["b64_json"])
     if d.get("url"):
         return safe_get(d["url"], MAX_IMAGE_BYTES)[1]
-    raise ToolError(f"OpenRouter ({model}) hat kein Bild geliefert: " + _clip(r.text, 300))
+    raise ToolError(f"OpenRouter ({model}) returned no image: " + _clip(r.text, 300))
 
 
 POLLINATIONS_MODEL = "black-forest-labs/flux.2-klein-4b"  # mit Key: guenstig, nimmt bis zu 4 Referenzbilder
@@ -904,8 +904,8 @@ def _gen_pollinations(prompt, refs, fmt, call):
     w, h = fmt[2]
     if not key:
         if refs:
-            raise ToolError("Referenzbilder gehen nur mit IMAGE_PROVIDER=openai, gemini, openrouter, sdcpp, cloudflare, nvidia "
-                            "oder mit POLLINATIONS_API_KEY (in .env setzen)")
+            raise ToolError("Reference images only work with IMAGE_PROVIDER=openai, gemini, openrouter, sdcpp, cloudflare, nvidia "
+                            "or with POLLINATIONS_API_KEY (set it in .env)")
         params = {"width": w, "height": h, "nologo": "true", "seed": int(time.time()) % 100000}
         model = _model_env("POLLINATIONS_MODEL", "")
         if model:
@@ -913,8 +913,8 @@ def _gen_pollinations(prompt, refs, fmt, call):
         r = requests.get("https://image.pollinations.ai/prompt/" + quote(prompt[:800]),
                          params=params, headers={"User-Agent": UA}, timeout=120)
         if r.status_code >= 400:
-            raise ToolError(f"Bildgenerator antwortet mit HTTP {r.status_code}"
-                            + (" (Modell braucht POLLINATIONS_API_KEY)" if model and r.status_code in (401, 402, 403) else ""))
+            raise ToolError(f"Image generator answers with HTTP {r.status_code}"
+                            + (" (model needs POLLINATIONS_API_KEY)" if model and r.status_code in (401, 402, 403) else ""))
         return r.content
     model = _model_env("POLLINATIONS_MODEL", POLLINATIONS_MODEL)
     body = {"model": model, "prompt": prompt, "size": f"{w}x{h}", "response_format": "b64_json"}
@@ -936,7 +936,7 @@ def _gen_pollinations(prompt, refs, fmt, call):
         return base64.b64decode(d["b64_json"])
     if d.get("url"):
         return safe_get(d["url"], MAX_IMAGE_BYTES)[1]
-    raise ToolError(f"Pollinations ({model}) hat kein Bild geliefert: " + _clip(r.text, 300))
+    raise ToolError(f"Pollinations ({model}) returned no image: " + _clip(r.text, 300))
 
 
 _heavy_lock = __import__("threading").Lock()  # Bildrechner und Blender (film_studio) nie gleichzeitig: 8 GB RAM
@@ -956,13 +956,13 @@ def _gen_sdcpp(prompt, refs, fmt, call):
     Referenzbilder gehen als extra_images mit. Langsam (Minuten je Bild), deshalb langes Zeitlimit und immer nur ein Bild."""
     url = _env("SDCPP_URL").strip().rstrip("/")
     if not url:
-        raise ToolError("IMAGE_PROVIDER=sdcpp, aber SDCPP_URL fehlt (z. B. http://192.168.1.50:1234)")
+        raise ToolError("IMAGE_PROVIDER=sdcpp, but SDCPP_URL is missing (e.g. http://192.168.1.50:1234)")
     w, h = _sdcpp_size(fmt)
     try:
         steps, cfg = int(_env("SDCPP_STEPS", "4")), float(_env("SDCPP_CFG", "1.0"))
         timeout = int(_env("SDCPP_TIMEOUT", "1800"))
     except ValueError:
-        raise ToolError("SDCPP_STEPS, SDCPP_CFG und SDCPP_TIMEOUT muessen Zahlen sein")
+        raise ToolError("SDCPP_STEPS, SDCPP_CFG and SDCPP_TIMEOUT must be numbers")
     body = {"prompt": prompt, "width": w, "height": h, "steps": steps, "cfg_scale": cfg,
             "seed": int(time.time() * 1000) % 2_000_000_000}  # fester Wert: seed -1 liefert bei manchen Builds nichts
     if refs:
@@ -977,7 +977,7 @@ def _gen_sdcpp(prompt, refs, fmt, call):
         raise ToolError(f"Bildrechner ({url}): HTTP {r.status_code} " + _clip(str(data.get("error") or r.text), 300))
     imgs = data.get("images") or []
     if not imgs:
-        raise ToolError("Bildrechner hat kein Bild geliefert: " + _clip(r.text, 300))
+        raise ToolError("Image computer returned no image: " + _clip(r.text, 300))
     b64 = str(imgs[0])
     return base64.b64decode(b64.split(",", 1)[1] if b64.startswith("data:") else b64)
 
@@ -1041,7 +1041,7 @@ def _gen_nvidia(prompt, refs, fmt, call):
     (z. B. black-forest-labs/flux.1-kontext-dev), dort genau eins."""
     key = _env("NVIDIA_API_KEY").split(",")[0].strip()
     if not key:
-        raise ToolError("IMAGE_PROVIDER=nvidia, aber NVIDIA_API_KEY fehlt")
+        raise ToolError("IMAGE_PROVIDER=nvidia, but NVIDIA_API_KEY is missing")
     model = _model_env("IMAGE_MODEL", NVIDIA_IMAGE_MODEL)
     body = {"prompt": prompt[:10000], "seed": int(time.time() * 1000) % 2_000_000_000}
     if "schnell" in model:
@@ -1056,10 +1056,10 @@ def _gen_nvidia(prompt, refs, fmt, call):
     r = requests.post(f"https://ai.api.nvidia.com/v1/genai/{model}", timeout=300, json=body,
                       headers={"Authorization": "Bearer " + key, "Accept": "application/json"})
     if r.status_code >= 400:
-        _api_error("NVIDIA", model, r, " (Modell kann keine Referenzbilder?)" if refs and r.status_code == 422 else "")
+        _api_error("NVIDIA", model, r, " (model cannot take reference images?)" if refs and r.status_code == 422 else "")
     img = _b64_image(r.json())
     if not img:
-        raise ToolError(f"NVIDIA ({model}) hat kein Bild geliefert: " + _clip(r.text, 300))
+        raise ToolError(f"NVIDIA ({model}) returned no image: " + _clip(r.text, 300))
     return img
 
 
@@ -1071,7 +1071,7 @@ def _gen_cloudflare(prompt, refs, fmt, call):
     aeltere Modelle (z. B. flux-1-schnell) per JSON ohne Referenzen."""
     acc, key = _env("CF_ACCOUNT_ID").strip(), _env("CF_API_TOKEN").split(",")[0].strip()
     if not acc or not key:
-        raise ToolError("IMAGE_PROVIDER=cloudflare, aber CF_ACCOUNT_ID oder CF_API_TOKEN fehlt")
+        raise ToolError("IMAGE_PROVIDER=cloudflare, but CF_ACCOUNT_ID or CF_API_TOKEN is missing")
     model = _model_env("IMAGE_MODEL", CLOUDFLARE_IMAGE_MODEL)
     url = f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/{model}"
     w, h = _scaled(fmt, 1024)
@@ -1084,7 +1084,7 @@ def _gen_cloudflare(prompt, refs, fmt, call):
         r = requests.post(url, headers=headers, files=form, timeout=300)
     else:
         if refs:
-            raise ToolError(f"{model} kann keine Referenzbilder, dafuer ein FLUX.2-Modell waehlen (IMAGE_MODEL)")
+            raise ToolError(f"{model} cannot take reference images, choose a FLUX.2 model for that (IMAGE_MODEL)")
         r = requests.post(url, headers=headers, json={"prompt": prompt, "width": w, "height": h}, timeout=300)
     if r.status_code >= 400:
         _api_error("Cloudflare", model, r)
@@ -1092,7 +1092,7 @@ def _gen_cloudflare(prompt, refs, fmt, call):
         return r.content
     img = _b64_image(r.json())
     if not img:
-        raise ToolError(f"Cloudflare ({model}) hat kein Bild geliefert: " + _clip(r.text, 300))
+        raise ToolError(f"Cloudflare ({model}) returned no image: " + _clip(r.text, 300))
     return img
 
 
@@ -1103,9 +1103,9 @@ def _gen_hf(prompt, refs, fmt, call):
     """Hugging Face Inference (router.huggingface.co/<anbieter>/models/<modell>), Antwort = Bilddatei. Ohne Referenzbilder."""
     key = _env("HF_TOKEN").split(",")[0].strip()
     if not key:
-        raise ToolError("IMAGE_PROVIDER=hf, aber HF_TOKEN fehlt")
+        raise ToolError("IMAGE_PROVIDER=hf, but HF_TOKEN is missing")
     if refs:
-        raise ToolError("Hugging Face (Text zu Bild) kann hier keine Referenzbilder")
+        raise ToolError("Hugging Face (text to image) cannot take reference images here")
     model = _model_env("IMAGE_MODEL", HF_IMAGE_MODEL)
     sub = _env("HF_IMAGE_PROVIDER", "hf-inference").strip().strip("/") or "hf-inference"
     w, h = _scaled(fmt, 1024)
@@ -1121,14 +1121,14 @@ def _gen_hf(prompt, refs, fmt, call):
     except ValueError:
         img = None
     if not img:
-        raise ToolError(f"Hugging Face ({model}) hat kein Bild geliefert: " + _clip(r.text, 300))
+        raise ToolError(f"Hugging Face ({model}) returned no image: " + _clip(r.text, 300))
     return img
 
 
 def image_generate(root, call):
     prompt = str(call.get("prompt") or "").strip()[:4000]
     if not prompt:
-        raise ToolError("prompt fehlt")
+        raise ToolError("prompt missing")
     style = _env("IMAGE_STYLE").strip()  # fester Zeichenstil fuer jedes Bild, z. B. Buntstift auf Pastell
     if style:
         prompt = f"Stil: {style}\n\n{prompt}"  # vorne, der Gratis-Endpunkt kuerzt lange Prompts
@@ -1150,24 +1150,24 @@ def image_generate(root, call):
         keep = refs if _env("POLLINATIONS_API_KEY").strip() else []  # mit Key gehen Referenzbilder auch dort
         data = _gen_pollinations(prompt, keep, fmt, call)
         code = re.search(r"HTTP \d{3}", str(e))
-        how = ("mit Pollen-Guthaben und Referenzbildern erzeugt" if keep else
-               "Kostenlos und OHNE Referenzbilder erzeugt" + (", Figuren und Stil koennen abweichen" if refs else ""))
-        fallback = (f"HINWEIS: Auf Pollinations umgestiegen, Gratis-Erzeugung bei {prov} nicht moeglich "
-                    f"({code.group(0) if code else type(e).__name__}). {how}. Fehler: {_clip(str(e), 160)} ")
+        how = ("created with pollen credit and reference images" if keep else
+               "created for free and WITHOUT reference images" + (", characters and style may differ" if refs else ""))
+        fallback = (f"NOTE: switched to Pollinations, free generation not possible with {prov} "
+                    f"({code.group(0) if code else type(e).__name__}). {how}. Error: {_clip(str(e), 160)} ")
         refs = keep
     if len(data) > MAX_IMAGE_BYTES * 3:
-        raise ToolError("Erzeugtes Bild ist zu gross")
+        raise ToolError("Created image is too large")
     ext = _sniff(data)
     if ext not in ("png", "jpg", "webp"):
-        raise ToolError("Bildanbieter hat keine gueltige Bilddatei geliefert")
+        raise ToolError("Image provider returned no valid image file")
     target = _img_target(root, call, ext)
     if target:
         target.write_bytes(data)
         rel, size = _rel(root, target), len(data)
     else:
-        rel, size = _store_image(root, data, call.get("name"), "generiert")
-    via = f" mit {len(refs)} Referenzbild(ern)" if refs else ""
-    return f"{fallback}Bild erzeugt{via} und gespeichert: {rel} ({size // 1024} KB). Ansehen mit view_image. Im HTML so einbinden: <img src=\"{rel}\" alt=\"...\">"
+        rel, size = _store_image(root, data, call.get("name"), "generated")
+    via = f" with {len(refs)} reference image(s)" if refs else ""
+    return f"{fallback}Image created{via} and saved: {rel} ({size // 1024} KB). Look at it with view_image. Embed it in HTML like this: <img src=\"{rel}\" alt=\"...\">"
 
 
 def _inside(root, rel):
@@ -1187,26 +1187,26 @@ def copy_files(root, src, dst, move=False):
     try:
         a, b = _inside(root, src), _inside(root, dst)
     except ValueError:
-        raise ToolError("Pfad liegt ausserhalb des Projektordners")
+        raise ToolError("Path is outside the project folder")
     if not str(src or "").strip() or not str(dst or "").strip():
-        raise ToolError("'from' und 'to' sind Pflicht")
+        raise ToolError("'from' and 'to' are required")
     if a == root or b == root:
-        raise ToolError("Der Projektordner selbst kann nicht kopiert/ueberschrieben werden")
+        raise ToolError("The project folder itself cannot be copied/overwritten")
     if not a.exists():
-        raise ToolError(f"Quelle nicht gefunden: {src}")
+        raise ToolError(f"Source not found: {src}")
     if a == b or b.is_relative_to(a):
-        raise ToolError("Ziel darf nicht gleich der Quelle oder darin enthalten sein")
+        raise ToolError("Target must not be the same as the source or inside it")
     top = lambda p: p.relative_to(root).parts[0]
     if top(b).startswith(".") or top(a).startswith("."):
-        raise ToolError("Versteckte Ordner sind nicht erlaubt")
+        raise ToolError("Hidden folders are not allowed")
     if top(b) == "input":
-        raise ToolError("input/ gehoert dem Besitzer, dorthin wird nicht geschrieben")
+        raise ToolError("input/ belongs to the owner, nothing is written there")
     files = [a] if a.is_file() else [f for f in sorted(a.rglob("*")) if f.is_file() and not f.is_symlink()
                                        and not any(x.startswith(".") for x in f.relative_to(a).parts)]
     if len(files) > COPY_MAX_FILES or sum(f.stat().st_size for f in files) > COPY_MAX_BYTES:
-        raise ToolError(f"Zu gross (max. {COPY_MAX_FILES} Dateien / {COPY_MAX_BYTES // 1048576} MB)")
+        raise ToolError(f"Too large (max. {COPY_MAX_FILES} files / {COPY_MAX_BYTES // 1048576} MB)")
     if not files:
-        raise ToolError("Nichts zu kopieren (leer)")
+        raise ToolError("Nothing to copy (empty)")
     n = 0
     for f in files:
         t = b if a.is_file() and not (b.exists() and b.is_dir()) else (b / f.name if a.is_file() else b / f.relative_to(a))
@@ -1217,7 +1217,7 @@ def copy_files(root, src, dst, move=False):
             f.unlink()
     if move and a.is_dir():
         shutil.rmtree(a, ignore_errors=True)
-    return f"{n} Datei(en) {'verschoben' if move else 'kopiert'}: {src} -> {dst}"
+    return f"{n} file(s) {'moved' if move else 'copied'}: {src} -> {dst}"
 
 
 # ------------------------------------------------------------------ Programmieren (Recht "code")
@@ -1229,24 +1229,24 @@ def write_code(root, path, content):
     """Schreibt eine Quelltext-Datei in den Projektordner (nicht input/, keine Dotordner)."""
     root = Path(root).resolve()
     if not str(path or "").strip():
-        raise ToolError("'path' ist Pflicht")
+        raise ToolError("'path' is required")
     try:
         f = _inside(root, path)
     except ValueError:
-        raise ToolError("Pfad liegt ausserhalb des Projektordners")
+        raise ToolError("Path is outside the project folder")
     parts = f.relative_to(root).parts
     if f == root or any(x.startswith(".") for x in parts):
-        raise ToolError("Versteckte Dateien/Ordner sind nicht erlaubt")
+        raise ToolError("Hidden files/folders are not allowed")
     if parts[0] == "input":
-        raise ToolError("input/ gehoert dem Besitzer, dorthin wird nicht geschrieben")
+        raise ToolError("input/ belongs to the owner, nothing is written there")
     data = str(content or "").encode("utf-8")
     if len(data) > CODE_MAX_BYTES:
-        raise ToolError(f"Zu gross (max. {CODE_MAX_BYTES // 1000} KB je Datei, Code auf mehrere Dateien aufteilen)")
+        raise ToolError(f"Too large (max. {CODE_MAX_BYTES // 1000} KB per file, split the code into several files)")
     f.parent.mkdir(parents=True, exist_ok=True)
     f.write_bytes(data)
     rel = f.relative_to(root).as_posix()
     lines = data.count(b"\n") + 1
-    return f"Gespeichert: {rel} ({len(data)} Bytes, {lines} Zeilen)"
+    return f"Saved: {rel} ({len(data)} bytes, {lines} lines)"
 
 
 # Endung -> (Sprache, Pruefbefehl). {f} = Datei, {o} = leerer Temp-Ordner. Nur Werkzeuge, die den Code NICHT ausfuehren
@@ -1279,22 +1279,22 @@ def check_code(root, path):
         try:
             compile(src, str(path), "exec", dont_inherit=True)  # kompiliert nur, fuehrt nichts aus
         except SyntaxError as e:
-            return f"Python: FEHLER in Zeile {e.lineno}, Spalte {e.offset}: {e.msg}\n  {(e.text or '').rstrip()}"
-        return f"Python: {path} ist syntaktisch korrekt."
+            return f"Python: ERROR in line {e.lineno}, column {e.offset}: {e.msg}\n  {(e.text or '').rstrip()}"
+        return f"Python: {path} is syntactically correct."
     if ext == ".json":
         try:
             json.loads(f.read_text(encoding="utf-8"))
         except ValueError as e:
-            return f"JSON: FEHLER: {e}"
-        return f"JSON: {path} ist gueltig."
+            return f"JSON: ERROR: {e}"
+        return f"JSON: {path} is valid."
     spec = CODE_CHECKERS.get(ext)
     if not spec:
-        return (f"Fuer '{ext or 'ohne Endung'}' gibt es keine automatische Pruefung. Code sorgfaeltig selbst pruefen. "
-                f"Pruefbar: .py .json " + " ".join(sorted(CODE_CHECKERS)))
+        return (f"There is no automatic check for '{ext or 'no extension'}'. Check the code carefully yourself. "
+                f"Checkable: .py .json " + " ".join(sorted(CODE_CHECKERS)))
     lang, cmd = spec
     if not shutil.which(cmd[0]):
-        return (f"{lang}: Pruefwerkzeug '{cmd[0]}' ist auf dem Server nicht installiert. Code wurde gespeichert, aber nicht geprueft "
-                f"(der Besitzer kann es nachinstallieren).")
+        return (f"{lang}: check tool '{cmd[0]}' is not installed on the server. The code was saved but not checked "
+                f"(the owner can install it).")
     # Minimale Umgebung: Compiler sehen keine API-Keys aus .env
     env = {k: os.environ[k] for k in ("PATH", "HOME", "LANG", "JAVA_HOME", "GOROOT", "RUSTUP_HOME", "CARGO_HOME") if k in os.environ}
     with tempfile.TemporaryDirectory(prefix="pcl-code-") as o:
@@ -1302,13 +1302,13 @@ def check_code(root, path):
         try:
             r = subprocess.run(args, cwd=o, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=CODE_TIMEOUT)
         except subprocess.TimeoutExpired:
-            return f"{lang}: Pruefung nach {CODE_TIMEOUT} s abgebrochen (zu langsam/zu gross)."
+            return f"{lang}: check stopped after {CODE_TIMEOUT} s (too slow/too large)."
     out = (r.stdout + r.stderr).replace(str(f.parent) + os.sep, "").strip()
     if ext == ".go" and r.returncode == 0:
-        return f"Go: {path} ist syntaktisch korrekt."
+        return f"Go: {path} is syntactically correct."
     if r.returncode == 0:
         return f"{lang}: {path} OK." + (f"\nHinweise:\n{out[:3000]}" if out else "")
-    return f"{lang}: FEHLER (Code {r.returncode}):\n{out[:4000] or '(keine Ausgabe)'}"
+    return f"{lang}: ERROR (code {r.returncode}):\n{out[:4000] or '(no output)'}"
 
 
 # ------------------------------------------------- Code ausfuehren (Recht "run_code", isoliert)
@@ -1372,27 +1372,27 @@ def run_code(root, path=None, code=None, lang=None, args=None, stdin=None):
     """Fuehrt ein Skript isoliert aus: kein Netz, kein Zugriff ausser dem Projekt (nur lesen), Zeit-/RAM-Grenzen.
     Neue Dateien aus dem Arbeitsordner landen in output/run/<zeit>/."""
     if not run_enabled():
-        raise ToolError("Code ausfuehren ist auf diesem Server nicht eingerichtet (bubblewrap fehlt oder PCL_ALLOW_RUN=0)")
+        raise ToolError("Running code is not set up on this server (bubblewrap missing or PCL_ALLOW_RUN=0)")
     root = Path(root).resolve()
     if code:
         ext = _LANG_EXT.get(str(lang or "python").lower().strip())
         if not ext:
-            raise ToolError("lang: python, javascript, bash, ruby, php oder lua")
+            raise ToolError("lang: python, javascript, bash, ruby, php or lua")
         data = str(code).encode("utf-8")
         if len(data) > CODE_MAX_BYTES:
-            raise ToolError("Code zu gross")
+            raise ToolError("Code too large")
         rel = None
     else:
         f = _inside_existing(root, path)
         if any(x.startswith(".") for x in f.relative_to(root).parts):
-            raise ToolError("Versteckte Dateien sind nicht erlaubt")
+            raise ToolError("Hidden files are not allowed")
         ext, rel = f.suffix.lower(), f.relative_to(root).as_posix()
     spec = RUNNERS.get(ext)
     if not spec:
-        return f"Ausfuehren geht fuer: {' '.join(sorted(RUNNERS))}. Andere Sprachen nur mit check_code pruefen."
+        return f"Running works for: {' '.join(sorted(RUNNERS))}. Check other languages only with check_code."
     lng, prog = spec
     if not shutil.which(prog[0], path="/usr/local/bin:/usr/bin:/bin"):  # die Sandbox sieht nur /usr
-        return f"{lng}: '{prog[0]}' ist auf dem Server nicht installiert (in /usr/bin)."
+        return f"{lng}: '{prog[0]}' is not installed on the server (in /usr/bin)."
     argv = [str(x)[:500] for x in (args if isinstance(args, list) else [])][:20]
     with tempfile.TemporaryDirectory(prefix="pcl-run-") as work:
         w = Path(work)
@@ -1432,12 +1432,12 @@ def run_code(root, path=None, code=None, lang=None, args=None, stdin=None):
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(f, dst)
             kept.append(f"output/run/{stamp}/{r.as_posix()}")
-    head = f"{lng}: " + (f"nach {RUN_TIMEOUT} s ABGEBROCHEN (Zeitlimit)" if timeout else f"Exit-Code {p.returncode}") + f", {secs:.1f} s"
+    head = f"{lng}: " + (f"STOPPED after {RUN_TIMEOUT} s (time limit)" if timeout else f"exit code {p.returncode}") + f", {secs:.1f} s"
     if p.returncode in (-9, 137) and not timeout:
-        head += " (vermutlich RAM-Limit erreicht)"
-    out = head + "\n--- Ausgabe ---\n" + (_clip(text.strip(), 6000) or "(keine Ausgabe)")
+        head += " (probably RAM limit reached)"
+    out = head + "\n--- Output ---\n" + (_clip(text.strip(), 6000) or "(no output)")
     if kept:
-        out += "\n--- Neue Dateien ---\n" + "\n".join(kept)
+        out += "\n--- New files ---\n" + "\n".join(kept)
     return out
 
 
@@ -1445,53 +1445,53 @@ def list_files(root, path=""):
     try:
         d = _inside(root, path)
     except ValueError:
-        raise ToolError("Pfad liegt ausserhalb des Projektordners")
+        raise ToolError("Path is outside the project folder")
     if not d.exists():
-        return "(Ordner ist leer oder existiert noch nicht)"
+        return "(Folder is empty or does not exist yet)"
     rows = []
     for f in sorted(d.rglob("*"))[:600]:
         if f.is_file() and not any(part.startswith(".") for part in f.relative_to(root.resolve()).parts):
             rows.append(f"{f.relative_to(root.resolve())}  ({f.stat().st_size // 1024 or 1} KB)")
-    return "\n".join(rows) or "(keine Dateien)"
+    return "\n".join(rows) or "(no files)"
 
 
 def read_file(root, path, offset=0):
     try:
         f = _inside(root, path)
     except ValueError:
-        raise ToolError("Pfad liegt ausserhalb des Projektordners")
+        raise ToolError("Path is outside the project folder")
     if not f.is_file():
-        raise ToolError(f"Datei '{path}' gibt es nicht (list_files zeigt den Inhalt)")
+        raise ToolError(f"File '{path}' does not exist (list_files shows the content)")
     ext = f.suffix.lower()
     if ext in (".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp") and shutil.which("tesseract") and _env("PCL_OCR_IMAGES", "1") != "0":
         try:
             t = ocr_image(f)
         except Exception as e:
-            raise ToolError(f"OCR fehlgeschlagen ({type(e).__name__})")
-        return (f"{path}: NUR der Text aus dem Bild (OCR, Fehler moeglich). Den Bildinhalt (Karte, Layout, Foto) siehst du mit "
+            raise ToolError(f"OCR failed ({type(e).__name__})")
+        return (f"{path}: ONLY the text from the image (OCR, errors possible). You see the image content (map, layout, photo) with "
                 f"view_image:\n{t[:READ_CHARS]}" if t
-                else f"{path}: Bild ohne erkennbaren Text ({f.stat().st_size // 1024} KB). Den Inhalt siehst du mit view_image.")
+                else f"{path}: image without recognisable text ({f.stat().st_size // 1024} KB). You see the content with view_image.")
     if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp"):
-        return f"{path}: Bild ({f.stat().st_size // 1024} KB). Ansehen mit view_image, read_file liest keine Bilder."
+        return f"{path}: image ({f.stat().st_size // 1024} KB). Look at it with view_image, read_file does not read images."
     if ext in (".mp4", ".webm", ".mov", ".mp3", ".wav", ".ogg", ".zip"):
-        return f"{path}: Mediendatei ({f.stat().st_size // 1024} KB). Fuer Videos/Audio: media_info."
+        return f"{path}: media file ({f.stat().st_size // 1024} KB). For videos/audio: media_info."
     cap = int(_env("PCL_MAX_READ_MB", "200")) * 1_000_000 if ext == ".pdf" else 30_000_000  # Scans sind oft sehr gross
     raw = f.read_bytes()[:cap]
     try:
         text = _doc_text(path, raw)
     except Exception as e:
-        raise ToolError(f"Dokument nicht lesbar ({type(e).__name__})")
+        raise ToolError(f"Document not readable ({type(e).__name__})")
     if text is None:
         if b"\x00" in raw[:2000]:
-            return f"{path}: Binaerdatei ({f.stat().st_size // 1024} KB), kann nicht als Text gelesen werden."
+            return f"{path}: binary file ({f.stat().st_size // 1024} KB), cannot be read as text."
         text = raw[:2_000_000].decode("utf-8", errors="replace")
     try:
         offset = max(0, int(offset or 0))
     except (TypeError, ValueError):
         offset = 0
     chunk = text[offset:offset + READ_CHARS]
-    more = f"\n[Fortsetzung: read_file mit offset={offset + READ_CHARS}; Gesamtlaenge {len(text)} Zeichen]" if len(text) > offset + READ_CHARS else ""
-    return f"Datei {path} (ab Zeichen {offset}):\n" + chunk + more
+    more = f"\n[Continued: read_file with offset={offset + READ_CHARS}; total length {len(text)} characters]" if len(text) > offset + READ_CHARS else ""
+    return f"File {path} (from character {offset}):\n" + chunk + more
 
 
 # ------------------------------------------------------------------ Dokumente lesen (PDF, DOCX, EPUB)
@@ -1504,7 +1504,7 @@ def pdf_text(data):
         for i, pg in enumerate(rd.pages, 1):
             t = (pg.extract_text() or "").strip()
             if t:
-                parts.append(f"[Seite {i}]\n{t}")
+                parts.append(f"[Page {i}]\n{t}")
         txt = "\n\n".join(parts)
         if txt.strip():
             return txt
@@ -1536,7 +1536,7 @@ def _tess_lang():
 def ocr_image(path):
     """Text aus einem Bild (tesseract). Leerer String, wenn nichts erkannt wurde."""
     if not shutil.which("tesseract"):
-        raise ToolError("OCR nicht installiert (Raspberry Pi: sudo apt install tesseract-ocr tesseract-ocr-deu)")
+        raise ToolError("OCR not installed (Raspberry Pi: sudo apt install tesseract-ocr tesseract-ocr-deu)")
     lang = _tess_lang()
     cmd = ["tesseract", str(path), "-"] + (["-l", lang] if lang else [])
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
@@ -1572,10 +1572,10 @@ def ocr_pdf(data, max_pages=None):
             except Exception:
                 t = ""
             if t:
-                parts.append(f"[Seite {i}]\n{t}")
+                parts.append(f"[Page {i}]\n{t}")
     if not parts:
         return ""
-    note = f"[OCR-Text eines Scans, Fehler moeglich; die ersten {total} Seiten gelesen]\n\n"
+    note = f"[OCR text of a scan, errors possible; the first {total} pages read]\n\n"
     return note + "\n\n".join(parts)
 
 
@@ -1674,19 +1674,19 @@ def view_image(root, path, page=None):
     try:
         f = _inside(root, path)
     except ValueError:
-        raise ToolError("Pfad liegt ausserhalb des Projektordners")
+        raise ToolError("Path is outside the project folder")
     if not f.is_file():
-        raise ToolError(f"Datei '{path}' gibt es nicht (list_files zeigt den Inhalt)")
+        raise ToolError(f"File '{path}' does not exist (list_files shows the content)")
     if f.suffix.lower() == ".pdf":
         first = max(1, int(page or 1)) if str(page or "1").isdigit() else 1
         imgs = pdf_page_images(f, first, 4)
         if not imgs:
-            raise ToolError("Aus dieser PDF liessen sich keine Seitenbilder holen")
-        return f"{path}: Seiten {first}-{first + len(imgs) - 1} als Bild angehaengt.", imgs
+            raise ToolError("No page images could be taken from this PDF")
+        return f"{path}: pages {first}-{first + len(imgs) - 1} attached as images.", imgs
     img = image_b64(f)
     if not img:
-        raise ToolError("Kein unterstuetztes Bildformat (png, jpg, gif, webp, bmp, tif)")
-    return f"{path}: Bild angehaengt ({f.stat().st_size // 1024} KB).", [img]
+        raise ToolError("Not a supported image format (png, jpg, gif, webp, bmp, tif)")
+    return f"{path}: image attached ({f.stat().st_size // 1024} KB).", [img]
 
 
 def docx_text(data):
@@ -1714,8 +1714,8 @@ def _doc_text(path, data):
         t = pdf_text(data)
         if not t.strip():
             t = ocr_pdf(data)
-        return t or ("(PDF enthaelt keinen auslesbaren Text, vermutlich ein Scan, und OCR ist nicht installiert: sudo apt install tesseract-ocr "
-                     "tesseract-ocr-deu tesseract-ocr-tur poppler-utils. Seiten ansehen: view_image mit path und page)")
+        return t or ("(The PDF contains no readable text, probably a scan, and OCR is not installed: sudo apt install tesseract-ocr "
+                     "tesseract-ocr-deu tesseract-ocr-tur poppler-utils. Look at pages: view_image with path and page)")
     if ext == ".docx":
         return docx_text(data)
     if ext == ".epub":
@@ -1741,15 +1741,15 @@ def download_file(root, url, name=""):
     url = str(url or "").strip()
     r, data, cut = safe_get(url, maxb)
     if cut:
-        raise ToolError(f"Datei ist groesser als {maxb // 1_000_000} MB")
+        raise ToolError(f"File is larger than {maxb // 1_000_000} MB")
     ctype = r.headers.get("Content-Type", "").split(";")[0].strip().lower()
     ext = _DL_EXT.get(ctype) or Path(urlparse(url).path).suffix.lower().lstrip(".")
     if data[:4] == b"%PDF":
         ext = "pdf"
     if ext not in _DL_OK_EXT:
-        raise ToolError(f"Dateityp nicht erlaubt ({ctype or ext or 'unbekannt'}). Erlaubt: PDF, EPUB, Office, Text, Audio, Video, ZIP, Bilder.")
+        raise ToolError(f"File type not allowed ({ctype or ext or 'unknown'}). Allowed: PDF, EPUB, Office, text, audio, video, ZIP, images.")
     if ext == "pdf" and data[:4] != b"%PDF":
-        raise ToolError("Die Adresse liefert kein echtes PDF (vermutlich eine Webseite). Mit fetch_url ansehen und den Direktlink suchen.")
+        raise ToolError("The address does not deliver a real PDF (probably a web page). Look at it with fetch_url and search for the direct link.")
     d = root / "downloads"
     d.mkdir(parents=True, exist_ok=True)
     base = _safe_name(name or Path(urlparse(url).path).stem, "datei")
@@ -1760,15 +1760,15 @@ def download_file(root, url, name=""):
     target.write_bytes(data)
     extra = ""
     if ext == "pdf":
-        extra = f" Seiten-Text lesbar: {'ja' if pdf_text(data).strip() else 'nein (Scan)'}. Zum Lesen: read_file."
-    return f"Gespeichert: downloads/{target.name} ({len(data) // 1024} KB).{extra}"
+        extra = f" Page text readable: {'yes' if pdf_text(data).strip() else 'no (scan)'}. To read: read_file."
+    return f"Saved: downloads/{target.name} ({len(data) // 1024} KB).{extra}"
 
 
 # ------------------------------------------------------------------------------ ffmpeg
 def _bin(name):
     p = shutil.which(name)
     if not p:
-        raise ToolError(f"'{name}' ist auf dem Server nicht installiert (Raspberry Pi: sudo apt install {name if name != 'ffprobe' else 'ffmpeg'})")
+        raise ToolError(f"'{name}' is not installed on the server (Raspberry Pi: sudo apt install {name if name != 'ffprobe' else 'ffmpeg'})")
     return p
 
 
@@ -1778,9 +1778,9 @@ def _ff(args, root, timeout=None):
         r = subprocess.run([_bin("ffmpeg"), "-nostdin", "-y", "-hide_banner", "-loglevel", "error"] + [str(a) for a in args],
                            cwd=str(root), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired:
-        raise ToolError(f"ffmpeg Zeitlimit ({timeout} s). Kuerzere Clips oder kleinere Aufloesung nehmen.")
+        raise ToolError(f"ffmpeg time limit ({timeout} s). Use shorter clips or a lower resolution.")
     if r.returncode != 0:
-        raise ToolError("ffmpeg-Fehler: " + (r.stderr or "")[-600:])
+        raise ToolError("ffmpeg error: " + (r.stderr or "")[-600:])
 
 
 def _probe(path):
@@ -1789,7 +1789,7 @@ def _probe(path):
                            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
         d = json.loads(r.stdout or "{}")
     except (subprocess.TimeoutExpired, ValueError):
-        raise ToolError("Datei konnte nicht analysiert werden")
+        raise ToolError("File could not be analysed")
     v = next((s for s in d.get("streams", []) if s.get("codec_type") == "video"), None)
     a = next((s for s in d.get("streams", []) if s.get("codec_type") == "audio"), None)
     dur = float((d.get("format") or {}).get("duration") or (v or a or {}).get("duration") or 0)
@@ -1815,9 +1815,9 @@ def _inside_existing(root, rel):
     try:
         f = _inside(root, rel)
     except ValueError:
-        raise ToolError("Pfad liegt ausserhalb des Projektordners")
+        raise ToolError("Path is outside the project folder")
     if not f.is_file():
-        raise ToolError(f"Datei '{rel}' gibt es nicht (list_files zeigt den Inhalt)")
+        raise ToolError(f"File '{rel}' does not exist (list_files shows the content)")
     return f
 
 
@@ -1830,7 +1830,7 @@ def _secs(v, default=None):
     try:
         n = [float(x) for x in parts]
     except ValueError:
-        raise ToolError(f"Zeitangabe '{v}' nicht lesbar (Sekunden oder MM:SS)")
+        raise ToolError(f"Time '{v}' not readable (seconds or MM:SS)")
     t = 0.0
     for x in n:
         t = t * 60 + x
@@ -1876,7 +1876,7 @@ def _dims(call, default_w=1280, default_h=720):
 def _norm_segment(src, dst, root, w, h, fps):
     p = _probe(src)
     if not p["video"]:
-        raise ToolError(f"{_rel(root, src)} enthaelt kein Video")
+        raise ToolError(f"{_rel(root, src)} contains no video")
     vf = (f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,"
           f"setsar=1,fps={fps},format=yuv420p")
     args = ["-i", src]
@@ -1909,7 +1909,7 @@ def _video_edit(root, call, op, tmp):
         f = src()
         start, end = _secs(call.get("start"), 0.0), _secs(call.get("end"))
         if end is not None and end <= start:
-            raise ToolError("end muss nach start liegen")
+            raise ToolError("end must be after start")
         out = _out_path(root, call, "ausschnitt", "mp4")
         args = ["-ss", start, "-i", f] + (["-t", end - start] if end is not None else [])
         _ff(args + ["-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-c:a", "aac", "-movflags", "+faststart", out], root)
@@ -1917,7 +1917,7 @@ def _video_edit(root, call, op, tmp):
     elif op == "concat":
         ins = call.get("inputs")
         if not isinstance(ins, list) or len(ins) < 2:
-            raise ToolError("inputs: Liste mit mindestens 2 Videos")
+            raise ToolError("inputs: list with at least 2 videos")
         w, h, fps = _dims(call)
         segs = []
         for i, name in enumerate(ins[:40]):
@@ -1930,7 +1930,7 @@ def _video_edit(root, call, op, tmp):
     elif op == "slideshow":
         imgs = call.get("images")
         if not isinstance(imgs, list) or not imgs:
-            raise ToolError("images: Liste mit Bildpfaden")
+            raise ToolError("images: list of image paths")
         w, h, fps = _dims(call)
         sec = max(1.0, min(_secs(call.get("seconds"), 4.0), 30.0))
         kb = str(call.get("kenburns", "true")).lower() not in ("false", "0", "no")
@@ -1963,10 +1963,10 @@ def _video_edit(root, call, op, tmp):
         f = src()
         text = str(call.get("text") or "").strip()
         if not text:
-            raise ToolError("text fehlt")
+            raise ToolError("text missing")
         font = _find_font(bold=True)
         if not font:
-            raise ToolError("Keine Schriftart gefunden (sudo apt install fonts-dejavu-core)")
+            raise ToolError("No font found (sudo apt install fonts-dejavu-core)")
         tf = tmp / "t.txt"
         tf.write_text(text[:300], encoding="utf-8")
         size = max(12, min(int(call.get("size") or 48), 200))
@@ -1979,14 +1979,14 @@ def _video_edit(root, call, op, tmp):
         rel_tf = tf.relative_to(root.resolve()).as_posix()
         vf = (f"drawtext=fontfile={font}:textfile={rel_tf}:fontsize={size}:fontcolor={color}:x=(w-text_w)/2:{pos}"
               f":box=1:boxcolor=black@0.45:boxborderw=14{en_part}")
-        out = _out_path(root, call, "mit-text", "mp4")
+        out = _out_path(root, call, "with-text", "mp4")
         _ff(["-i", f, "-vf", vf, "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-c:a", "copy", "-movflags", "+faststart", out], root)
 
     elif op == "burn_subtitles":
         f, srt = src(), src("srt")
         local = tmp / "sub.srt"
         shutil.copy(srt, local)
-        out = _out_path(root, call, "mit-untertiteln", "mp4")
+        out = _out_path(root, call, "with-subtitles", "mp4")
         rel_sub = local.relative_to(root.resolve()).as_posix()
         _ff(["-i", f, "-vf", f"subtitles={rel_sub}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-c:a", "copy", out], root)
 
@@ -1995,7 +1995,7 @@ def _video_edit(root, call, op, tmp):
         wpx = max(16, min(int(call.get("width") or 160), 1000))
         xy = {"tl": "x=20:y=20", "tr": "x=W-w-20:y=20", "bl": "x=20:y=H-h-20", "center": "x=(W-w)/2:y=(H-h)/2"}.get(
             str(call.get("position") or "br"), "x=W-w-20:y=H-h-20")
-        out = _out_path(root, call, "mit-logo", "mp4")
+        out = _out_path(root, call, "with-logo", "mp4")
         _ff(["-i", f, "-i", img, "-filter_complex", f"[1:v]scale={wpx}:-1[lg];[0:v][lg]overlay={xy}", "-c:v", "libx264",
              "-preset", "veryfast", "-crf", "22", "-c:a", "copy", out], root)
 
@@ -2003,7 +2003,7 @@ def _video_edit(root, call, op, tmp):
         f, a = src(), src("audio")
         vol = max(0.0, min(float(call.get("volume") or 1.0), 2.0))
         has_a = bool(_probe(f)["audio"])
-        out = _out_path(root, call, "mit-ton", "mp4")
+        out = _out_path(root, call, "with-sound", "mp4")
         if str(call.get("mode") or "replace") == "mix" and has_a:
             _ff(["-i", f, "-i", a, "-filter_complex", f"[1:a]volume={vol}[m];[0:a][m]amix=inputs=2:duration=first:dropout_transition=2[aout]",
                  "-map", "0:v", "-map", "[aout]", "-c:v", "copy", "-c:a", "aac", "-movflags", "+faststart", out], root)
@@ -2037,8 +2037,8 @@ def _video_edit(root, call, op, tmp):
         f = src()
         fmt = str(call.get("format") or "mp4").lower()
         if fmt not in ("mp4", "webm", "gif", "mp3", "wav"):
-            raise ToolError("format: mp4, webm, gif, mp3 oder wav")
-        out = _out_path(root, call, "konvertiert", fmt)
+            raise ToolError("format: mp4, webm, gif, mp3 or wav")
+        out = _out_path(root, call, "converted", fmt)
         sc = ""
         if call.get("width") or call.get("height"):
             w, h, _ = _dims(call)
@@ -2058,21 +2058,21 @@ def _video_edit(root, call, op, tmp):
 
     elif op == "frame":
         f = src()
-        out = _out_path(root, call, "standbild", "png")
+        out = _out_path(root, call, "still", "png")
         _ff(["-ss", _secs(call.get("at"), 0.0), "-i", f, "-frames:v", 1, out], root)
 
     else:
-        raise ToolError("op unbekannt. Erlaubt: trim, concat, slideshow, text_overlay, burn_subtitles, overlay_image, add_audio, extract_audio, speed, convert, frame")
+        raise ToolError("op unknown. Allowed: trim, concat, slideshow, text_overlay, burn_subtitles, overlay_image, add_audio, extract_audio, speed, convert, frame")
 
     if not out.exists() or out.stat().st_size == 0:
-        raise ToolError("Ergebnis wurde nicht erzeugt")
+        raise ToolError("Result was not created")
     info = ""
     if out.suffix in (".mp4", ".webm", ".mp3", ".wav"):
         try:
             info = " " + _describe_probe(_probe(out))
         except ToolError:
             pass
-    return f"Fertig: {_rel(root, out)}{info}"
+    return f"Done: {_rel(root, out)}{info}"
 
 
 # ------------------------------------------------------------------------- Sprache (TTS)
@@ -2100,7 +2100,7 @@ def _num(v, lo, hi):
 
 
 TTS_ENGINES = ("auto", "piper", "espeak", "edge", "elevenlabs", "openai")
-_CLOUD_TTS = {"elevenlabs": "ElevenLabs", "openai": "OpenAI-Stimme"}
+_CLOUD_TTS = {"elevenlabs": "ElevenLabs", "openai": "OpenAI voice"}
 
 
 def tts_engine(engine=None):
@@ -2110,7 +2110,7 @@ def tts_engine(engine=None):
         e = "elevenlabs"
     e = e or _env("TTS_ENGINE", "auto").lower()
     if e not in TTS_ENGINES:
-        raise ToolError(f"engine '{e}' unbekannt. Erlaubt: {', '.join(TTS_ENGINES)}")
+        raise ToolError(f"engine '{e}' unknown. Allowed: {', '.join(TTS_ENGINES)}")
     return e
 
 
@@ -2121,7 +2121,7 @@ def speak(root, text, lang="de", name="", voice=None, pitch=None, rate=None, tar
     Cloud-Stimme (Key fehlt, Guthaben leer, Netz), springt die lokale Stimme ein, ausser TTS_FALLBACK=0."""
     text = str(text or "").strip()[:6000]
     if not text:
-        raise ToolError("text fehlt")
+        raise ToolError("text missing")
     lang = re.sub(r"[^a-z-]", "", str(lang or "de").lower())[:5] or "de"
     voice = re.sub(r"[^A-Za-z0-9_.+-]", "", str(voice or ""))[:60]
     pitch, rate = _num(pitch, 0, 99), _num(rate, 0.5, 2.0)
@@ -2140,13 +2140,13 @@ def speak(root, text, lang="de", name="", voice=None, pitch=None, rate=None, tar
         try:
             _vp().cloud_tts(engine, text, voice, rate, target)
             p = _probe(target)
-            return (f"Sprache erzeugt mit {_CLOUD_TTS[engine]}: {_rel(root, target)} ({p['duration']:.1f} s). "
-                    "Fuer Videos: video_edit add_audio oder slideshow mit audio.")
+            return (f"Speech created with {_CLOUD_TTS[engine]}: {_rel(root, target)} ({p['duration']:.1f} s). "
+                    "For videos: video_edit add_audio or slideshow with audio.")
         except (ToolError, OSError) as e:  # requests-Fehler sind OSError
             target.unlink(missing_ok=True)
             if _env("TTS_FALLBACK", "1") == "0":
                 raise ToolError(str(e)) if not isinstance(e, ToolError) else e
-            note = f"HINWEIS: {_CLOUD_TTS[engine]} nicht genutzt ({_clip(str(e), 200)}), stattdessen lokale Stimme. "
+            note = f"NOTE: {_CLOUD_TTS[engine]} not used ({_clip(str(e), 200)}), local voice instead. "
             engine = "auto"
             if len(voice) >= 16 or voice in ("alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse"):
                 voice = ""  # Cloud-Stimmen-ID passt nicht zu espeak/Piper
@@ -2186,12 +2186,12 @@ def speak(root, text, lang="de", name="", voice=None, pitch=None, rate=None, tar
                                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
             done = r.returncode == 0 and target.exists()
         if not done:
-            raise ToolError(note + "Keine Sprachausgabe verfuegbar. Auf dem Pi: sudo apt install espeak-ng (einfache Stimme), oder "
-                            "PIPER_MODEL (Piper, gute Offline-Stimme) bzw. TTS_ENGINE=edge mit pip install edge-tts (Online-Stimmen, inoffizieller Dienst).")
+            raise ToolError(note + "No speech output available. On the Pi: sudo apt install espeak-ng (simple voice), or "
+                            "PIPER_MODEL (Piper, good offline voice) or TTS_ENGINE=edge with pip install edge-tts (online voices, unofficial service).")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     p = _probe(target)
-    return note + f"Sprache erzeugt: {_rel(root, target)} ({p['duration']:.1f} s). Fuer Videos: video_edit add_audio oder slideshow mit audio."
+    return note + f"Speech created: {_rel(root, target)} ({p['duration']:.1f} s). For videos: video_edit add_audio or slideshow with audio."
 
 
 # ----------------------------------------------------------------------------- Dokumente bauen
@@ -2261,17 +2261,17 @@ def _md_sources(root, call):
     if isinstance(srcs, str):
         srcs = [srcs]
     if not isinstance(srcs, list) or not srcs:
-        raise ToolError("sources (Liste von Markdown-Dateien) oder content fehlt")
+        raise ToolError("sources (list of Markdown files) or content missing")
     return "\n\n".join(_inside_existing(root, s).read_text(encoding="utf-8", errors="replace") for s in srcs[:100])
 
 
 def _html_pdf(root, call):
     """HTML + CSS -> PDF per WeasyPrint. Nachladen nur aus dem Projektordner (keine Netz-, keine fremden Dateien)."""
     if not isinstance(call.get("html"), str) or not call["html"].strip():
-        raise ToolError("html: Pfad zur HTML-Datei oder der HTML-Text selbst")
+        raise ToolError("html: path to the HTML file or the HTML text itself")
     if "<" in call["html"]:  # HTML direkt im Aufruf -> work/<name>.html, dann rendern
         if len(call["html"].encode()) > 2_000_000:
-            raise ToolError("html ist zu gross (max. 2 MB)")
+            raise ToolError("html is too large (max. 2 MB)")
         work = Path(root) / "work"
         work.mkdir(parents=True, exist_ok=True)
         src = work / (_safe_name(call.get("name"), "dokument") + ".html")
@@ -2280,13 +2280,13 @@ def _html_pdf(root, call):
     try:
         f = _inside(root, call.get("html"))
     except ValueError:
-        raise ToolError("html: Pfad liegt ausserhalb des Projektordners")
+        raise ToolError("html: path is outside the project folder")
     if not f.is_file() or f.suffix.lower() not in (".html", ".htm"):
-        raise ToolError(f"html: '{call.get('html')}' ist keine HTML-Datei im Projekt (erst mit write_file anlegen)")
+        raise ToolError(f"html: '{call.get('html')}' is not an HTML file in the project (create it first with write_file)")
     try:
         import weasyprint
     except Exception:
-        raise ToolError("WeasyPrint fehlt auf dem Server (./install.sh --system). Ersatz: make_document mit Markdown (sources/content)")
+        raise ToolError("WeasyPrint is missing on the server (./install.sh --system). Alternative: make_document with Markdown (sources/content)")
     top = Path(root).resolve()
 
     def allowed(url):
@@ -2302,13 +2302,13 @@ def _html_pdf(root, call):
         class Fetcher(weasyprint.URLFetcher):
             def fetch(self, url, headers=None):
                 if not allowed(url):
-                    raise ValueError("nur Dateien aus dem Projektordner erlaubt")
+                    raise ValueError("only files from the project folder allowed")
                 return super().fetch(url, headers)
         fetch = Fetcher(allowed_protocols=("file", "data"), allow_redirects=False)
     else:
         def fetch(url, *a, **kw):
             if not allowed(url):
-                raise ValueError("nur Dateien aus dem Projektordner erlaubt")
+                raise ValueError("only files from the project folder allowed")
             return weasyprint.default_url_fetcher(url, *a, **kw)
 
     out = _out_path(root, call, _safe_name(f.stem, "dokument"), "pdf")
@@ -2321,18 +2321,18 @@ def make_document(root, call):
         out = _html_pdf(root, call)
         try:
             from pypdf import PdfReader
-            n = f", {len(PdfReader(str(out)).pages)} Seiten"
+            n = f", {len(PdfReader(str(out)).pages)} pages"
         except Exception:
             n = ""
-        return f"Dokument erstellt: {_rel(root, out)} ({out.stat().st_size // 1024} KB{n}) aus HTML."
+        return f"Document created: {_rel(root, out)} ({out.stat().st_size // 1024} KB{n}) from HTML."
     fmt = str(call.get("format") or "pdf").lower()
     if fmt not in ("pdf", "docx", "epub", "html"):
-        raise ToolError("format: pdf, docx, epub oder html")
+        raise ToolError("format: pdf, docx, epub or html")
     title = str(call.get("title") or "Dokument")[:200]
     author = str(call.get("author") or "")[:100]
     blocks = _parse_md(_md_sources(root, call))
     if not blocks:
-        raise ToolError("Der Inhalt ist leer")
+        raise ToolError("The content is empty")
     out = _out_path(root, call, _safe_name(title, "dokument"), fmt)
     warn = ""
     if fmt == "pdf":
@@ -2347,10 +2347,10 @@ def make_document(root, call):
     if fmt == "pdf":
         try:
             from pypdf import PdfReader
-            extra = f", {len(PdfReader(str(out)).pages)} Seiten"
+            extra = f", {len(PdfReader(str(out)).pages)} pages"
         except Exception:
             pass
-    return f"Dokument erstellt: {_rel(root, out)} ({out.stat().st_size // 1024} KB{extra}).{warn}"
+    return f"Document created: {_rel(root, out)} ({out.stat().st_size // 1024} KB{extra}).{warn}"
 
 
 def _img_path(root, rel):
@@ -2393,7 +2393,7 @@ def _build_pdf(out, title, author, blocks, root, page):
         from reportlab.lib.units import mm
         from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer
     except ImportError:
-        raise ToolError("PDF-Erzeugung braucht reportlab (pip install reportlab im venv)")
+        raise ToolError("PDF creation needs reportlab (pip install reportlab in the venv)")
     fam = _pdf_font()
     size = A5 if page == "A5" else A4
     fs = 10.5 if page == "A5" else 11
@@ -2451,10 +2451,10 @@ def _build_pdf(out, title, author, blocks, root, page):
                 if b[1]:
                     story.append(Paragraph("<i>" + htmllib.escape(b[1]) + "</i>", st["q"]))
             except Exception:
-                story.append(Paragraph(f"[Bild nicht darstellbar: {htmllib.escape(b[2])}]", st["p"]))
+                story.append(Paragraph(f"[Image cannot be shown: {htmllib.escape(b[2])}]", st["p"]))
     doc.build(story, onFirstPage=footer, onLaterPages=footer)
     if fam == "Helvetica":
-        return " WARNUNG: keine Unicode-Schrift gefunden, Sonderzeichen (z. B. Tuerkisch) koennen fehlen (Server: sudo apt install fonts-dejavu-core)."
+        return " WARNING: no Unicode font found, special characters (e.g. Turkish) may be missing (server: sudo apt install fonts-dejavu-core)."
     return ""
 
 
@@ -2463,7 +2463,7 @@ def _build_docx(out, title, author, blocks, root):
         from docx import Document
         from docx.shared import Inches
     except ImportError:
-        raise ToolError("DOCX-Erzeugung braucht python-docx (pip install python-docx im venv)")
+        raise ToolError("DOCX creation needs python-docx (pip install python-docx in the venv)")
     d = Document()
     d.core_properties.title, d.core_properties.author = title, author
     d.add_heading(title, 0)
@@ -2484,7 +2484,7 @@ def _build_docx(out, title, author, blocks, root):
             try:
                 d.add_picture(str(f), width=Inches(5.5))
             except Exception:
-                d.add_paragraph(f"[Bild nicht darstellbar: {b[2]}]")
+                d.add_paragraph(f"[Image cannot be shown: {b[2]}]")
     d.save(str(out))
 
 
@@ -2596,9 +2596,9 @@ def run_tool(call, root, perms):
     name = str((call or {}).get("tool", ""))
     spec = TOOLS.get(name)
     if not spec:
-        return f"FEHLER: Unbekanntes Werkzeug '{name}'. Erlaubt: {', '.join(available(perms)) or 'keine'}.", None
+        return f"ERROR: unknown tool '{name}'. Allowed: {', '.join(available(perms)) or 'none'}.", None
     if name not in available(perms):
-        return f"FEHLER: Werkzeug '{name}' ist fuer dich nicht erlaubt.", None
+        return f"ERROR: tool '{name}' is not allowed for you.", None
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
     try:
@@ -2666,8 +2666,8 @@ def run_tool(call, root, perms):
             made = m.group(1)
         return out, made
     except ToolError as e:
-        return f"FEHLER: {e}", None
+        return f"ERROR: {e}", None
     except requests.RequestException as e:
-        return f"FEHLER: Netzwerk ({type(e).__name__}). Spaeter erneut versuchen oder anders suchen.", None
+        return f"ERROR: network ({type(e).__name__}). Try again later or search differently.", None
     except Exception as e:  # Modell soll weiterarbeiten koennen
-        return f"FEHLER: {type(e).__name__}: {e}", None
+        return f"ERROR: {type(e).__name__}: {e}", None

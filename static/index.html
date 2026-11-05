@@ -635,13 +635,13 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       <div class="g-tools">
         <button class="icon-btn" id="gBack" disabled title="Back to the previous graphic (same design, no switch to another view)" aria-label="Back to the previous graphic">←</button>
         <div class="vpick" id="gViews">
-          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Choose a graphic: Classic (three org charts, blueprint) or Modern (all companies as city, cosmos or molecules)"><span id="gViewLbl">🏢 Org chart: Tree</span> ▾</button>
+          <button class="btn sm" id="gViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gViewMenu" title="Choose a graphic: Classic (three org charts, blueprint) or Modern (all companies as city, cosmos or molecules)"><span id="gViewLbl">Org chart: Tree</span> ▾</button>
           <div class="vmenu" id="gViewMenu" role="menu" aria-label="Graphic" hidden>
             <span class="vgrp">Classic</span>
-            <button role="menuitemradio" class="vsub" data-view="org" data-org="baum" title="Org chart as a tree from top to bottom">🏢 Org chart: Tree</button>
-            <button role="menuitemradio" class="vsub" data-view="org" data-org="gliederung" title="Org chart as an outline, one line per agent (good on phones)">➡ Org chart: Outline</button>
-            <button role="menuitemradio" class="vsub" data-view="org" data-org="kreis" title="Org chart as a circle: management in the middle, each level a ring">◎ Org chart: Circle</button>
-            <button role="menuitemradio" class="vsub" data-view="plan" title="Blueprint: create, move and connect agents">📐 Blueprint</button>
+            <button role="menuitemradio" class="vsub" data-view="org" data-org="baum" title="Org chart as a tree from top to bottom">Org chart: Tree</button>
+            <button role="menuitemradio" class="vsub" data-view="org" data-org="gliederung" title="Org chart as an outline, one line per agent (good on phones)">Org chart: Outline</button>
+            <button role="menuitemradio" class="vsub" data-view="org" data-org="kreis" title="Org chart as a circle: management in the middle, each level a ring">Org chart: Circle</button>
+            <button role="menuitemradio" class="vsub" data-view="plan" title="Blueprint: create, move and connect agents">Blueprint</button>
             <hr>
             <span class="vgrp">Modern</span>
             <button role="menuitemradio" class="vsub" data-view="hub" data-hubworld="stadt" title="All companies as a city: each company a building, roads only where they collaborate">🏙 City (all companies)</button>
@@ -1941,7 +1941,7 @@ $('#btnOps').onclick=showOps;
 const HELP=[
  {id:'start',t:'🚀 Getting started',h:`<p>Hyperstead is your own AI company. You create a <b>project</b>; in it, <b>agents</b> (AI employees) work as a team: a boss at the top, below them leads and employees.</p>
 <ul><li><b>Create a project:</b> In the sidebar tap “＋ New project”. In the window you choose an empty project or a ready-made company template (e.g. web agency).</li>
-<li><b>Create an agent:</b> In the blueprint view (📐) tap a building block such as “👑 CEO” or “</> Developer” at the top, or drag it onto the canvas. Every agent needs an AI (provider + model) in its settings.</li>
+<li><b>Create an agent:</b> In the blueprint view tap a building block such as “👑 CEO” or “</> Developer” at the top, or drag it onto the canvas. Every agent needs an AI (provider + model) in its settings.</li>
 <li><b>Give a task:</b> Tap an agent → “Tasks” tab → describe the task → “Assign task”. The boss distributes the work to their team, reviews the reports and delivers the result to the 📬 mail.</li>
 <li><b>Collect the result:</b> Open 📬 Mail. “✅ Done” closes the task, “🔁 Revise…” sends it back with your note.</li></ul>
 <p>On a phone, ☰ at the top left opens the sidebar. The sidebar is sorted into categories (📬 Daily business, 🤖 Team &amp; AI, 📁 Files &amp; connections, 📊 Reports): tapping expands or collapses a category, the device remembers it. A colored dot on a collapsed category means something is waiting in it (e.g. new mail).</p>`},
@@ -1949,8 +1949,8 @@ const HELP=[
 <ul><li><b>Points:</b> delivery accepted the first time +10, after revision +5, task done in the mail +20, failed −3, rework requested −5.</li>
 <li><b>Stages:</b> from 0, 100, 300, 700 and 1500 points. The stage only limits how many agents the management recruits <i>by itself</i>. You can always create everything by hand. Turn it off under ⓘ in the bar.</li>
 <li><b>Ranks:</b> agents rise with their own accepted deliveries (from 5, 20, 60).</li>
-<li><b>Choosing a graphic:</b> The drop-down button at the top right of the bar (e.g. “🏢 Org chart: Tree ▾”) has two groups: <b>Classic</b> with three org charts (tree, outline, circle) and 📐 Blueprint for precise editing, <b>Modern</b> with all companies as 🏙 City, 🌌 Cosmos or 🧬 Molecule. The device remembers the choice. The <b>←</b> button next to it takes you back to the graphic you saw before (same view, same company, inside or outside), without switching to another design.</li>
-<li><b>🏢 Org chart:</b> shows the same team as a classic org chart in three styles, selectable in the graphic button: <b>⬇ Tree</b> (top to bottom, employees without their own team are stacked), <b>➡ Outline</b> (one line per agent, indented by level, best on phones) and <b>◎ Circle</b> (management in the middle, each level a ring). The colored stripe or ring shows the state: green ready, blue working, yellow waiting for your approval, red error, purple waiting for the team, gray paused. Tapping opens the agent. The device remembers the chosen style. Cards can be moved with the mouse or a finger, the lines follow. The device remembers this per project and style; “↺ Reset layout” at the top center restores the order.</li>
+<li><b>Choosing a graphic:</b> The drop-down button at the top right of the bar (e.g. “Org chart: Tree ▾”) has two groups: <b>Classic</b> with three org charts (tree, outline, circle) and Blueprint for precise editing, <b>Modern</b> with all companies as 🏙 City, 🌌 Cosmos or 🧬 Molecule. The device remembers the choice. The <b>←</b> button next to it takes you back to the graphic you saw before (same view, same company, inside or outside), without switching to another design.</li>
+<li><b>Org chart:</b> shows the same team as a classic org chart in three styles, selectable in the graphic button: <b>Tree</b> (top to bottom, employees without their own team are stacked), <b>Outline</b> (one line per agent, indented by level, best on phones) and <b>Circle</b> (management in the middle, each level a ring). The colored stripe or ring shows the state: green ready, blue working, yellow waiting for your approval, red error, purple waiting for the team, gray paused. Tapping opens the agent. The device remembers the chosen style. Cards can be moved with the mouse or a finger, the lines follow. The device remembers this per project and style; “↺ Reset layout” at the top center restores the order.</li>
 <li><b>🌓</b> switches light/dark. Under ⓘ you can turn off motion and celebration effects.</li></ul>`},
  {id:'agenten',t:'🤖 Agents, AI and permissions',h:`<p>Tapping an agent opens the side panel with the tabs Settings, 💬 Chat, Tasks and History.</p>
 <ul><li><b>Choose an AI:</b> provider and model. “▶ Test” checks whether the AI answers. Keys live in the <code>.env</code> file, never in the interface.</li>
@@ -1987,7 +1987,7 @@ const HELP=[
  {id:'telegram',t:'📱 Telegram',h:`<p>With <code>TELEGRAM_BOT_TOKEN</code> and <code>TELEGRAM_CHAT_ID</code> in the <code>.env</code> you control Hyperstead from your phone. Only your chat ID may control it.</p>
 <ul><li>Just write text = new task for the boss of the selected project. Photos/files with a caption = task with attachment.</li>
 <li><code>/post</code> open results, <code>/ok &lt;no&gt;</code> done, replying to a result message = revision.</li>
-<li><code>/status</code> overview, <code>/projekt &lt;no&gt;</code> switch project, <code>/neu &lt;text&gt;</code> new task, <code>/datei [search]</code> have a file sent, <code>/hilfe</code> all commands.</li>
+<li><code>/status</code> overview, <code>/project &lt;no&gt;</code> switch project, <code>/new &lt;text&gt;</code> new task, <code>/file [search]</code> have a file sent, <code>/help</code> all commands.</li>
 <li>Approvals come with ✅/❌ buttons, as do stage promotions 🎉.</li></ul>`},
  {id:'probleme',t:'🧯 What to do if …',h:`<ul><li><b>… an agent does nothing:</b> Does it have an AI? (Settings, “▶ Test”). Are business hours active? Is something waiting under ✋ Approvals?</li>
 <li><b>… a task shows “Error”:</b> the 🛰 Operations center shows the message. Common causes: missing key or no credit. After fixing it, “↻ Retry”.</li>
@@ -1996,7 +1996,7 @@ const HELP=[
 <li><b>… Telegram is silent:</b> check token and chat ID in <code>.env</code>, restart Hyperstead, write <code>/start</code> to the bot.</li>
 <li><b>… something is missing after an update:</b> the README has the table “What happens if something is missing” with the fix for every file and every key.</li></ul>`},
  {id:'firmen',t:'🏙 All companies: classic and modern',h:`<p>Hyperstead has two levels. Both show the same real companies, departments and agents, just drawn differently.</p>
-<ul><li><b>📐 Classic:</b> the plain views of one company: the three org charts (tree, outline, circle) and the blueprint. This is where you manage and hire. In the graphic menu they are under “Classic”.</li>
+<ul><li><b>Classic:</b> the plain views of one company: the three org charts (tree, outline, circle) and the blueprint. This is where you manage and hire. In the graphic menu they are under “Classic”.</li>
 <li><b>Modern:</b> all companies at once. Open them in the graphic menu at the top in the “Modern” group (🏙 City, 🌌 Cosmos or 🧬 Molecule). The top bar with project and growth stays in place; that is also where you switch back to “Classic”.</li>
 <li><b>🏙 City:</b> every company is a building on its own plot. The more it has grown, the taller the building. When a company is working, its lights go on; quiet companies are almost dark.</li>
 <li><b>🧬 Molecule:</b> every company is its own molecule, shape and colors differ per company. Partner companies are connected by a glowing rod between their managements, sparks travel along it (more when both are working). Tapping zooms in, every sphere opens department and agent.</li>
@@ -2296,7 +2296,7 @@ function markView(){
     const on = b.dataset.view===VIEW && (VIEW!=='org' || b.dataset.org===ORG.style) && (VIEW!=='hub' || !b.dataset.hubworld || b.dataset.hubworld===HUB.world);
     b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if(on) lbl=b.textContent;
   });
-  $('#gViewLbl').textContent = lbl || '🏢 Org chart: Tree';
+  $('#gViewLbl').textContent = lbl || 'Org chart: Tree';
 }
 function viewMenu(open){
   const m=$('#gViewMenu'); if(open===undefined) open=m.hidden; m.hidden=!open;
@@ -2497,7 +2497,7 @@ function drawMap(){
   if(sig===MAP.sig && svg.firstChild) return;   // nichts geaendert: Bahnen laufen ungestoert weiter
   MAP.sig = sig;
   const teams = teamsOf(g); MAP.teams = teams;
-  if(!teams.length){ svg.innerHTML=''; $('#wlist').innerHTML=`<div class="wcard">Still empty. Switch to the blueprint (📐) and create the first agent: it becomes the sun.</div>`; MAP.box=null; MAP.movers=[]; return; }
+  if(!teams.length){ svg.innerHTML=''; $('#wlist').innerHTML=`<div class="wcard">Still empty. Switch to the blueprint and create the first agent: it becomes the sun.</div>`; MAP.box=null; MAP.movers=[]; return; }
   const t = motionOff() ? 0 : (performance.now()-(MAP.off||0))/1000, stage=(WORLD.g&&WORLD.g.stage)||0;
   MAP.mv=[];
   const suns = teams.filter(x=>!x.parent).map(x=>x.lead);
