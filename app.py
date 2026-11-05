@@ -4433,6 +4433,15 @@ def api_printers_test():
     return jsonify({"ok": True, "message": msg, "printer": name})
 
 
+@app.get("/api/printers/status")
+def api_printers_status():
+    """Diagnose: Zustand des Druckers, offene Auftraege und verstaendliche Ursachen, warum nichts herauskommt."""
+    name = (request.args.get("printer") or get_setting("printer", "") or "").strip()
+    if not name or not printing.valid_name(name):
+        abort(400, "Select a printer first.")
+    return jsonify(printing.status(name))
+
+
 @app.put("/api/projects/<int:pid>/print")
 def api_print_allow(pid):
     """Drucken erlauben/sperren = Recht 'print' des CEO."""

@@ -1699,7 +1699,8 @@ async function showPrinters(){
     <label>Printer</label>
     <select id="pr_sel"><option value="">– none –</option>${opts}</select>
     <small style="color:var(--mute);display:block;margin-top:4px">“${esc(r.test)}” does not print but saves the printout as a text file (workspace/.druck/). Good for trying it out.</small>
-    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Use this printer for all evening reports">Save</button><button class="btn sm" id="pr_test" title="Print a test page on the selected printer to see whether it is the right one">🧾 Print test page</button><button class="btn sm" id="pr_reload" title="Fetch the printer list from the system again">↻ Search again</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Use this printer for all evening reports">Save</button><button class="btn sm" id="pr_test" title="Print a test page on the selected printer to see whether it is the right one">🧾 Print test page</button><button class="btn sm" id="pr_diag" title="Check why nothing comes out: printer state, waiting jobs, driver">🩺 Check printer</button><button class="btn sm" id="pr_reload" title="Fetch the printer list from the system again">↻ Search again</button></div>
+    <div id="pr_out"></div>
     <div class="task" style="padding:10px;margin-top:12px">
       <b>Printing in this project: ${r.allowed?'✅ allowed':'⛔ blocked'}</b>
       <div style="color:var(--mute);font-size:12px;margin:4px 0 8px">${r.ceo?'Decided by '+esc(r.ceo.name)+' as CEO (permission “May print evening reports”).':'The project has no CEO yet.'}</div>
@@ -1709,8 +1710,21 @@ async function showPrinters(){
   $('#pr_reload').onclick=showPrinters;
   $('#pr_test').onclick=async()=>{ const n=$('#pr_sel').value; if(!n){ toast('Select a printer first.'); return; }
     if(!confirm('Print a test page on “'+n+'”?')) return;
-    const b=$('#pr_test'); b.disabled=true; try{ const r=await api('/printers/test','POST',{printer:n}); toast(r.message+' If the page is in the right printer, click “Save”.'); }catch(e){} b.disabled=false; };
+    const b=$('#pr_test'), out=$('#pr_out'); b.disabled=true; out.innerHTML='<div style="color:var(--mute);margin-top:8px">Sending test page and checking the job (a few seconds) …</div>';
+    try{ const r=await api('/printers/test','POST',{printer:n}); out.innerHTML=`<div class="task" style="padding:8px;margin-top:8px">✅ ${esc(r.message)}<br><small>If the page is in the right printer, click “Save”. Nothing came out? Click 🩺 Check printer.</small></div>`; }
+    catch(e){ out.innerHTML=`<div class="task" style="padding:8px;margin-top:8px;border-color:var(--warn,#c90)">⚠ ${esc(String(e.message||e))}</div>`; await prDiag(n,true); }
+    b.disabled=false; };
+  $('#pr_diag').onclick=()=>{ const n=$('#pr_sel').value; if(!n){ toast('Select a printer first.'); return; } prDiag(n,false); };
   if($('#pr_allow')) $('#pr_allow').onclick=async()=>{ await api('/projects/'+S.pid+'/print','PUT',{allowed:!r.allowed}); toast(r.allowed?'Printing blocked':'Printing allowed'); showPrinters(); };
+}
+async function prDiag(n,append){
+  const out=$('#pr_out'); if(!out) return;
+  let r; try{ r=await api('/printers/status?printer='+encodeURIComponent(n)); }catch(_){ return; }
+  const html=`<div class="task" style="padding:8px;margin-top:8px"><b>🩺 ${esc(n)}</b>
+    ${r.problems.length?`<ul style="margin:6px 0 4px 18px">${r.problems.map(p=>`<li>⚠ ${esc(p)}</li>`).join('')}</ul>`:'<div style="margin:6px 0">No problem found by the system. If nothing comes out: is the printer on, has paper, and is it reachable from this computer?</div>'}
+    <div style="font-size:12px;color:var(--mute)">Waiting jobs: ${r.jobs.length?r.jobs.map(esc).join('<br>'):'none'}</div>
+    ${r.lines.length?`<details style="margin-top:4px"><summary style="cursor:pointer;font-size:12px;color:var(--mute)">Details</summary><pre style="white-space:pre-wrap;font-size:11px">${esc(r.lines.join('\n'))}</pre></details>`:''}</div>`;
+  if(append) out.insertAdjacentHTML('beforeend',html); else out.innerHTML=html;
 }
 $('#btnPrint').onclick=showPrinters;
 document.addEventListener('click',async e=>{
@@ -1974,7 +1988,7 @@ const HELP=[
 <li><b>📜 History:</b> every event is logged and never deleted.</li></ul>`},
  {id:'dateien',t:'📁 Files, cloud and connections',h:`<ul><li><b>📁 Files:</b> everything the agents have created. Tapping opens it, “⬇ Everything as ZIP” downloads the project. Uploaded files land in <code>input/</code>.</li>
 <li><b>Publishing a website:</b> if <code>www/index.html</code> is in the project, Hyperstead can serve it as a website (“Publish”).</li>
-<li><b>🖨 Printer:</b> choose the printer for the evening reports (network printers via CUPS or Windows). With 🧾 Print test page you see beforehand whether it is the right printer. The CEO allows or blocks printing. Every evening report then shows 🖨 Print; printing happens after your confirmation.</li>
+<li><b>🖨 Printer:</b> choose the printer for the evening reports (network printers via CUPS or Windows). With 🧾 Print test page you see beforehand whether it is the right printer. The CEO allows or blocks printing. Every evening report then shows 🖨 Print; printing happens after your confirmation. Nothing comes out? 🩺 Check printer names the cause (stopped, offline, no driver, stuck job).</li>
 <li><b>☁️ Cloud:</b> set up GitHub, Google Drive, OneDrive and Telegram. Every upload by an agent waits for your approval. ☁️ next to a file uploads it yourself.</li>
 <li><b>🔌 Connections:</b> webhooks. Agents with the permission “Connections” may call the addresses you entered (e.g. Zapier, Home Assistant), Hyperstead reports new mail to a service, or other programs send tasks in through a secret inbound address. Without an entry nothing happens.</li></ul>`},
  {id:'stimmen',t:'🎙 Voices and ElevenLabs',h:`<p>Agents with the “Media” permission can have texts spoken (tool <code>speak</code>) and voice film characters. Normally this runs for free on your device (Piper, espeak-ng or Edge voices).</p>
