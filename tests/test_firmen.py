@@ -73,11 +73,11 @@ def test_oberflaeche_hineinzoomen_und_suche():
     html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
     for fn in ("function hubInsideCity(", "function hubInsideCosmos(", "function hubEnter(", "function hubDep(", "function hubLeave("):
         assert fn in html
-    assert 'id="hubOut"' in html and 'id="hubSearch"' in html and 'aria-label="Firma oder Agent suchen"' in html
+    assert 'id="hubOut"' in html and 'id="hubSearch"' in html and 'aria-label="Search company or agent"' in html
     assert 'id="hubdeps"' in html
     hub = html[html.index("function hubDepsList("):html.index("/* ---------- Atom: Molekül")]
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", hub))
-    assert "Abteilung öffnen" in html and "Hineingehen" in html
+    assert "open department" in html and "Go inside" in html
 
 
 def test_oberflaeche_zusammenarbeit():
@@ -91,20 +91,20 @@ def test_oberflaeche_zusammenarbeit():
     assert "HUB.d.links.forEach" in roads  # Strassen entstehen nur aus Partnerschaften
     dlg = html[html.index("async function showFirmLinks("):html.index("$('#hubLink').onclick")]
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", dlg))
-    assert "'/firms/links'" in dlg and 'id="hubLink"' in html and "['Zusammenarbeit','firmen']" in html
+    assert "'/firms/links'" in dlg and 'id="hubLink"' in html and "['Collaboration','firmen']" in html
 
 
 def test_projekte_menue_neu_und_ansichten():
     """Wunsch ABI 2026-11-04 (Bilder): großer Knopf „＋ Neues Projekt“, kein 🏙 links, Grafik-Menü in Klassik und Modern."""
     import re
     html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
-    side = html[html.index('<div class="side-h"><span>Projekte'):html.index('id="projlist"')]
-    assert 'id="btnNewProj"' in side and "＋ Neues Projekt</button>" in side and 'id="btnHub"' not in html
+    side = html[html.index('<div class="side-h"><span>Projects'):html.index('id="projlist"')]
+    assert 'id="btnNewProj"' in side and "＋ New project</button>" in side and 'id="btnHub"' not in html
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", side))
-    dlg = html[html.index("async function newProjectDialog("):html.index("toast('Firma gegründet.')")]
+    dlg = html[html.index("async function newProjectDialog("):html.index("toast('Company founded.')")]
     assert "'/projects','POST'" in dlg and "/templates" in dlg and "/projects/from_template" in dlg
     menu = html[html.index('id="gViewMenu"'):html.index('id="gTheme"')]
-    k, m = menu.index(">Klassik<"), menu.index(">Modern<")
+    k, m = menu.index(">Classic<"), menu.index(">Modern<")
     for org in ("baum", "gliederung", "kreis"):
         assert k < menu.index(f'data-org="{org}"') < m
     for v in ('data-hubworld="stadt"', 'data-hubworld="kosmos"', 'data-hubworld="molekuel"'):
@@ -124,7 +124,7 @@ def test_welten_grafik_nach_referenzbild():
         assert fn in html
     inner = html[html.index("function hubInsideCity("):html.index("function hubInsideCosmos(")]
     # eine Etage je Hierarchie-Ebene, Ebene 0 (Leitung) ganz oben, ein Raum je Person
-    assert "hubLevels(f)" in inner and "top=-H+l*RH" in inner and "'Chefetage'" in inner and 'class="pers room' in inner
+    assert "hubLevels(f)" in inner and "top=-H+l*RH" in inner and "'Executive floor'" in inner and 'class="pers room' in inner
     assert "hubOrgChart(T," in inner
     # Raumschiff-Spur nur bei aktiver Zusammenarbeit
     routes = html[html.index("function hubCosmosRoutes("):html.index("function hubAlong(")]

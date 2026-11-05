@@ -657,7 +657,7 @@ def _call_llm(agent, messages, images=None):
         if pid == "cli":
             cmd = (agent.get("cli_command") or "").strip()
             if not cmd:
-                raise RuntimeError("Kein CLI-Befehl eingetragen.")
+                raise RuntimeError("No CLI command entered.")
             argv = shlex.split(cmd)
         else:
             cfg = PROVIDERS[pid]
@@ -934,7 +934,7 @@ def default_model(pid):
 def list_models(pid, force=False):
     cfg = PROVIDERS.get(pid)
     if not cfg:
-        return {"models": [], "default": "", "live": False, "error": "Unbekannter Anbieter"}
+        return {"models": [], "default": "", "live": False, "error": "Unknown provider"}
     base = {"default": cfg["model"], "live": False, "error": ""}
     if cfg.get("kind") == "cli":
         return {**base, "models": cfg.get("models", [])}
@@ -1165,7 +1165,7 @@ def do_upload(pid, svc, rel, sub="", folder=None):
     label = CLOUD_LABELS.get(svc, svc)
     if svc == "telegram":
         if not (TG_TOKEN and TG_CHATS):
-            return False, "Telegram ist nicht eingerichtet (TELEGRAM_BOT_TOKEN und TELEGRAM_CHAT_ID in .env)."
+            return False, "Telegram is not set up (TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env)."
         if f.stat().st_size > TG_FILE_MAX:
             return False, f"{f.name} ist groesser als 50 MB, Telegram nimmt das nicht. Nimm Google Drive, OneDrive oder GitHub."
         try:
@@ -3623,7 +3623,7 @@ def is_https():
 
 _fails = {}  # ip -> [fehlversuche, fensterstart, gesperrt_bis]
 
-LOGIN_HTML = """<!doctype html><html lang="de"><head><meta charset="utf-8">
+LOGIN_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Hyperstead – Login</title>
 <link rel="icon" type="image/png" href="/static/logo/hyperstead-32.png">
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b0c;color:#e8e8ea;
@@ -3633,8 +3633,8 @@ input{width:100%;box-sizing:border-box;margin:10px 0;padding:10px;border-radius:
 button{width:100%;padding:10px;border:0;border-radius:8px;background:#f97316;color:#fff;font:inherit;cursor:pointer}
 .err{color:#ff8a8a;font-size:13px;min-height:18px}</style></head><body>
 <form method="post" action="/login"><img class="logo" src="/static/logo/hyperstead-192.png" alt=""><b>Hyperstead</b>
-<input type="password" name="password" placeholder="Passwort" autofocus autocomplete="current-password">
-<div class="err">__MSG__</div><button>Anmelden</button></form></body></html>"""
+<input type="password" name="password" placeholder="Password" autofocus autocomplete="current-password">
+<div class="err">__MSG__</div><button>Sign in</button></form></body></html>"""
 
 
 def login_page(msg="", status=200):
@@ -3650,7 +3650,7 @@ def login():
     ip, now = client_ip(), time.time()
     f = _fails.get(ip, [0, now, 0])
     if f[2] > now:
-        return login_page(f"Zu viele Versuche. Bitte {int(f[2] - now) // 60 + 1} Min. warten.", 429)
+        return login_page(f"Too many attempts. Please wait {int(f[2] - now) // 60 + 1} min.", 429)
     if hmac.compare_digest(request.form.get("password", "").encode(), TOKEN.encode()):
         _fails.pop(ip, None)
         log("login_ok", ip)
@@ -3666,7 +3666,7 @@ def login():
         f = [0, now, now + 600]  # 10 Min. Sperre pro IP
     _fails[ip] = f
     log("login_failed", ip)
-    return login_page("Falsches Passwort.", 401)
+    return login_page("Wrong password.", 401)
 
 
 @app.route("/logout")
@@ -3741,13 +3741,13 @@ def api_models_replace():
     old_p, new_p = d.get("provider", ""), d.get("to_provider") or d.get("provider")
     old_m, new_m = str(d.get("from_model") or ""), str(d.get("to_model") or "")[:100]
     if (old_p and old_p not in PROVIDERS) or new_p not in PROVIDERS:
-        abort(400, "Unbekannter Anbieter")
+        abort(400, "Unknown provider")
     sql, args = "SELECT id FROM agents WHERE provider=? AND model=?", [old_p, old_m]
     if d.get("project_id"):
         sql, args = sql + " AND project_id=?", args + [int(d["project_id"])]
     ids = [a["id"] for a in q(sql, tuple(args))]
     if not ids:
-        abort(400, "Keine Agenten mit diesem Modell")
+        abort(400, "No agents with this model")
     for i in ids:
         ex("UPDATE agents SET provider=?, model=? WHERE id=?", (new_p, new_m, i))
     if old_p:
@@ -3775,13 +3775,13 @@ def api_models_assign():
     d = request.get_json(force=True)
     pid, model = d.get("provider"), str(d.get("model") or "")[:100]
     if pid not in PROVIDERS:
-        abort(400, "Unbekannter Anbieter")
+        abort(400, "Unknown provider")
     try:
         ids = sorted({int(i) for i in (d.get("agent_ids") or [])})[:500]
     except (TypeError, ValueError):
-        abort(400, "Ungueltige Agenten")
+        abort(400, "Invalid agents")
     if not ids:
-        abort(400, "Keine Agenten ausgewaehlt")
+        abort(400, "No agents selected")
     rows = q(f"SELECT id, name FROM agents WHERE id IN ({','.join('?' * len(ids))})", tuple(ids))
     for r in rows:
         ex("UPDATE agents SET provider=?, model=? WHERE id=?", (pid, model, r["id"]))
@@ -3795,9 +3795,9 @@ def api_provider_test():
     d = request.get_json(force=True)
     pid = d.get("provider")
     if pid not in PROVIDERS:
-        abort(400, "Unbekannter Anbieter")
+        abort(400, "Unknown provider")
     if pid == "cli" and not d.get("cli_command"):
-        abort(400, "Kein CLI-Befehl eingetragen.")
+        abort(400, "No CLI command entered.")
     agent = {"provider": pid, "model": str(d.get("model") or ""), "cli_command": str(d.get("cli_command") or ""),
              "name": "Test", "id": 0, "perms": "{}"}
     t0 = time.time()
@@ -3948,7 +3948,7 @@ def api_logo_post(pid):
         abort(404)
     f = request.files.get("file")
     if not f:
-        abort(400, "Keine Datei")
+        abort(400, "No file")
     data = f.read(LOGO_MAX + 1)
     try:
         kind = logo_save(pid, data)
@@ -3978,11 +3978,11 @@ def api_firm_link_new():
     try:
         a, b = sorted((int(d.get("a")), int(d.get("b"))))
     except (TypeError, ValueError):
-        return jsonify({"error": "a und b muessen Projekt-IDs sein"}), 400
+        return jsonify({"error": "a and b must be project IDs"}), 400
     if a == b:
-        return jsonify({"error": "Eine Firma kann nicht mit sich selbst zusammenarbeiten"}), 400
+        return jsonify({"error": "A company cannot collaborate with itself"}), 400
     if len(q("SELECT id FROM projects WHERE id IN (?,?)", (a, b))) != 2:
-        return jsonify({"error": "Projekt nicht gefunden"}), 404
+        return jsonify({"error": "Project not found"}), 404
     old = q1("SELECT id FROM firm_links WHERE a=? AND b=?", (a, b))
     if old:
         return jsonify({"id": old["id"], "exists": True})
@@ -4067,9 +4067,9 @@ def api_agent_put(aid):
             np = int(np)
             pa = q1("SELECT project_id FROM agents WHERE id=?", (np,))
             if not pa or pa["project_id"] != a["project_id"]:
-                abort(400, "Ungueltiger Vorgesetzter")
+                abort(400, "Invalid manager")
             if has_cycle(aid, np):
-                abort(400, "Zyklus: Ein Agent kann nicht sein eigener Vorgesetzter sein.")
+                abort(400, "Cycle: an agent cannot be their own manager.")
         ex("UPDATE agents SET parent_id=? WHERE id=?", (np, aid))
         changed.append("parent")
     for k, cast, mx in (("name", str, 60), ("role", str, 100), ("model", str, 100),
@@ -4082,7 +4082,7 @@ def api_agent_put(aid):
             ex(f"UPDATE agents SET {k}=? WHERE id=?", (float(d[k]), aid))
     if "provider" in d:
         if d["provider"] not in PROVIDERS:
-            abort(400, "Unbekannter Anbieter")
+            abort(400, "Unknown provider")
         ex("UPDATE agents SET provider=? WHERE id=?", (d["provider"], aid))
         changed.append("provider")
     if "paused" in d:
@@ -4134,11 +4134,11 @@ def api_task_new(aid):
     d = request.get_json(force=True)
     title = str(d.get("title") or "").strip()
     if not title:
-        abort(400, "Titel fehlt")
+        abort(400, "Title missing")
     st = "queued" if d.get("run") else "todo"
     gid = int(d.get("goal_id") or 0)
     if gid and not q1("SELECT 1 FROM goals WHERE id=? AND project_id=?", (gid, a["project_id"])):
-        abort(400, "Unbekanntes Ziel")
+        abort(400, "Unknown goal")
     tid = ex("INSERT INTO tasks(project_id,agent_id,title,description,status,created,updated,goal_id) VALUES(?,?,?,?,?,?,?,?)",
              (a["project_id"], aid, title[:200], str(d.get("description", ""))[:8000], st, time.time(), time.time(), gid))
     log("task_created", title, a["project_id"], aid, tid)
@@ -4176,7 +4176,7 @@ def api_world_put(pid):
     d = request.get_json(force=True) or {}
     if "world" in d:
         if d["world"] not in G.WORLDS:
-            return jsonify({"error": "Unbekannte Welt"}), 400
+            return jsonify({"error": "Unknown world"}), 400
         set_setting(f"world:{pid}", d["world"])
     if "limits" in d:
         set_setting(f"growth_limits:{pid}", "1" if d["limits"] else "0")
@@ -4197,7 +4197,7 @@ def api_hours_put(pid):
          "end": _hm(d.get("end"), old["end"]), "days": _days(d.get("days", old["days"]), old["days"]),
          "gate_all": bool(d.get("gate_all", old["gate_all"])), "resume": bool(d.get("resume", old["resume"]))}
     if _mins(h["end"]) <= _mins(h["start"]):
-        abort(400, "Feierabend muss nach dem Arbeitsbeginn liegen.")
+        abort(400, "The end of work must be after the start of work.")
     set_setting(f"hours:{pid}", json.dumps(h))
     log("hours_changed", json.dumps(h), pid)
     return jsonify({"ok": True})
@@ -4255,7 +4255,7 @@ def api_printers():
 def api_printers_set():
     name = str((request.get_json(force=True) or {}).get("printer", "")).strip()
     if name and not printing.valid_name(name):
-        abort(400, "Ungültiger Druckername.")
+        abort(400, "Invalid printer name.")
     set_setting("printer", name)
     log("printer_set", name or "(keiner)")
     return jsonify({"ok": True})
@@ -4276,7 +4276,7 @@ def api_printers_test():
     name = str((request.get_json(force=True) or {}).get("printer", "")).strip()
     names, _ = printing.list_printers()
     if not name or name not in names:
-        abort(400, "Diesen Drucker gibt es nicht (mehr). ↻ Neu suchen und aus der Liste wählen.")
+        abort(400, "This printer does not exist (any more). ↻ Search again and choose from the list.")
     ok, msg = printing.print_text(name, "Hyperstead Testseite", test_page_text(name), WORKSPACE / ".druck")
     log("print_test" if ok else "print_failed", f"Testseite -> {name}: {msg}"[:400])
     if not ok:
@@ -4289,7 +4289,7 @@ def api_print_allow(pid):
     """Drucken erlauben/sperren = Recht 'print' des CEO."""
     ceo = ceo_of(pid)
     if not ceo:
-        abort(400, "Dieses Projekt hat noch keinen CEO.")
+        abort(400, "This project has no CEO yet.")
     allow = bool((request.get_json(force=True) or {}).get("allowed"))
     p = json.loads(ceo.get("perms") or "{}")
     p["print"] = allow
@@ -4302,18 +4302,18 @@ def api_print_allow(pid):
 def api_task_print(tid):
     d = request.get_json(force=True) or {}
     if d.get("confirm") is not True:  # gedruckt wird nur nach Bestaetigung im Dialog
-        abort(400, "Drucken braucht eine Bestätigung.")
+        abort(400, "Printing needs a confirmation.")
     t = q1("SELECT * FROM tasks WHERE id=?", (tid,))
     if not is_evening_report(t):
-        abort(400, "Nur Abendberichte (Kontrollgang) können gedruckt werden.")
+        abort(400, "Only evening reports (inspection) can be printed.")
     if not (t.get("result") or "").strip():
-        abort(400, "Der Abendbericht ist noch leer.")
+        abort(400, "The evening report is still empty.")
     if not print_allowed(t["project_id"]):
         ceo = ceo_of(t["project_id"])
         abort(400, f"Drucken ist gesperrt. Erlauben: beim CEO{' ' + ceo['name'] if ceo else ''} das Recht „Darf Abendberichte drucken“ setzen.")
     printer = get_setting("printer", "")
     if not printer:
-        abort(400, "Noch kein Drucker gewählt (🖨 Drucker in der Seitenleiste).")
+        abort(400, "No printer chosen yet (🖨 Printer in the sidebar).")
     ok, msg = printing.print_text(printer, f"Abendbericht #{tid}", report_print_text(t), WORKSPACE / ".druck")
     log("print" if ok else "print_failed", f"Abendbericht #{tid} -> {printer}: {msg}"[:400], t["project_id"], t["agent_id"], tid)
     if not ok:
@@ -4331,15 +4331,15 @@ def api_sched_new(pid):
     d = request.get_json(force=True)
     a = q1("SELECT * FROM agents WHERE id=? AND project_id=?", (int(d.get("agent_id") or 0), pid))
     if not a:
-        abort(400, "Agent fehlt")
+        abort(400, "Agent missing")
     kind = "inspect" if d.get("kind") == "inspect" else ""
     title = str(d.get("title") or "").strip() or ("Kontrollgang" if kind else "")
     if not title:
-        abort(400, "Titel fehlt")
+        abort(400, "Title missing")
     at = str(d.get("at") or "")
     at = at if at in ("open", "close") else _hm(at, "")
     if not at:
-        abort(400, "Uhrzeit fehlt (HH:MM)")
+        abort(400, "Time missing (HH:MM)")
     days = ",".join(str(x) for x in _days(d.get("days"), list(range(7))))
     sid = ex("INSERT INTO schedules(project_id,agent_id,title,description,at,days,created,kind) VALUES(?,?,?,?,?,?,?,?)",
              (pid, a["id"], title[:200], str(d.get("description") or "")[:6000], at, days, time.time(), kind))
@@ -4386,7 +4386,7 @@ def api_task_run(tid):
     if not t:
         abort(404)
     if t["status"] in ("running", "queued", "waiting_approval", "waiting_subtasks"):
-        abort(400, "Aufgabe laeuft bereits bzw. wartet auf Freigabe oder das Team.")
+        abort(400, "The task is already running or waiting for approval or the team.")
     # Neustart einer Chef-Aufgabe = von vorn planen: alte Team-Aufgaben werden verworfen
     for c in q("SELECT id FROM tasks WHERE parent_task_id=?", (tid,)):
         delete_subtree(c["id"])
@@ -4424,10 +4424,10 @@ def api_goal_new(pid):
     d = request.get_json(force=True)
     title = str(d.get("title") or "").strip()[:300]
     if not title:
-        abort(400, "Titel fehlt")
+        abort(400, "Title missing")
     par = int(d.get("parent_id") or 0)
     if par and not q1("SELECT 1 FROM goals WHERE id=? AND project_id=?", (par, pid)):
-        abort(400, "Unbekanntes Oberziel")
+        abort(400, "Unknown parent goal")
     gid = ex("INSERT INTO goals(project_id,parent_id,title,created) VALUES(?,?,?,?)", (pid, par, title, time.time()))
     log("goal_created", title, pid)
     return jsonify({"id": gid})
@@ -4465,18 +4465,18 @@ def _conn_in(d, old=None):
     name = re.sub(r"\s+", "-", str(d.get("name", old.get("name", ""))).strip())[:40]
     url = str(d.get("url", old.get("url", ""))).strip()[:1000]
     if not name or not re.match(r"^https?://[^\s/]+", url):
-        abort(400, "Name und eine Adresse mit http:// oder https:// noetig")
+        abort(400, "Name and an address with http:// or https:// required")
     method = str(d.get("method", old.get("method", "POST"))).upper()
     if method not in ("GET", "POST", "PUT"):
-        abort(400, "Methode: GET, POST oder PUT")
+        abort(400, "Method: GET, POST or PUT")
     headers = d.get("headers", old.get("headers", "{}"))
     if isinstance(headers, str):
         try:
             headers = json.loads(headers or "{}")
         except ValueError:
-            abort(400, 'Kopfzeilen als JSON, z. B. {"Authorization": "Bearer ${N8N_TOKEN}"}')
+            abort(400, 'Headers as JSON, e.g. {"Authorization": "Bearer ${N8N_TOKEN}"}')
     if not isinstance(headers, dict):
-        abort(400, "Kopfzeilen als JSON-Objekt")
+        abort(400, "Headers as a JSON object")
     return (name, url, method, json.dumps({str(k): str(v) for k, v in headers.items()}),
             str(d.get("description", old.get("description", "")))[:1000],
             1 if d.get("confirm", old.get("confirm", 1)) else 0, 1 if d.get("on_post", old.get("on_post", 0)) else 0,
@@ -4592,7 +4592,7 @@ def api_connection_new(pid):
         abort(404)
     v = _conn_in(request.get_json(force=True) or {})
     if q1("SELECT 1 FROM connections WHERE project_id=? AND lower(name)=lower(?)", (pid, v[0])):
-        abort(400, "Name schon vergeben")
+        abort(400, "Name already taken")
     cid = ex("INSERT INTO connections(project_id,name,url,method,headers,description,confirm,on_post,enabled,created) "
              "VALUES(?,?,?,?,?,?,?,?,?,?)", (pid, *v, time.time()))
     log("connection_created", f"{v[0]} ({v[2]})", pid)
@@ -4606,7 +4606,7 @@ def api_connection_put(cid):
         abort(404)
     v = _conn_in(request.get_json(force=True) or {}, c)
     if q1("SELECT 1 FROM connections WHERE project_id=? AND lower(name)=lower(?) AND id!=?", (c["project_id"], v[0], cid)):
-        abort(400, "Name schon vergeben")
+        abort(400, "Name already taken")
     ex("UPDATE connections SET name=?,url=?,method=?,headers=?,description=?,confirm=?,on_post=?,enabled=? WHERE id=?", (*v, cid))
     log("connection_updated", v[0], c["project_id"])
     return jsonify({"ok": True})
@@ -4653,10 +4653,10 @@ def hook_in(pid, tok):
     d = request.get_json(silent=True) or request.form or {}
     text = str(d.get("text") or d.get("message") or "").strip()
     if not text:
-        abort(400, "Feld 'text' fehlt")
+        abort(400, "Field 'text' missing")
     tid, a = inbox_new_order(pid, text[:8000], str(d.get("agent") or "") or None)
     if not tid:
-        abort(400, "Kein passender Agent im Projekt")
+        abort(400, "No matching agent in the project")
     log("hook_order", f"#{tid} an {a['name']}", pid, a["id"], tid)
     return jsonify({"task_id": tid, "agent": a["name"]})
 
@@ -4765,7 +4765,7 @@ def api_approval_decide(aid):
         add = "\n\n🌐 " + out
     elif decision == "approve":
         if not ALLOW_SHELL:
-            abort(400, "Shell ist auf dem Server deaktiviert (PCL_ALLOW_SHELL=1 in .env).")
+            abort(400, "Shell is disabled on the server (PCL_ALLOW_SHELL=1 in .env).")
         pdir = proj_dir(pid)
         pdir.mkdir(parents=True, exist_ok=True)
         try:
@@ -4830,7 +4830,7 @@ def api_inbox_delete():
     d = request.get_json(force=True) or {}
     ids = d.get("ids")
     if not isinstance(ids, list) or not ids:
-        abort(400, "Keine Post ausgewählt.")
+        abort(400, "No mail selected.")
     return jsonify({"ok": True, "deleted": inbox_delete(ids)})
 
 
@@ -4838,7 +4838,7 @@ def api_inbox_delete():
 def api_inbox_clear():
     d = request.get_json(force=True) or {}
     if d.get("confirm") is not True:  # Schutz: Leeren nur mit ausdruecklicher Bestaetigung aus dem Dialog
-        abort(400, "Postkorb leeren braucht eine Bestätigung.")
+        abort(400, "Emptying the mailbox needs a confirmation.")
     return jsonify({"ok": True, "deleted": inbox_delete(None)})
 
 
@@ -4853,7 +4853,7 @@ def api_inbox_rework(tid):
 @app.post("/api/telegram/test")
 def api_telegram_test():
     if not (TG_TOKEN and TG_CHATS):
-        abort(400, "Telegram ist nicht eingerichtet (TELEGRAM_BOT_TOKEN und TELEGRAM_CHAT_ID in .env).")
+        abort(400, "Telegram is not set up (TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env).")
     tg_notify("✅ Hyperstead ist verbunden. Schreib mir einen Auftrag oder /hilfe.")
     return jsonify({"ok": True})
 
@@ -4946,7 +4946,7 @@ def api_upload(pid):
         abort(404)
     f = request.files.get("file")
     if not f or not f.filename:
-        abort(400, "Keine Datei")
+        abort(400, "No file")
     folder = KNOWLEDGE_DIR if request.args.get("dir") == KNOWLEDGE_DIR else "input"  # nur diese beiden Ziele
     try:
         path, renamed = save_input(pid, f.filename, f.save, folder)
@@ -4986,7 +4986,7 @@ def api_file_delete(pid):
         target = (root / str(request.args.get("path", ""))).resolve()
         target.relative_to(root)
     except ValueError:
-        abort(400, "Ungueltiger Pfad")
+        abort(400, "Invalid path")
     if not target.is_file():
         abort(404)
     target.unlink()
@@ -5009,7 +5009,7 @@ def serve_file(pid, tok, rel):
                 if f.is_file() and not any(x.startswith(".") for x in f.relative_to(root).parts):  # .rust/, .tmp-* bleiben intern
                     total += f.stat().st_size
                     if total > 100_000_000:
-                        abort(400, "Projektordner ist fuer den ZIP-Download zu gross (100 MB).")
+                        abort(400, "The project folder is too large for the ZIP download (100 MB).")
                     z.write(f, f.relative_to(root).as_posix())
         resp = Response(buf.getvalue(), mimetype="application/zip")
         resp.headers["Content-Disposition"] = f'attachment; filename="{root.name}.zip"'
@@ -5040,7 +5040,7 @@ def api_project_from_template():
     d = request.get_json(force=True)
     tpl = company_templates.TEMPLATES.get(d.get("template"))
     if not tpl:
-        abort(400, "Unbekannte Vorlage")
+        abort(400, "Unknown template")
     name = str(d.get("name") or tpl["label"])[:100]
     goal = str(d.get("goal") or tpl["goal"])[:2000]
     pid = ex("INSERT INTO projects(name,goal,created) VALUES(?,?,?)", (name, goal, time.time()))
@@ -5278,7 +5278,7 @@ def api_chat_post(aid):
             p = (root / str(f).removeprefix("input/")).resolve()
             p.relative_to(root)
         except ValueError:
-            abort(400, "Ungueltiger Dateipfad")
+            abort(400, "Invalid file path")
         if not p.is_file():
             abort(400, f"Datei {f} gibt es nicht in input/")
         files.append("input/" + p.relative_to(root).as_posix())
@@ -5292,7 +5292,7 @@ def api_chat_post(aid):
     if files:
         msg = (files_note(files) + "\n\n" + msg).strip()[:8000]
     if not msg:
-        abort(400, "Nachricht fehlt")
+        abort(400, "Message missing")
     proj = q1("SELECT * FROM projects WHERE id=?", (pid,))
     hist = q("SELECT role, content, files FROM chats WHERE agent_id=? ORDER BY id DESC LIMIT ?", (aid, CHAT_TURNS))[::-1]
     past = []
@@ -5381,7 +5381,7 @@ def api_chat_order(aid):
         abort(404)
     hist = q("SELECT role, content FROM chats WHERE agent_id=? ORDER BY id DESC LIMIT 16", (aid,))[::-1]
     if not hist:
-        abort(400, "Noch kein Gespraech vorhanden.")
+        abort(400, "No conversation yet.")
     title = str(request.get_json(force=True).get("title") or "").strip()[:200]
     if not title:
         last_user = next((h["content"] for h in reversed(hist) if h["role"] == "user"), "Auftrag aus Gespraech")

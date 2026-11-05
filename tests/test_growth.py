@@ -18,7 +18,7 @@ def test_stufen_und_raenge_rein():
     assert G.points_from_events([], 0, 5, 0) == 0  # nie negativ
     i = G.stage_info(150, "kosmos")
     assert i["name"] == "Planet" and i["next"] == 300 and 0 < i["progress"] < 1
-    assert G.stage_info(9999, "kosmos")["next"] is None and G.stage_info(9999)["name"] == "Galaxie"
+    assert G.stage_info(9999, "kosmos")["next"] is None and G.stage_info(9999)["name"] == "Galaxy"
     assert G.world_ok("quatsch") == G.DEFAULT_WORLD == "kosmos"
     assert list(G.WORLDS) == ["kosmos", "atom"]  # Kosmos und Atom (Wunsch ABI 2026-11-04)
     for w in G.WORLDS.values():  # jede Welt hat alle Stufen und Raenge
@@ -45,7 +45,7 @@ def test_welt_wechseln(client):
     assert client.put(f"/api/projects/{pid}/world", json={"world": "guild"}).status_code == 400
     assert client.put(f"/api/projects/{pid}/world", json={"world": "mars"}).status_code == 400
     assert client.put(f"/api/projects/{pid}/world", json={"limits": False}).json["limits"] is False
-    assert client.get("/api/worlds").json["worlds"]["kosmos"]["stages"][4][1] == "Galaxie"
+    assert client.get("/api/worlds").json["worlds"]["kosmos"]["stages"][4][1] == "Galaxy"
     r = client.put(f"/api/projects/{pid}/world", json={"world": "atom"})
     assert r.json["world"] == "atom" and r.json["name"] == "Quark"
     assert client.get(f"/api/projects/{pid}/growth").json["world"] == "atom"
@@ -129,11 +129,11 @@ def test_prompts_ohne_spielbegriffe():
     ceo = A.q1("SELECT * FROM agents WHERE id=?", (make_agent(pid, "CEO", delegate=True),))
     make_agent(pid, "M", parent=ceo["id"])
     text = str(A.build_system(ceo, q_proj(pid), "plan"))
-    for w in ("Sonne", "Planet", "Mond", "Mission", "Sternenstaub", "Galaxie", "Quark", "Elektron", "Molekül", "Nukleon"):
+    for w in ("Sonne", "Planet", "Mond", "Mission", "Sternenstaub", "Galaxie", "Stardust", "Galaxy", "Quark", "Elektron", "Electron", "Molekül", "Molecule", "Nukleon", "Nucleon"):
         assert w not in text
     A.set_setting(f"world:{pid}", "atom")
     text = str(A.build_system(ceo, q_proj(pid), "plan"))
-    for w in ("Quark", "Elektron", "Molekül", "Experiment", "Nukleon"):
+    for w in ("Quark", "Elektron", "Electron", "Molekül", "Molecule", "Experiment", "Nukleon", "Nucleon"):
         assert w not in text
 
 
