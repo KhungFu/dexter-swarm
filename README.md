@@ -47,7 +47,7 @@ deploy\windows\hyperstead-start.bat
 Was unter Windows fehlt, Autostart und Parallelbetrieb mit dem Pi: [docs/windows.md](docs/windows.md).
 Update, Neustart, Autostart: [Betrieb](#betrieb-wer-macht-was-wo-wann-wie).
 
-### macOS (getestet)
+### macOS
 
 ```bash
 git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
