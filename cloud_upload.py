@@ -324,7 +324,7 @@ def _chunked_put(url, path, size, chunk, headers, what):
                 return r.json()
             if r.status_code not in (202, 308):
                 _check(r, what)
-                raise CloudError(f"{what}: unerwartete Antwort HTTP {r.status_code}")
+                raise CloudError(f"{what}: unexpected answer HTTP {r.status_code}")
             pos = end + 1
     raise CloudError(f"{what}: upload not completed.")
 
@@ -335,7 +335,7 @@ UPLOADERS = {"github": github_upload, "gdrive": gdrive_upload, "onedrive": onedr
 def upload(svc, path, folder="", name=""):
     """Laedt die Datei hoch und gibt den Link zurueck. Fehler als CloudError mit verstaendlicher Meldung."""
     if svc not in UPLOADERS:
-        raise CloudError(f"Unbekannter Dienst '{svc}'. Moeglich: {', '.join(UPLOADERS)}")
+        raise CloudError(f"Unknown service '{svc}'. Possible: {', '.join(UPLOADERS)}")
     ok, logged, hint = status(svc)
     if not ok:
         raise CloudError(f"{LABELS[svc]} is not set up: {hint}")

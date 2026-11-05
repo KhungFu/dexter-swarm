@@ -16,7 +16,7 @@ paralel çalışabilir; her birinin kendi şirketleri ve verileri vardır.
 | --- | --- | --- |
 | Raspberry Pi / Linux (Debian, Ubuntu) | ana sistem, tam özellik kapsamı | aşağıda |
 | Windows 10/11 | çalışır, `run_code` olmadan, Rust derleme yalnızca bir anahtarla yalıtımsız, bazı özellikler ek programlar gerektirir | [docs/windows.md](docs/windows.md) |
-| macOS | test edilmedi, temel işlevler çalışmalı | aşağıda (elle) |
+| macOS | test edildi (çalışıyor) | aşağıda (elle) |
 | Kendi görüntü bilgisayarı (ör. ekran kartı olmayan eski bir dizüstü) | referans görselleriyle ücretsiz görseller | [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md) |
 
 Bir bilgisayardan diğerine taşıma: Hyperstead'i durdurun ve `data.db`, `workspace/` klasörünü ve `.env` dosyasını kopyalayın
@@ -25,7 +25,7 @@ Bir bilgisayardan diğerine taşıma: Hyperstead'i durdurun ve `data.db`, `works
 ### Raspberry Pi / Linux
 
 ```bash
-git clone https://github.com/KhungFu/hyperstead && cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
 ./install.sh --service     # venv, bağımlılıklar, rastgele şifreli .env, systemd hizmeti
 nano .env                  # API anahtarlarını girin, ardından: sudo systemctl restart hyperstead
 ```
@@ -39,7 +39,7 @@ Daha fazla özellik (video, OCR, derleyiciler, tarayıcı): `./install.sh --all`
 Hyperstead klasöründe PowerShell:
 
 ```powershell
-git clone https://github.com/KhungFu/hyperstead; cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead; cd hyperstead
 powershell -ExecutionPolicy Bypass -File install.ps1
 notepad .env
 deploy\windows\hyperstead-start.bat
@@ -48,10 +48,10 @@ deploy\windows\hyperstead-start.bat
 Windows'ta eksik olanlar, otomatik başlatma ve Pi ile paralel çalışma: [docs/windows.md](docs/windows.md).
 Sonradan güncelleme: `git pull`, ardından yeniden başlatın.
 
-### macOS (test edilmedi)
+### macOS (test edildi)
 
 ```bash
-git clone https://github.com/KhungFu/hyperstead && cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
 python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
 cp .env.example .env       # APP_TOKEN=<uzun şifre> girin, API anahtarlarını ekleyin
 ./venv/bin/python app.py   # http://127.0.0.1:8787
@@ -147,9 +147,9 @@ bundan asla etkilenmez, çünkü Git bunları bilmez.
 ### Selbsttest sonuçlarını okumak
 
 - **OK:** çalışıyor.
-- **FEHLT (eksik):** isteğe bağlıdır; satır, eklemek için komutu verir (Windows'ta Windows komutunu).
+- **MISSING (eksik):** isteğe bağlıdır; satır, eklemek için komutu verir (Windows'ta Windows komutunu).
   Yalnızca ajanlarınız bunu kullanıyorsa gerekir (ör. video, sesli okuma, taranmış PDF'ler).
-- **FEHLER (hata):** girdiğiniz bir şey çalışmıyor; çoğu zaman geçersiz ya da süresi dolmuş bir anahtar ya da çalışmayan bir hizmet
+- **ERROR (hata):** girdiğiniz bir şey çalışmıyor; çoğu zaman geçersiz ya da süresi dolmuş bir anahtar ya da çalışmayan bir hizmet
   (ör. görsel bilgisayarı). Satır nedenini gösterir.
 - Bir web hizmetinde tek bir zaman aşımı (Timeout) genellikle geçicidir: daha sonra yeniden deneyin.
 
@@ -183,57 +183,59 @@ Bu liste programda her değişiklikle genişletilir. Her satır sistemin ne yapt
 | --- | --- | --- |
 | `.env` | Hyperstead anahtarsız ve şifresiz başlar; yalnızca bu bilgisayardan erişilebilir. `HOST=0.0.0.0` ile `APP_TOKEN` boş olduğu sürece başlatma iptal edilir. | `./install.sh` (Pi) ya da `install.ps1` (Windows) rastgele şifreli bir tane oluşturur. |
 | `data.db` | Boş olarak yeniden oluşturulur. Şirketler, görevler ve gönderiler kaybolur. | Önce yedekleyin (İşletim bölümüne bakın). Yalnızca bir yedekten geri kopyalayın. |
-| `.env` içindeki API anahtarı | Sağlayıcı selbsttest'te FEHLT olarak gösterilir ve ajanlar kullanmaz. Girilmiş ama geçersizse: HTTP 401 ile FEHLER. | Anahtarı girin ya da satırı `#` ile kapatın. |
-| Ollama erişilemiyor veya model çok büyük | Görev „Ollama nicht erreichbar“ ya da „Zu wenig RAM für dieses Modell“ ile başarısız olur; eksik model „`ollama pull …`“ bildirir. Ollama `OLLAMA_TIMEOUT` saniye boyunca hiçbir şey göndermezse istek bu uyarıyla, tekrarlanmadan durur. | `systemctl status ollama`, daha küçük bir model çekin (`ollama pull qwen2.5:1.5b`) ve ajanda seçin ya da `OLLAMA_TIMEOUT` değerini artırın. |
-| `SDCPP_URL` (`IMAGE_PROVIDER=sdcpp` ile) | Görsel istekleri „SDCPP_URL fehlt“ (eksik) hatasıyla başarısız olur. `IMAGE_FALLBACK=pollinations` ile referanssız, ücretsiz bir yedek görsel üretilir ve sonuçta bir not yer alır. | `.env` dosyasına satırı ekleyin, Hyperstead'i yeniden başlatın. |
-| Görsel bilgisayarına ulaşılamıyor (dizüstü kapalı, güvenlik duvarı, yanlış IP) | Yukarıdaki gibi: „Bildrechner … nicht erreichbar“ (erişilemiyor) hatası; yedekle bir yedek görsel. | Dizüstünü açın, `bildrechner-start.bat` dosyasını başlatın, IP'yi ve güvenlik duvarını kontrol edin. |
+| `.env` içindeki API anahtarı | Sağlayıcı selbsttest'te MISSING olarak gösterilir ve ajanlar kullanmaz. Girilmiş ama geçersizse: HTTP 401 ile ERROR. | Anahtarı girin ya da satırı `#` ile kapatın. |
+| Ollama erişilemiyor veya model çok büyük | Görev „Ollama not reachable“ ya da „Not enough RAM for this model“ ile başarısız olur; eksik model „`ollama pull …`“ bildirir. Ollama `OLLAMA_TIMEOUT` saniye boyunca hiçbir şey göndermezse istek bu uyarıyla, tekrarlanmadan durur. | `systemctl status ollama`, daha küçük bir model çekin (`ollama pull qwen2.5:1.5b`) ve ajanda seçin ya da `OLLAMA_TIMEOUT` değerini artırın. |
+| `SDCPP_URL` (`IMAGE_PROVIDER=sdcpp` ile) | Görsel istekleri „SDCPP_URL is missing“ (eksik) hatasıyla başarısız olur. `IMAGE_FALLBACK=pollinations` ile referanssız, ücretsiz bir yedek görsel üretilir ve sonuçta bir not yer alır. | `.env` dosyasına satırı ekleyin, Hyperstead'i yeniden başlatın. |
+| Görsel bilgisayarına ulaşılamıyor (dizüstü kapalı, güvenlik duvarı, yanlış IP) | Yukarıdaki gibi: „ConnectionError“ (erişilemiyor) hatası; yedekle bir yedek görsel. | Dizüstünü açın, `bildrechner-start.bat` dosyasını başlatın, IP'yi ve güvenlik duvarını kontrol edin. |
 | `sd-server.exe` (Windows, görsel bilgisayarı) | `bildrechner-start.bat` „sd-server.exe fehlt“ (eksik) gösterir ve hiçbir şey başlatmaz. | `deploy\windows\bildrechner-einrichten.ps1` dosyasını çalıştırın. |
 | Model dosyası (Windows, görsel bilgisayarı) | Başlatma dosyası eksik dosyayı adıyla belirtir ve başlamaz. Yalnızca büyük dil modeli (`Qwen3-4B-Q4_K_M.gguf`) eksikse ve daha küçüğü varsa, onu kullanır. | Kurulum betiğini yeniden çalıştırın; yalnızca eksik dosyayı indirir. |
 | Windows çalışma zamanı `VCOMP140.DLL` | `sd-server.exe` „VCOMP140.DLL nicht gefunden“ (bulunamadı) bildirir ve kapanır. | Kurulum betiğini yeniden çalıştırın (3. adım çalışma zamanını kurar), sonra başlatma dosyasını açın. |
 | Port 1234 için güvenlik duvarı kuralı (Windows) | Yalnızca Pi görsel bilgisayarına ulaşamaz. Dizüstünün kendisi çalışmaya devam eder. | [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md) dosyasındaki 4. bölümden komutu yönetici olarak çalıştırın. |
-| `macros/` içinde makro veya `macros/<site>.json` oturumu (`PCL_MACROS=1` ile) | Makro yoksa `site_macro` aracı görünmez. Kayıtlı oturum yoksa makro bir uyarıyla durur. MagicLight veya Flow sayfasını değiştirirse `site_macro` FEHLER verir ve `output/` içine `<site>-fehler.png` koyar. Kendi denetimi (`browser`) FEHLT gösterir. | Makroyu [macros/README.md](macros/README.md) açıklamasına göre (yeniden) kaydedin. |
-| `ffmpeg`, `tesseract`, `pdftoppm`, sesli çıktı | İşlev eksiktir. Bunu kullanması gereken ajanlar hatayı sonuçta bildirir. Selbsttest FEHLER (Pi) ya da FEHLT (Windows) gösterir. | Programı kurun (komutlar selbsttest'te ve [docs/windows.md](docs/windows.md) dosyasında). |
-| Blender (`film` aracı) | `save`, `check`, `voices` ve `assemble` yine çalışır. `preview` ve `render`, `BLENDER_PATH` ipucuyla „Blender wurde nicht gefunden“ (Blender bulunamadı) bildirir. Selbsttest FEHLT gösterir. | Blender'ı kurun (`winget install BlenderFoundation.Blender`) ya da `.env` içinde `BLENDER_PATH` ayarlayın, yeniden başlatın. |
-| `film/film.json` (senaryo) | `film`, „film/film.json fehlt“ (eksik) bildirir ve önce `op=save` ile bir senaryo kaydedilmesini ister. Hatalı bir senaryo kaydedilmez, yanıt tüm hataları listeler. | Hiçbir şey, ajanlar onu kendileri oluşturur. Elle de yazabilirsiniz ([docs/filmstudio.md](docs/filmstudio.md)). |
+| `macros/` içinde makro veya `macros/<site>.json` oturumu (`PCL_MACROS=1` ile) | Makro yoksa `site_macro` aracı görünmez. Kayıtlı oturum yoksa makro bir uyarıyla durur. MagicLight veya Flow sayfasını değiştirirse `site_macro` ERROR verir ve `output/` içine `<site>-fehler.png` koyar. Kendi denetimi (`browser`) MISSING gösterir. | Makroyu [macros/README.md](macros/README.md) açıklamasına göre (yeniden) kaydedin. |
+| `ffmpeg`, `tesseract`, `pdftoppm`, sesli çıktı | İşlev eksiktir. Bunu kullanması gereken ajanlar hatayı sonuçta bildirir. Selbsttest ERROR (Pi) ya da MISSING (Windows) gösterir. | Programı kurun (komutlar selbsttest'te ve [docs/windows.md](docs/windows.md) dosyasında). |
+| Blender (`film` aracı) | `save`, `check`, `voices` ve `assemble` yine çalışır. `preview` ve `render`, `BLENDER_PATH` ipucuyla „Blender was not found“ (Blender bulunamadı) bildirir. Selbsttest MISSING gösterir. | Blender'ı kurun (`winget install BlenderFoundation.Blender`) ya da `.env` içinde `BLENDER_PATH` ayarlayın, yeniden başlatın. |
+| `film/film.json` (senaryo) | `film`, „film/film.json is missing“ (eksik) bildirir ve önce `op=save` ile bir senaryo kaydedilmesini ister. Hatalı bir senaryo kaydedilmez, yanıt tüm hataları listeler. | Hiçbir şey, ajanlar onu kendileri oluşturur. Elle de yazabilirsiniz ([docs/filmstudio.md](docs/filmstudio.md)). |
 | Senaryoda adı geçen görsel, müzik ya da `.blend` dosyası | Kontrol sahneyi, karakteri ve yolu bildirir, hiçbir şey render edilmez. | Dosyayı `assets/` ya da `input/` klasörüne koyun veya senaryodaki yolu düzeltin. |
 | Bir sahnenin klibi (`film/clips/`) | `assemble` eksik sahneleri bildirir ve kurgu yapmaz. `render` yarıda kalırsa (zaman sınırı), biten kareler korunur ve sonraki çağrı oradan devam eder. | Hiçbir şey, ajanlar `render` komutunu yeniden çağırır. |
-| Film için sesli okuma | `voices`/`render`, „Keine Sprachausgabe verfügbar“ (sesli okuma yok) ile durur. Hiç diyaloğu olmayan sahneler yine çalışır. | Yukarıdaki „sesli okuma“ satırındaki gibi (Windows'ta `edge-tts` + `TTS_ENGINE=edge`). |
-| `cargo` (Rust, `rust_project` aracı) | Araç ajanlara gösterilmez; `rustc` varsa `check_code` `.rs` dosyalarını denetlemeye devam eder. Selbsttest (`selftest.py rust`) kurulum komutuyla FEHLT gösterir. | Rust kurun: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Ardından Hyperstead'ı yeniden başlatın. |
+| Film için sesli okuma | `voices`/`render`, „No speech output available“ (sesli okuma yok) ile durur. Hiç diyaloğu olmayan sahneler yine çalışır. | Yukarıdaki „sesli okuma“ satırındaki gibi (Windows'ta `edge-tts` + `TTS_ENGINE=edge`). |
+| `cargo` (Rust, `rust_project` aracı) | Araç ajanlara gösterilmez; `rustc` varsa `check_code` `.rs` dosyalarını denetlemeye devam eder. Selbsttest (`selftest.py rust`) kurulum komutuyla MISSING gösterir. | Rust kurun: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Ardından Hyperstead'ı yeniden başlatın. |
 | Rust derlerken bubblewrap (Pi/Linux) | `rust_project`, tıpkı `run_code` gibi gizli kalır. | `./install.sh --run` |
 | `PCL_CARGO_UNSAFE=1` (Windows) | Windows'ta yalıtım yoktur, bu yüzden anahtar olmadan `rust_project` gizli kalır. Anahtarla dizüstü bilgisayar yalıtımsız derler. | Yalnızca riski biliyorsanız ayarlayın ([Rust programları](#-rust-programlarını-eksiksiz-derleme)), sonra yeniden başlatın. |
-| Rust klasöründe `Cargo.toml` | `rust_project` "In … fehlt Cargo.toml" bildirir ve ajanın önce oluşturması gereken dosyaları adlandırır. | Hiçbir şey, ajan bunları `write_code` ile oluşturur. |
+| Rust klasöründe `Cargo.toml` | `rust_project` "Cargo.toml is missing in …" bildirir ve ajanın önce oluşturması gereken dosyaları adlandırır. | Hiçbir şey, ajan bunları `write_code` ile oluşturur. |
 | Rust bağımlılıkları için internet (crates.io) | `cargo fetch` başarısız olur, hiçbir şey derlenmez, ajan hata mesajını alır. Daha önce indirilen bağımlılıklar `.rust/cargo-home` içinde kalır ve çalışmaya devam eder. | İnternet bağlantısını kontrol edin ve görevi yeniden başlatın. |
-| Rust paketi için geçen testler | Paket **oluşturulmaz** ("KEIN PAKET"); ajan hataları satır numarasıyla alır ve düzeltmek zorundadır. Test yoksa paket, sonuçta bir WARNUNG ile oluşturulur. | Hiçbir şey, ajan düzeltir ve yeniden derler. Vazgeçerse şef üzerinden geri gönderin. |
+| Rust paketi için geçen testler | Paket **oluşturulmaz** ("NO PACKAGE"); ajan hataları satır numarasıyla alır ve düzeltmek zorundadır. Test yoksa paket, sonuçta bir WARNING ile oluşturulur. | Hiçbir şey, ajan düzeltir ve yeniden derler. Vazgeçerse şef üzerinden geri gönderin. |
 | Projede `.rust/` klasörü (derleme klasörü) | Bir sonraki derlemede yeniden oluşturulur, o zaman daha uzun sürer (her şey yeniden indirilir ve derlenir). Gizlidir ve ZIP indirmesine dahil değildir. | Hiçbir şey. Yer kalmazsa silebilirsiniz. |
-| Telegram belirteci ya da sohbet kimliği | Telegram kapalı kalır, diğer her şey çalışır. Selbsttest FEHLT gösterir. | Yalnızca mesajları telefonunuza almak istiyorsanız gerekir. |
+| Telegram belirteci ya da sohbet kimliği | Telegram kapalı kalır, diğer her şey çalışır. Selbsttest MISSING gösterir. | Yalnızca mesajları telefonunuza almak istiyorsanız gerekir. |
 | Projede bir klasör ya da dosya (`wissen/`, `input/`) | Var olmayan klasörler boş sayılır. Ajanlar şirket bilgisi olmadan çalışmaya devam eder. | Projede dosyayı ya da klasörü oluşturun veya yükleyin. |
-| Bir video sağlayıcısının anahtarı (ör. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` „VIDEO_PROVIDER=…, aber … fehlt“ (eksik) der ve hiçbir şey üretmez; listedeki diğer sağlayıcılar çalışmaya devam eder. Öz test sağlayıcıyı FEHLT olarak gösterir. | Anahtarı girin ([docs/videodienste.md](docs/videodienste.md)) ya da sağlayıcıyı `VIDEO_PROVIDER` satırından silin, yeniden başlatın. |
+| Bir video sağlayıcısının anahtarı (ör. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` „VIDEO_PROVIDER=…, but … is missing in .env“ (eksik) der ve hiçbir şey üretmez; listedeki diğer sağlayıcılar çalışmaya devam eder. Öz test sağlayıcıyı MISSING olarak gösterir. | Anahtarı girin ([docs/videodienste.md](docs/videodienste.md)) ya da sağlayıcıyı `VIDEO_PROVIDER` satırından silin, yeniden başlatın. |
 | Video sağlayıcısındaki bakiye | Sağlayıcı bir hatayla yanıt verir (çoğunlukla HTTP 402/429 ya da „insufficient balance“), ajan bu metni sonucunda görür. Yerine başka bir sağlayıcı devreye girmez. | Bakiye yükleyin ya da `provider` ile veya `VIDEO_PROVIDER` içinde başka bir sağlayıcı seçin. |
-| `FAL_KEY` (`VIDEO_PROVIDER=fal`, `VIDEO_AI=fal` ya da `AUDIO_PROVIDER=fal` ile) | `video_generate`, `video_ai` ya da `sound_generate` „FAL_KEY fehlt“ der ve hiçbir şey üretmez. | fal.ai anahtarını girin ya da `VIDEO_AI`/`AUDIO_PROVIDER` satırını kaldırın. |
-| `ELEVENLABS_API_KEY` (gerektiğinde daha iyi sesler) | Her şey yerel seslerle eskisi gibi çalışır. Yine de `engine: elevenlabs` ya da `TTS_ENGINE=elevenlabs` kullanılırsa veya ElevenLabs/OpenAI başarısız olursa (anahtar, bakiye, internet), yerel ses konuşur ve sonuç “HINWEIS: … nicht genutzt” ve nedeniyle başlar. Filmde satır bir sonraki `voices` çağrısında bulut sesiyle yeniden denenir. `TTS_FALLBACK=0` ile görev bunun yerine durur. | elevenlabs.io anahtarını `.env` dosyasına yazın ve yeniden başlatın. Kılavuz: 📖 → “🎙 Stimmen und ElevenLabs”. |
-| CEO'nun yeni aldığı çalışanın yapay zekâsı | Yeni çalışan oluşturulur ama görev almaz. CEO sonra yeniden plan yaparsa görev „Diesen Mitarbeitern ist noch keine KI zugewiesen: …“ (henüz yapay zekâ atanmadı) ile durur. **⚠ Modelle** menüsünde „Noch keine KI“ olarak görünür. | ⚠ Modelle menüsünde yapay zekâ atayın ve gönderide „Weiter“ yanıtını verin. |
+| `FAL_KEY` (`VIDEO_PROVIDER=fal`, `VIDEO_AI=fal` ya da `AUDIO_PROVIDER=fal` ile) | `video_generate`, `video_ai` ya da `sound_generate` „FAL_KEY is missing“ der ve hiçbir şey üretmez. | fal.ai anahtarını girin ya da `VIDEO_AI`/`AUDIO_PROVIDER` satırını kaldırın. |
+| `ELEVENLABS_API_KEY` (gerektiğinde daha iyi sesler) | Her şey yerel seslerle eskisi gibi çalışır. Yine de `engine: elevenlabs` ya da `TTS_ENGINE=elevenlabs` kullanılırsa veya ElevenLabs/OpenAI başarısız olursa (anahtar, bakiye, internet), yerel ses konuşur ve sonuç “NOTE: … nicht genutzt” ve nedeniyle başlar. Filmde satır bir sonraki `voices` çağrısında bulut sesiyle yeniden denenir. `TTS_FALLBACK=0` ile görev bunun yerine durur. | elevenlabs.io anahtarını `.env` dosyasına yazın ve yeniden başlatın. Kılavuz: 📖 → “🎙 Voices and ElevenLabs”. |
+| ElevenLabs'te bakiye veya internet ya da `OPENAI_API_KEY` (`TTS_ENGINE=openai`) | Yerel ses devreye girer, sonuçta HTTP koduyla bir NOTE bulunur. Filmde satır, bir sonraki `voices` çağrısında yeniden bulut sesiyle denenir. `TTS_FALLBACK=0` ile görev bunun yerine iptal edilir. Yerel ses de yoksa `speak` "No speech output available" bildirir. | Bakiyeyi yükleyin veya anahtarı kontrol edin. Yedek ses için espeak-ng ya da Piper kurun. |
+| CEO'nun yeni aldığı çalışanın yapay zekâsı | Yeni çalışan oluşturulur ama görev almaz. CEO sonra yeniden plan yaparsa görev „These employees have no AI assigned yet: …“ (henüz yapay zekâ atanmadı) ile durur. **⚠ Models** menüsünde „No AI yet“ olarak görünür. | ⚠ Models menüsünde yapay zekâ atayın ve gönderide „Weiter“ yanıtını verin. |
 | CEO'nun aldığı çalışanın hakları | Sistem eksik hakları role göre ekler (yukarıdaki liste). Hiçbir anahtar kelime uymazsa yalnızca *dosya okuma* alır ve yalnızca metinle yanıt verebilir. | Ajan panelinde kutuları işaretleyin ya da CEO'ya rolü daha net verin. |
 | CEO'nun çıkarmak veya değiştirmek istediği çalışan | Ad ekibinde yoksa (yazım hatası, başka ekip, zaten çıkarılmış) talimat atlanır ve sonuçta not edilir. Çalışanın hâlâ açık görevi varsa kalır. | Hiçbir şey, ya da daha sonra yeniden görevlendirin. |
 | `video_providers.py` (program dosyası) | Video, ses ve bulut sesi araçları ajanlar için görünmez olur, geri kalan her şey çalışmaya devam eder. | `git pull` komutunu yeniden çalıştırın, dosya programın parçasıdır. |
-| `GITHUB_UPLOAD_TOKEN` veya `GITHUB_UPLOAD_REPO` | GitHub, ☁️ Cloud altında "kurulmamış" görünür, ajanlara hedef olarak sunulmaz. Geri kalan her şey çalışır. | Token ve repoyu girin ([docs/cloud.md](docs/cloud.md), Almanca), yeniden başlatın. |
-| Pi'de CUPS (`lp`), yazıcı veya CEO'nun yazdırma hakkı | 🖨 Drucker altında "CUPS fehlt" ya da yalnızca test yazıcısı görünür. 🖨 Drucken "yazıcı seçilmedi" veya "yazdırma engelli" der ve hiçbir şey göndermez. | `./install.sh --print`, yazıcıyı kurun ([docs/drucken.md](docs/drucken.md)), 🖨 Drucker altında seçin ve izin verin. |
-| `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` veya `ONEDRIVE_CLIENT_ID` | Hizmet "kurulmamış" kalır, "Oturum aç" düğmesi görünmez. | Uygulamayı kaydedin ve satırları girin ([docs/cloud.md](docs/cloud.md)), yeniden başlatın. |
-| Google/Microsoft oturumu (`tokens/` klasörü) | Hizmet "oturum açılmamış" görünür. Yükleme "henüz oturum açılmadı" ya da "oturumun süresi doldu" der ve hiçbir şey yüklemez. | ☁️ Cloud → Oturum aç. Pi'den dizüstüne taşırken dizüstünde yeniden oturum açın. |
+| `GITHUB_UPLOAD_TOKEN` veya `GITHUB_UPLOAD_REPO` | GitHub, ☁️ Cloud altında "not set up" görünür, ajanlara hedef olarak sunulmaz. Geri kalan her şey çalışır. | Token ve repoyu girin ([docs/cloud.md](docs/cloud.md), Almanca), yeniden başlatın. |
+| Pi'de CUPS (`lp`), yazıcı veya CEO'nun yazdırma hakkı | 🖨 Printer altında "CUPS missing" ya da yalnızca test yazıcısı görünür. 🖨 Print "No printer chosen yet" veya "Printing is blocked" der ve hiçbir şey göndermez. | `./install.sh --print`, yazıcıyı kurun ([docs/drucken.md](docs/drucken.md)), 🖨 Printer altında seçin ve izin verin. |
+| `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` veya `ONEDRIVE_CLIENT_ID` | Hizmet "not set up" kalır, "Sign in" düğmesi görünmez. | Uygulamayı kaydedin ve satırları girin ([docs/cloud.md](docs/cloud.md)), yeniden başlatın. |
+| Google/Microsoft oturumu (`tokens/` klasörü) | Hizmet "not signed in" görünür. Yükleme "not signed in yet" ya da "sign-in expired" der ve hiçbir şey yüklemez. | ☁️ Cloud → Oturum aç. Pi'den dizüstüne taşırken dizüstünde yeniden oturum açın. |
 | Telegram için 50 MB üstü dosya | Telegram kabul etmez. `/datei` dosyayı ⚠️ ile işaretler ve göndermez, ajan bir uyarı alır. | Hedef olarak Google Drive, OneDrive veya GitHub seçin. |
 | `cloud_upload.py` (program dosyası) | Hyperstead başlamaz (içe aktarma hatası). | `git pull` komutunu yeniden çalıştırın, dosya programın parçasıdır. |
 | `PCL_ALLOW_WERKSTATT=1` | “Atölye” onay kutusu gri olur, hiçbir ajan `befehl` veya `nachruesten` almaz. Diğer her şey eskisi gibi çalışır. | Satırı `.env` dosyasına ekleyin, yeniden başlatın, ajanda kutuyu işaretleyin ([docs/werkstatt.md](docs/werkstatt.md)). |
 | Bir ajanın ihtiyaç duyduğu program (ör. Node.js, Remotion, bir Python paketi) | Atölyesi olan ajan bir kurulum talebi oluşturur: CEO kontrol eder, siz Telegram’da ve ✋ Onaylar altında ✅/❌ alırsınız. Onayınızdan sonra sunucu kurar ve görev devam eder. Atölye yoksa ajan yalnızca neyin eksik olduğunu yazar. | Talebi okuyup karar verin. Telegram yoksa yalnızca web üzerinden. |
-| CEO’nun yapay zekâsı (kurulum talebinde) | Talep “Yapay zekâlı CEO yok” veya “CEO’ya ulaşılamıyor” notuyla doğrudan size gelir. | Kendiniz karar verin veya CEO’ya bir yapay zekâ atayın. |
+| CEO’nun yapay zekâsı (kurulum talebinde) | Talep “No CEO with AI” veya “CEO not reachable” notuyla doğrudan size gelir. | Kendiniz karar verin veya CEO’ya bir yapay zekâ atayın. |
 | `werkstatt.py` (program dosyası) | Hyperstead başlamaz (içe aktarma hatası). | `git pull` komutunu yeniden çalıştırın, dosya programın parçasıdır. |
 | `growth.py` (program dosyası) | Hyperstead başlamaz (içe aktarma hatası). | `git pull` komutunu yeniden çalıştırın, dosya programın parçasıdır. |
 | Bir projenin dünyası hiç seçilmemiş | Proje, aşamaları ve terimleriyle uzay dünyasını gösterir. | Yapılacak bir şey yok. Grafik seçimindeki ⚛️ Atom, Atom dünyasına geçirir, 🌌 Weltall geri döndürür. |
 | `static/logo/` içindeki logo dosyaları | Kenar çubuğu ve giriş sayfası boş bir resim alanı gösterir, tarayıcı sekmesinde simge görünmez. Geri kalan her şey normal çalışır. | `git pull` komutunu tekrar çalıştırın. Logo `docs/logo/logo_blender.py` ile yeniden oluşturulabilir ([kılavuz](docs/logo-prompt.md), Almanca). |
 | Bir projede kayıtlı eski dünya (Lonca, Tycoon, Gizmo Şehri) | Proje otomatik olarak uzayı gösterir. Puanlar, aşama ve rütbeler aynı kalır, yalnızca adlar ve simgeler değişir. | Yapılacak bir şey yok. |
-| Bugün yapay zekâ çağrısı yok (operasyon merkezi, çubukta 💶) | 0 $ veya „keine Aufrufe“ gösterir. | Yapılacak bir şey yok. Maliyetler tahminidir, kendi fiyatlarınızı `.env` içinde `PCL_PRICES` ile belirleyin. |
+| Bugün yapay zekâ çağrısı yok (operasyon merkezi, çubukta 💶) | 0 $ veya „no calls“ gösterir. | Yapılacak bir şey yok. Maliyetler tahminidir, kendi fiyatlarınızı `.env` içinde `PCL_PRICES` ile belirleyin. |
 | `firm_links` tablosu (eski `data.db`) | Başlangıçta otomatik ve boş oluşturulur: şehir ve kozmosta henüz iş birliği görünmez. | Hiçbir şey. |
 | Proje klasöründeki şirket logosu `.logo.png` / `.logo.jpg` / `.logo.webp` | Şirket şehirde ve kozmosta logo göstermez, geri kalan her şey normal çalışır. | Şirketin bilgi penceresinde (🏙/🌌, şirkete dokun) „Logo“ altında 🖼 Hochladen seç: PNG, JPEG veya WebP, en fazla 2 MB. |
+| Henüz proje yok | Şehir ve kozmos "No company yet" gösterir. | Soldaki "＋ New project" düğmesiyle bir şirket oluşturun (boş veya şablondan). |
 | Tarayıcı hiçbir şey kaydetmiyor (gizli pencere) | Açık/koyu, seçilen grafik (uzay, şema türü, atom, plan), taşınan şema kartları, hareket ve yardım modu her yüklemede varsayılana döner. | Normal pencere kullanın; proje verileri bundan etkilenmez. |
-| Plandaki ajanlar üst üste duruyor (ör. hepsi aynı yerde) | Bağlantı çizgileri görünmez. Plan açıldığında Hyperstead onları bir kez otomatik olarak düzenler ve bunu bildirir. | Hiçbir şey yapmayın veya „🗂 Ordnen“ düğmesine basın. |
+| Plandaki ajanlar üst üste duruyor (ör. hepsi aynı yerde) | Bağlantı çizgileri görünmez. Plan açıldığında Hyperstead onları bir kez otomatik olarak düzenler ve bunu bildirir. | Hiçbir şey yapmayın veya „🗂 Arrange“ düğmesine basın. |
 | ← düğmesinin geçmişi (önceki grafik) | Geçmiş yalnızca açık sekmede tutulur. Yeniden yüklemeden sonra veya yeni bir sekmede, tekrar grafik değiştirene kadar ← gri kalır. | Yapacak bir şey yok. |
 | Kontrol panelinde İngilizceden başka bir dil | Kontrol paneli, ajan talimatları, şablonlar ve sistem metinleri İngilizcedir. Alanlara kendiniz yazdıklarınız sizin dilinizde kalır; ajanlar da sizin yazdığınız dilde cevap verir ve rapor yazar. | Tarayıcıya çevirtin (Chrome/Edge: sağ tık → „Çevir“). |
 | Projede gerçek bir yapay zekâ yok (yalnızca `mock` veya sağlayıcı yok) | Telegram'daki ve posta kutusundaki sabit bildirimler (ör. „✅ Done“, onay notları) İngilizce kalır, çünkü çevirecek kimse yoktur. Ajanlar bir yapay zekâya sahip olur olmaz raporları yine de sizin dilinizde gelir. | CEO'ya (veya başka bir ajana) gerçek bir yapay zekâ verin; o andan itibaren bu yapay zekâ bildirimleri otomatik olarak çevirir. |
@@ -290,7 +292,7 @@ Buna ek olarak şiddetle önerilir: önüne **Cloudflare Access** (e-posta giri�
 Bir patron bir görev alır ve **planlar** (alt görevleri dağıtır) ya da işi kendisi yapar. Tüm
 çalışanları bitirir bitirmez yeniden uyanır, **raporlarını okur**, eksikleri geri bildirimle iade eder ya da
 her şeyi özetleyip kendi patronuna bildirir. Sonuç böylece istediğiniz kadar seviye yukarı çıkar.
-„Wartet auf Team“ durumu (ekibi bekliyor) şu anlama gelir: patron ekibini bekliyor. Görevler sekmesinde tüm ağacı görürsünüz.
+„Waiting for team“ durumu (ekibi bekliyor) şu anlama gelir: patron ekibini bekliyor. Görevler sekmesinde tüm ağacı görürsünüz.
 
 ## Uzay ve büyüme
 
@@ -307,17 +309,17 @@ değiştirir. Ajanlar her zaman açık terimlerle (görev, rapor, ekip) çalış
 
 Puanlara yıldız tozu, görevlere görev (Mission) denir. Eski Lonca, Tycoon ve Gizmo Şehri dünyaları artık yok; mevcut projeler uzayı otomatik olarak gösterir, puanlar ve aşamalar korunur. Arayüz adları Almanca gösterir.
 
-**Atom dünyası:** Uzayın yanında ikinci bir dünya vardır. Grafik seçiminde ⚛️ Atom'u seçersen proje için Atom dünyası geçerli olur, 🌌 Weltall ile tekrar uzaya dönülür (büyüme çubuğunda, kutlamada ve Telegram'da da). Büyük küre = en üst yönetim, orta küreler = ekip liderleri, küçük küreler = çalışanlar. Aşamalar: ✴️ Kuark → ⚛️ Atom → 🧪 Molekül → 💎 Kristal → 🧬 Hücre; rütbeler: · Nötrino → ⚡ Elektron → 🔴 Proton → 💠 Nükleon (arayüz Almanca adları gösterir). Puanlara enerji, görevlere deney denir. Puanlar ve aşama sınırları iki dünyada da aynıdır. Organizasyon şeması ve plan en son seçilen dünyayı korur.
+**Atom dünyası:** Not: Uzay ve Atom görünümleri artık grafik menüsünde sunulmuyor (yalnızca Classic ve Modern); bu, kodda hâlâ bulunan çizimi anlatır. Uzayın yanında ikinci bir dünya vardır. Grafik seçiminde ⚛️ Atom'u seçersen proje için Atom dünyası geçerli olur, 🌌 Weltall ile tekrar uzaya dönülür (büyüme çubuğunda, kutlamada ve Telegram'da da). Büyük küre = en üst yönetim, orta küreler = ekip liderleri, küçük küreler = çalışanlar. Aşamalar: ✴️ Kuark → ⚛️ Atom → 🧪 Molekül → 💎 Kristal → 🧬 Hücre; rütbeler: · Nötrino → ⚡ Elektron → 🔴 Proton → 💠 Nükleon (arayüz Almanca adları gösterir). Puanlara enerji, görevlere deney denir. Puanlar ve aşama sınırları iki dünyada da aynıdır. Organizasyon şeması ve plan en son seçilen dünyayı korur.
 
 **Kullanım:** Çalışma alanının üstündeki çubuk aşamayı, bir sonraki aşamaya ilerlemeyi ve önemli sayıları gösterir. Sağda açık ve koyu arasında geçiş yapar (🌓) ve ⓘ ile aşamalar, puanlar ve rütbeler hakkındaki özeti açarsınız. Her ajanın rütbesi kartında simge olarak görünür.
 
-**Güneş sistemi:** Çubuğun sağındaki açılır düğme (ör. „🌌 Weltall ▾“) grafiği seçer: 🌌 uzay, üç organizasyon şeması, ⚛️ atom veya 📐 plan (düğüm editörü). Uzay ayrıntılı çizilir: ışınları ve lekeleri olan bir güneş, gece yüzü, bulutları veya kuşakları olan gezegenler, kraterli aylar, bir asteroit kuşağı, uzak galaksiler ve Samanyolu. Gezegenler ve aylar yavaşça döner, gezegenler ve güneş ayrıca kendi eksenleri etrafında da döner (bulutlar, kuşaklar ve güneş lekeleri yüzeyde kayar, güneşin ışın tacı döner), galaksi aşamasında arka plandaki sarmal da döner; fareyle birinin üzerine geldiğinizde kolayca tıklayabilmeniz için her şey durur. Mavi yanıp sönen halka "çalışıyor", sarı halka "onayınızı bekliyor", kırmızı halka "hata", mor kesikli halka "ekibini bekliyor" demektir. Güneşe veya bir gezegene dokunmak ekibi ve eylemleri gösterir, bir aya dokunmak ajanı açar. Her aşamada gökyüzü dolar, yıldız kümesinden itibaren bulutsular parlar, galakside bir sarmal belirir. Uzay açık temada da karanlık kalır. Telefonda harita yerine bir liste görünür: güneş, altında her gezegen ve ayları. Cihaz „hareketi azalt“ isterse hareket kapanır.
+**Güneş sistemi:** Çubuğun sağındaki açılır düğme (ör. “Org chart: Tree ▾”) grafiği seçer: üç organizasyon şeması, plan (düğüm editörü) veya Modern altında tüm şirketler şehir, kozmos ya da molekül olarak. Uzay ayrıntılı çizilir: ışınları ve lekeleri olan bir güneş, gece yüzü, bulutları veya kuşakları olan gezegenler, kraterli aylar, bir asteroit kuşağı, uzak galaksiler ve Samanyolu. Gezegenler ve aylar yavaşça döner, gezegenler ve güneş ayrıca kendi eksenleri etrafında da döner (bulutlar, kuşaklar ve güneş lekeleri yüzeyde kayar, güneşin ışın tacı döner), galaksi aşamasında arka plandaki sarmal da döner; fareyle birinin üzerine geldiğinizde kolayca tıklayabilmeniz için her şey durur. Mavi yanıp sönen halka "çalışıyor", sarı halka "onayınızı bekliyor", kırmızı halka "hata", mor kesikli halka "ekibini bekliyor" demektir. Güneşe veya bir gezegene dokunmak ekibi ve eylemleri gösterir, bir aya dokunmak ajanı açar. Her aşamada gökyüzü dolar, yıldız kümesinden itibaren bulutsular parlar, galakside bir sarmal belirir. Uzay açık temada da karanlık kalır. Telefonda harita yerine bir liste görünür: güneş, altında her gezegen ve ayları. Cihaz „hareketi azalt“ isterse hareket kapanır.
 
-**Organizasyon şeması:** ekibi üç şekilde gösterir, her biri grafik menüsünde ayrı bir seçenektir: ⬇ Baum (yukarıdan aşağıya ağaç, kendi ekibi olmayan çalışanlar alt alta durur), ➡ Gliederung (her ajan için bir satır, seviyeye göre girintili, telefon için en iyisi) ve ◎ Kreis (daire, yönetim ortada, her seviye bir halka). Renk durumu gösterir: yeşil hazır, mavi çalışıyor, sarı onayınızı bekliyor, kırmızı hata, mor ekibi bekliyor, gri duraklatıldı. Dokunmak ajanı açar. Kartlar sürüklenebilir, çizgiler onları takip eder; cihaz bunu her proje ve şema için hatırlar, „↺ Anordnung zurücksetzen“ düzeni geri getirir. Bir kartı başka bir kartın üzerine bırakırsanız (planda da bir ajanı başka bir ajanın üzerine), Hyperstead önce sorar ve ancak onaydan sonra onu o ekibe ekler.
+**Organizasyon şeması:** ekibi üç şekilde gösterir, her biri grafik menüsünde ayrı bir seçenektir: ⬇ Baum (yukarıdan aşağıya ağaç, kendi ekibi olmayan çalışanlar alt alta durur), ➡ Gliederung (her ajan için bir satır, seviyeye göre girintili, telefon için en iyisi) ve ◎ Kreis (daire, yönetim ortada, her seviye bir halka). Renk durumu gösterir: yeşil hazır, mavi çalışıyor, sarı onayınızı bekliyor, kırmızı hata, mor ekibi bekliyor, gri duraklatıldı. Dokunmak ajanı açar. Kartlar sürüklenebilir, çizgiler onları takip eder; cihaz bunu her proje ve şema için hatırlar, „↺ Reset layout“ düzeni geri getirir. Bir kartı başka bir kartın üzerine bırakırsanız (planda da bir ajanı başka bir ajanın üzerine), Hyperstead önce sorar ve ancak onaydan sonra onu o ekibe ekler.
 
 **Atom:** ⚛️ ekibi bir molekül ağı olarak gösterir: çubuklarla bağlı parlak küreler. Büyük mavi küre en üst yönetimdir, orta boy renkli küreler ekip liderleri, küçük küreler çalışanlardır. Her küre bir çubukla üstüne bağlıdır, böylece hiyerarşi boyut ve bağlantılardan anlaşılır; her şey katı sıralar halinde değil, bir molekül modeli gibi gevşek ve uzamsal olarak dizilir. Her şirketin kendine ait bir molekülü vardır: biçim ve renkler şirketten gelir, büyük küre projenin rengini taşır. Modern görünümde ⚛️ Molekül tüm şirketleri yan yana moleküller olarak gösterir; ortak şirketler yöneticileri arasındaki parlak bir çubukla bağlıdır ve üzerinde kıvılcımlar dolaşır (ikisi de çalışıyorsa daha fazla). Dokunmak moleküle yakınlaştırır, her küre departmanını ve ajanını açar. Grafik hareketsizdir, böylece rahatça okunur. Bir dünya olarak resim aşamayla birlikte büyür: kuark aşamasında çekirdekte üç kuark parlar, molekülden itibaren komşu atomlar bağlarla bağlanır, kristalden itibaren arka planda bir atom kafesi bulunur, hücre aşamasında hücre duvarı ve DNA çift sarmalı eklenir. Durum ve dokunma organizasyon şemasındaki gibidir.
 
-**İngilizce arayüz, geri ve aylar:** Kontrol paneli uluslararası İngilizcedir; diğer diller tarayıcının çevirmeninden gelir. Bu kılavuzdaki bazı düğme adları hâlâ eski Almanca adlardır (ör. „🗂 Ordnen“ artık „🗂 Arrange“). Grafik menüsünün solundaki **←** düğmesi, tam olarak bulunduğunuz tasarımda önceki grafiğe döner (açılmış bir firmaya veya departmana da geri döner). Firma bilgi kartında artık „📐 Firma öffnen“ düğmesi yok; bir isme dokunmak ajanı doğrudan açar, grafik aynı kalır. 🌌 Kozmos'ta çalışanlar, gezegenlerinin (departmanın) etrafında dönen aylardır; gezegenler ve güneşler ayrıca kendi eksenleri etrafında döner, aylar yalnızca gezegenlerinin etrafında döner.
+**İngilizce arayüz, geri ve aylar:** Kontrol paneli uluslararası İngilizcedir; diğer diller tarayıcının çevirmeninden gelir. Bu kılavuzdaki bazı düğme adları hâlâ eski Almanca adlardır (ör. Grafik menüsünün solundaki **←** düğmesi, tam olarak bulunduğunuz tasarımda önceki grafiğe döner (açılmış bir firmaya veya departmana da geri döner). Firma bilgi kartında artık „📐 Firma öffnen“ düğmesi yok; bir isme dokunmak ajanı doğrudan açar, grafik aynı kalır. 🌌 Kozmos'ta çalışanlar, gezegenlerinin (departmanın) etrafında dönen aylardır; gezegenler ve güneşler ayrıca kendi eksenleri etrafında döner, aylar yalnızca gezegenlerinin etrafında döner.
 
 **Her şey İngilizce, iletişim sizin dilinizde:** Hyperstead'in kendisinin yazdığı her şey artık İngilizcedir: arayüz, üzerine gelince çıkan ipuçları, hata mesajları, onay soruları, ajanlara verilen talimatlar, firma şablonları, araç mesajları ve öz test. Kendiniz girdikleriniz (görevler, sohbet, hedefler, isimler) sizin dilinizde kalır. Ajanlar, ister Almanca, Türkçe, Arnavutça, Svahili, Rusça ister Çince olsun, sizin yazdığınız dilde cevap verir, rapor yazar ve sizin için dosya oluşturur; zamanlanmış görevler ve kontrol turu da son kullandığınız dili izler. Telegram'daki ve posta kutusundaki sabit bildirimleri CEO'nuzun yapay zekâsı otomatik olarak sizin dilinize çevirir (her metin için bir kez, sonra önbellekten). Telegram komutları artık /new, /project, /file ve /help (eski Almanca komutlar çalışmaya devam eder). Grafik menüsünde „Classic“ grubunda artık sembolsüz yalnızca metinler var („Org chart: Tree“, „Org chart: Outline“, „Org chart: Circle“, „Blueprint“). Ajanların zaten tanıdığı klasörler ve anahtarlar (ör. `wissen/`, Almanca anahtarlı `film/film.json`) değişmedi. Rust paketi artık `README.txt`, `TEST_REPORT.txt`, `source/` ve `program/` içerir.
 
@@ -325,7 +327,7 @@ Puanlara yıldız tozu, görevlere görev (Mission) denir. Eski Lonca, Tycoon ve
 
 **Yükselme ve kullanım:** Bir proje yeni bir aşamaya ulaştığında, yeni aşamayı ve bir sonraki hedefi gösteren kısa bir kutlama görünür (Telegram aynı mesajı gönderir). Bir ajan rütbe atladığında kısa bir bildirim çıkar. Çubuktaki ⓘ altında bu cihaz için hareket ve kutlama efektlerini kapatabilirsiniz; cihaz „hareketi azalt“ isterse zaten her şey durağan kalır. Tüm pencereler Esc ile kapanır, uzaydaki güneş, gezegenler ve aylar Tab ve Enter ile kullanılabilir.
 
-**Kılavuz ve yardım:** Kenar çubuğunun en üstündeki 📖 Anleitung, kullanım kılavuzunu doğrudan panoda açar (açılır bölümler, arama, indirme yok, çevrimdışı da çalışır). Bir pencerenin üstündeki ⓘ ilgili bölüme atlar. Her düğme fareyle üzerine gelindiğinde kısa bir açıklama gösterir. Telefonda kılavuzda yardım modunu açın: bir düğmeye ilk dokunuş onu açıklar, ikincisi çalıştırır.
+**Kılavuz ve yardım:** Kenar çubuğunun en üstündeki 📖 Guide, kullanım kılavuzunu doğrudan panoda açar (açılır bölümler, arama, indirme yok, çevrimdışı da çalışır). Bir pencerenin üstündeki ⓘ ilgili bölüme atlar. Her düğme fareyle üzerine gelindiğinde kısa bir açıklama gösterir. Telefonda kılavuzda yardım modunu açın: bir düğmeye ilk dokunuş onu açıklar, ikincisi çalıştırır.
 
 **Puanlar:** teslimat ilk seferde kabul +10, düzeltmeden sonra +5, görev postada tamamlandı olarak işaretlendi +20,
 başarısız −3, yeniden çalışma istendi −5. Aşamalar 0 / 100 / 300 / 700 / 1500 puandan başlar. Mevcut projelerin
@@ -355,9 +357,9 @@ Ajanlar turlar halinde çalışır: araç ister, sunucu çalıştırır ve sonu�
 Üretilen her şey `workspace/<proje-kimliği>/` altında durur. Kenar çubuğunda **📁 Dateien** (dosyalar) dosyaları gösterir, `index.html` dosyasını
 bir web sayfası olarak açar (yalıtılmış sandbox) ve her şeyi ZIP olarak indirir. Bağlantı gizli bir anahtar içerir.
 
-**Projeler ve görünümler:** Kenar çubuğunda „Projekte“ altındaki büyük „＋ Neues Projekt“ düğmesi bir pencere açar: boş proje veya şablondan hazır şirket. Sağ üstteki grafik menüsünün iki grubu vardır: **Klassik** (üç organizasyon şeması ağaç, liste ve daire ile plan) ve **Modern** (tüm şirketler şehir, kozmos veya molekül olarak). Tek bir proje için uzay ve molekül artık yok; bunları en son açık bırakan organizasyon şemasına düşer. Proje ve büyüme bilgilerini gösteren üst çubuk şehir, kozmos ve molekülde de yerinde kalır; altındaki „Agent hinzufügen“ çubuğu da öyle (yeni ajanlar üstte seçili projeye eklenir). Şehir, kozmos ve molekül döndürülüp eğilebilir: sağ alttaki ⟲ ⟳ ⤵ ⤴ ⌂ düğmeleri, sağ fare tuşuyla sürükleme veya telefonda iki parmak. Solda bir proje seçtiğinde şirketi şehirde, kozmosta ve molekülde parlar, diğerleri soluklaşır. Şehirde her şirket kendine özgü bir binadır ve çalıştığı sürece ışıkları yanar; içine girildiğinde her hiyerarşi seviyesi için bir kat görünür, şirket ne kadar derinse o kadar: en üst katta yönetim, altında departman yöneticileri, sonra diğer her seviye; herkesin kendi odası vardır, yani bir seviyede 4 kişisi olan departmanın orada kendi renginde 4 odası olur; her kat odalarını ortalanmış ve eşit aralıklarla dizer, departmanlar bir arada kalır ve bina en kalabalık katı kadar geniştir, sağda organizasyon şeması. Başarıyla bina büyür: daha fazla seviye daha fazla kat demektir, 2. seviyeden itibaren ek bina ve çatı bahçesi, 3. seviyeden itibaren anten, 4. seviyeden itibaren helikopter pisti eklenir. Kozmosta her şirket bir güneş sistemidir (güneş = yönetim, gezegenler = departmanlar); güneş seviye ve ekiple büyür, gezegenler telefonda da döner ve parmağın altında durur, uzaklaştırınca isimler okunabilir kalır. Her şirket bilgi penceresinde „Logo“ altında kendi logosunu alabilir (🖼 Hochladen, 2 MB'a kadar PNG/JPEG/WebP): şehirde çatıda parlayan bir tabela, kozmosta güneşin ortasında görünür.
+**Projeler ve görünümler:** Kenar çubuğunda „Projekte“ altındaki büyük „＋ New project“ düğmesi bir pencere açar: boş proje veya şablondan hazır şirket. Sağ üstteki grafik menüsünün iki grubu vardır: **Klassik** (üç organizasyon şeması ağaç, liste ve daire ile plan) ve **Modern** (tüm şirketler şehir, kozmos veya molekül olarak). Tek bir proje için uzay ve molekül artık yok; bunları en son açık bırakan organizasyon şemasına düşer. Proje ve büyüme bilgilerini gösteren üst çubuk şehir, kozmos ve molekülde de yerinde kalır; altındaki „Add agent“ çubuğu da öyle (yeni ajanlar üstte seçili projeye eklenir). Şehir, kozmos ve molekül döndürülüp eğilebilir: sağ alttaki ⟲ ⟳ ⤵ ⤴ ⌂ düğmeleri, sağ fare tuşuyla sürükleme veya telefonda iki parmak. Solda bir proje seçtiğinde şirketi şehirde, kozmosta ve molekülde parlar, diğerleri soluklaşır. Şehirde her şirket kendine özgü bir binadır ve çalıştığı sürece ışıkları yanar; içine girildiğinde her hiyerarşi seviyesi için bir kat görünür, şirket ne kadar derinse o kadar: en üst katta yönetim, altında departman yöneticileri, sonra diğer her seviye; herkesin kendi odası vardır, yani bir seviyede 4 kişisi olan departmanın orada kendi renginde 4 odası olur; her kat odalarını ortalanmış ve eşit aralıklarla dizer, departmanlar bir arada kalır ve bina en kalabalık katı kadar geniştir, sağda organizasyon şeması. Başarıyla bina büyür: daha fazla seviye daha fazla kat demektir, 2. seviyeden itibaren ek bina ve çatı bahçesi, 3. seviyeden itibaren anten, 4. seviyeden itibaren helikopter pisti eklenir. Kozmosta her şirket bir güneş sistemidir (güneş = yönetim, gezegenler = departmanlar); güneş seviye ve ekiple büyür, gezegenler telefonda da döner ve parmağın altında durur, uzaklaştırınca isimler okunabilir kalır. Her şirket bilgi penceresinde „Logo“ altında kendi logosunu alabilir (🖼 Hochladen, 2 MB'a kadar PNG/JPEG/WebP): şehirde çatıda parlayan bir tabela, kozmosta güneşin ortasında görünür.
 
-**Şirket şablonları** („＋ Neues Projekt“ düğmesi): *Web ajansı*, *Muhasebe/Mali müşavirlik*, *İthalat/İhracat ticareti* proje, organizasyon şeması, çalışma talimatları ve hakları eksiksiz oluşturur. Kendi şirketleriniz: proje hedefini yazın („siz bir …sınız“, ülke, sektör), ajanları ve hakları ayarlayın. Ajanlar tarihi ve proje hedefini alır; değişken bilgileri (yasalar, fiyatlar) önce araştırmalı ve kaynak göstermelidir.
+**Şirket şablonları** („＋ New project“ düğmesi): *Web ajansı*, *Muhasebe/Mali müşavirlik*, *İthalat/İhracat ticareti* proje, organizasyon şeması, çalışma talimatları ve hakları eksiksiz oluşturur. Kendi şirketleriniz: proje hedefini yazın („siz bir …sınız“, ülke, sektör), ajanları ve hakları ayarlayın. Ajanlar tarihi ve proje hedefini alır; değişken bilgileri (yasalar, fiyatlar) önce araştırmalı ve kaynak göstermelidir.
 
 **Araç güvenliği:** Sayfa çağrıları yalnızca genel adreslerle sınırlıdır (localhost, yerel ağ, Tailscale,
 bulut meta verileri yok; yönlendirmeler tek tek denetlenir). Ajanlar için web içeriği güvenilmeyen veri sayılır,
@@ -388,11 +390,11 @@ Görsel lisansları (CC) çoğu zaman atıf ister; görsel editörü bunu `bildn
 **Öz denetim:** Bir ajan PDF oluşturduğunda sunucu bunu bir görsel olarak işler (tüm sayfaların genel görünümü + 1. sayfa büyük)
 ve ajana gönderir; ajan bildirmeden önce görevin her gereksinimini kontrol edip hataları düzeltmekle yükümlüdür (`PCL_SELF_CHECKS`, varsayılan 1, 0 = kapalı).
 
-**Kendi dosyalarınız** (düzenlenecek videolar, PDF'ler, görseller, düzenler, metinler) „📁 Dateien dieses Projekts“ bölümünde yüklenir ya da
+**Kendi dosyalarınız** (düzenlenecek videolar, PDF'ler, görseller, düzenler, metinler) „📁 Files of this project“ bölümünde yüklenir ya da
 doğrudan **💬 Chat** içinde bir ajana gönderilir (📎 düğmesi, sürükleyip bırakma ya da görsel yapıştırma, birden çok birden). Dosyalar
 `input/` klasörüne düşer (adı temizlenir, mevcut dosyalar asla üzerine yazılmaz, bunun yerine `name-1.png` … olur, sınır `PCL_MAX_UPLOAD_MB`);
 sohbette ajan **içeriği** doğrudan mesajla birlikte alır (metinler, PDF'ler, Word metin olarak, görseller görsel olarak, model görselleri anlıyorsa;
-aksi halde metin tanıma). **📂 aus input/** ile zaten orada duran dosyaları ekleyebilir ya da mesajın içine dosya adını yazabilirsiniz; „Als Auftrag erteilen“ (görev olarak ver) bunu ekibe iletir. Biten sonuçlar `output/` içinde, görseller `assets/` içinde durur. Dürüst sınırlar: `video_generate` olmadan **yapay zekâ ile video üretimi yoktur** (metinden videoya); „Animation“ o zaman şu demektir: yapay zekâ görselleriyle sahne görüntüleri + zoom/kaydırma + konuşmacı + kurgu ya da `film` ile Blender üzerinden gerçek karakter animasyonu. `video_generate` ile kısa klipler oluşur; daha uzun filmler `video_edit op=concat` ile birleştirilir. MagicLight ve Flow'un API'si yoktur: `site_macro` ile bir tarayıcı robotu bunları sizin hesabınızla kullanır, aksi halde orada üretilen videoları `input/` klasörüne yükleyin. Flow'un arkasındaki model (Veo 3.1) fal üzerinden de kullanılabilir: `FAL_VIDEO_MODEL=fal-ai/veo3.1/fast`. Raspberry Pi'de
+aksi halde metin tanıma). **📂 aus input/** ile zaten orada duran dosyaları ekleyebilir ya da mesajın içine dosya adını yazabilirsiniz; „Give as task“ (görev olarak ver) bunu ekibe iletir. Biten sonuçlar `output/` içinde, görseller `assets/` içinde durur. Dürüst sınırlar: `video_generate` olmadan **yapay zekâ ile video üretimi yoktur** (metinden videoya); „Animation“ o zaman şu demektir: yapay zekâ görselleriyle sahne görüntüleri + zoom/kaydırma + konuşmacı + kurgu ya da `film` ile Blender üzerinden gerçek karakter animasyonu. `video_generate` ile kısa klipler oluşur; daha uzun filmler `video_edit op=concat` ile birleştirilir. MagicLight ve Flow'un API'si yoktur: `site_macro` ile bir tarayıcı robotu bunları sizin hesabınızla kullanır, aksi halde orada üretilen videoları `input/` klasörüne yükleyin. Flow'un arkasındaki model (Veo 3.1) fal üzerinden de kullanılabilir: `FAL_VIDEO_MODEL=fal-ai/veo3.1/fast`. Raspberry Pi'de
 ffmpeg yavaş çalışır (720p videonun bir dakikası birkaç dakika sürebilir), zaman sınırı `PCL_FFMPEG_TIMEOUT` (adım başına varsayılan 1 saat).
 
 **Taranmış PDF'ler ve görseller (OCR):** `read_file` taramaları `tesseract` ile otomatik okur (`sudo apt install tesseract-ocr tesseract-ocr-deu poppler-utils`). Bu yavaştır (Pi'de sayfa başına yaklaşık 5–15 sn, sınır `PCL_OCR_MAX_PAGES`) ve hatalar içerebilir.
@@ -402,7 +404,7 @@ ffmpeg yavaş çalışır (720p videonun bir dakikası birkaç dakika sürebilir
 ## Sohbet ve şablonlar
 
 - **💬 Chat sekmesi** (ajan panelinde): her ajanla serbest sohbet; örneğin *Düşünce atölyesi*'nin başıyla felsefe yapmak,
-  fikir geliştirmek ve sorgulamak için. „📋 Als Auftrag erteilen“ sohbeti ajana ve ekibine devreder; sonuç bir gönderi olarak geri gelir.
+  fikir geliştirmek ve sorgulamak için. „📋 Give as task“ sohbeti ajana ve ekibine devreder; sonuç bir gönderi olarak geri gelir.
   Sohbet araçsız çalışır.
 - **Şirket şablonları** (🏢): Web ajansı, Muhasebe/Mali müşavirlik, İthalat/İhracat ticareti, **Animasyon ajansı**, **Kitap yayıncılığı/İçerik ajansı**,
   **Düşünce atölyesi**, **Araştırma bürosu** (PDF'leri bulur ve okur). Kurarken patron ve çalışanlar için model seçersiniz.
@@ -410,10 +412,10 @@ ffmpeg yavaş çalışır (720p videonun bir dakikası birkaç dakika sürebilir
 ## Gönderi ve Telegram
 
 Size ait bir **üst düzey görev** (bir ajana, genellikle CEO'ya verdiğiniz görev) bittiğinde, başarısız olduğunda ya da
-engellendiğinde, sizin için bir gönderi hazır olur: kenar çubuğunda „📬 Post“ ve kuruluysa bir Telegram mesajı;
+engellendiğinde, sizin için bir gönderi hazır olur: kenar çubuğunda „📬 Mail“ ve kuruluysa bir Telegram mesajı;
 tür, görev, ekip rakamları ve sonuçla. Altındaki hak ve rapor zinciri eskisi gibi işler.
-Post'ta mesajları işaretleyebilir (tek tek ya da „Alle auswählen“) ve „🗑 Ausgewählte löschen“ ile silebilirsiniz;
-„🧹 Postkorb leeren“ onaydan sonra hepsini siler. Yalnızca gönderi silinir, görevler, dosyalar ve geçmiş kalır.
+Post'ta mesajları işaretleyebilir (tek tek ya da „Select all“) ve „🗑 Delete selected“ ile silebilirsiniz;
+„🧹 Empty mailbox“ onaydan sonra hepsini siler. Yalnızca gönderi silinir, görevler, dosyalar ve geçmiş kalır.
 Kenar çubuğu açılır kapanır kategorilere ayrılmıştır (Tagesgeschäft, Team & KI, Dateien & Verbindungen, Auswertung).
 
 **Telegram'ı kurma (yaklaşık 2 dakika):**
@@ -491,14 +493,14 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
   `wissen/firmenwissen.md` dosyasında durur. `wissen/` içindeki tüm `.md`/`.txt` dosyaları her görevde ve sohbette yer alır (toplam
   `PCL_KNOWLEDGE_CHARS` sınırına, varsayılan 8000 karaktere kadar); oradaki diğer belgeleri (PDF, Word …) ajanlar bir liste olarak görür ve gerektiğinde okur.
 - **Ajan başına hafıza**: bir ajan bir görevin sonunda en fazla 5 kalıcı bilgiyi hatırlayabilir (tercihler, kararlar, müşteriler,
-  işe yarayan şeyler). Bunlar ajan panelinde „🧠 Gedächtnis“ altında görünür; değiştirebilir ya da temizleyebilirsiniz. Sınır `PCL_MEMORY_CHARS`
+  işe yarayan şeyler). Bunlar ajan panelinde „🧠 Memory“ altında görünür; değiştirebilir ya da temizleyebilirsiniz. Sınır `PCL_MEMORY_CHARS`
   (4000); en eski kayıtlar önce çıkar. Her yeni not denetim günlüğündedir.
 
 ## Hedefler, onaylar, kullanım
 
 - **🎯 Hedefler**: proje başına hedefler ve alt hedefler. Bir görev atarken isteğe bağlı olarak hedefi seçersiniz; devredilen görevler onu devralır.
   Patronlar hedefleri ilerlemeyle birlikte istemde görür, CEO'nun kontrol turu bunu raporlar. İşaretlenmesi = ulaşıldı.
-- **Önce sorun** (✋ Freigaben penceresi, proje başına, varsayılan kapalı): *En üst patronun planını onayla* yeni bir görevi,
+- **Önce sorun** (✋ Approvals penceresi, proje başına, varsayılan kapalı): *En üst patronun planını onayla* yeni bir görevi,
   siz dağıtım planını onaylayana kadar bekletir; *Ekip değişikliklerini onayla* („Teamänderungen freigeben“) CEO'nun çalışan almasını, çıkarmasını ve değiştirmesini bekletir. Onaylama/reddetme Telegram düğmesiyle de yapılır.
   Reddedilen görev gönderide ❌ olarak düşer; ona yanıtınız patronun yeniden planlamasını sağlar.
   Kabuk onayları yalnızca web'de yapılır.
@@ -515,14 +517,14 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
 
 ## 🔌 Bağlantılar (webhook'lar)
 
-- **Çıkış:** 🔌 Verbindungen penceresinde adresleri girersiniz (n8n, Zapier, Make, kendi hizmetiniz; Pi'de `http://127.0.0.1:…` de dahil),
+- **Çıkış:** 🔌 Connections penceresinde adresleri girersiniz (n8n, Zapier, Make, kendi hizmetiniz; Pi'de `http://127.0.0.1:…` de dahil),
   ajanlar için bir açıklama ve isteğe bağlı başlıklarla. Gizli bilgiler `.env` içinde durur ve `${NAME}` olarak kullanılır.
-  **„Darf Verbindungen nutzen“** (bağlantıları kullanabilir) hakkı olan ajanlar bunları `call_connection` aracıyla çağırır; ajan adresi
-  ya da başlıkları değiştiremez, yalnızca veri gönderir. **„Nur nach meiner Freigabe“** (yalnızca benim onayımdan sonra, varsayılan açık) her çağrıyı önce ✋ Freigaben altına koyar.
+  **„May use connections“** (bağlantıları kullanabilir) hakkı olan ajanlar bunları `call_connection` aracıyla çağırır; ajan adresi
+  ya da başlıkları değiştiremez, yalnızca veri gönderir. **„Only call after my approval“** (yalnızca benim onayımdan sonra, varsayılan açık) her çağrıyı önce ✋ Approvals altına koyar.
   **„Bei Post benachrichtigen“** (gönderide bildir), üst düzey bir görevin her biten sonucunu JSON olarak adrese yollar. Zaman sınırı `PCL_CONN_TIMEOUT` (30 sn).
 - **Giriş:** „Aufträge von außen“ (dışarıdan görevler) açılırsa `POST /hook/<proje>/<anahtar>` ile `{"text": "…", "agent": "isteğe bağlı"}` gönderilerek
   patron için bir görev kabul edilir (ör. n8n, iOS kısayollarından ya da DEXTER'dan). Giriş gerektirmez; yalnızca adresteki anahtarla korunur.
-  „Neuen Schlüssel“ (yeni anahtar) eski adresi geçersiz kılar. Adrese yalnızca Hyperstead'in kendisi kadar erişilebilir (ör. yalnızca tailnet içinde).
+  „New key“ (yeni anahtar) eski adresi geçersiz kılar. Adrese yalnızca Hyperstead'in kendisi kadar erişilebilir (ör. yalnızca tailnet içinde).
 
 ## ☁️ Bulut yükleme (GitHub, Google Drive, OneDrive, Telegram)
 
@@ -542,9 +544,9 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
 
 ## 🖨 Akşam raporlarını yazdırma
 
-👑 CEO denetimi mesai bitiminde bir akşam raporu yazar. 📬 Post'ta ve CEO'nun görevlerinde **🖨 Drucken** düğmesi bulunur: bir tıklama, kısa bir onay, ardından yazıcıya gider. Yazıcıyı kenar çubuğundaki **🖨 Drucker** altında seçin (Pi: CUPS üzerinden ağ yazıcısı, `./install.sh --print`; Windows: Yazıcılar ve tarayıcılar altında paylaşılan yazıcı). Aynı pencerede CEO yazdırmaya izin verir veya engeller ("Darf Abendberichte drucken" hakkı). **Testdrucker (Datei)** çıktıyı yalnızca `workspace/.druck/` içine metin dosyası olarak kaydeder. Kılavuz: [docs/drucken.md](docs/drucken.md) (Almanca).
+👑 CEO denetimi mesai bitiminde bir akşam raporu yazar. 📬 Mail'ta ve CEO'nun görevlerinde **🖨 Print** düğmesi bulunur: bir tıklama, kısa bir onay, ardından yazıcıya gider. Yazıcıyı kenar çubuğundaki **🖨 Printer** altında seçin (Pi: CUPS üzerinden ağ yazıcısı, `./install.sh --print`; Windows: Yazıcılar ve tarayıcılar altında paylaşılan yazıcı). Aynı pencerede CEO yazdırmaya izin verir veya engeller ("May print evening reports" hakkı). **Testdrucker (Datei)** çıktıyı yalnızca `workspace/.druck/` içine metin dosyası olarak kaydeder. Kılavuz: [docs/drucken.md](docs/drucken.md) (Almanca).
 
-**Doğru yazıcı mı?** 🖨 Drucker penceresinde bir yazıcı seçin ve **🧾 Testseite drucken** (test sayfası yazdır) düğmesine tıklayın. Sayfada yazıcı, bilgisayar ve saat yazar, özel harfler de vardır. Doğru yazıcıdan çıkarsa **Speichern** (kaydet) düğmesine tıklayın. Test sayfası tek başına hiçbir şey kaydetmez ve CEO'nun yazdırma hakkını gerektirmez.
+**Doğru yazıcı mı?** 🖨 Printer penceresinde bir yazıcı seçin ve **🧾 Testseite drucken** (test sayfası yazdır) düğmesine tıklayın. Sayfada yazıcı, bilgisayar ve saat yazar, özel harfler de vardır. Doğru yazıcıdan çıkarsa **Speichern** (kaydet) düğmesine tıklayın. Test sayfası tek başına hiçbir şey kaydetmez ve CEO'nun yazdırma hakkını gerektirmez.
 
 ## 🌐 Gerçek tarayıcı ve ▶ kod çalıştırma
 
@@ -552,7 +554,7 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
   Sayfa JavaScript ile çalışır; ajan görünür metni, bağlantıları ve isteğe bağlı bir ekran görüntüsünü alır (`view_image` gibi bir görsel olarak görür; `save` onu `assets/screenshots/` içine kaydeder).
   Sayfanın her isteği (betikler, çerçeveler, XHR, WebSocket'ler) genel bir adrese gitmelidir; LAN/localhost engellenir, WebRTC ve indirmeler kapalıdır.
   Aynı anda yalnızca bir tarayıcı (RAM), zaman sınırı `PCL_BROWSER_TIMEOUT` (30 sn). Kendi Chromium'unuz: `PCL_BROWSER_PATH`; kapalı: `PCL_BROWSER=0`.
-- **Kod çalıştırma** (`./install.sh --run`, bubblewrap kurar): „Darf Code ausführen“ (kod çalıştırabilir, varsayılan kapalı) hakkı `run_code` aracını verir.
+- **Kod çalıştırma** (`./install.sh --run`, bubblewrap kurar): „May run code“ (kod çalıştırabilir, varsayılan kapalı) hakkı `run_code` aracını verir.
   Betik yalıtılmış çalışır: **internet yok**, yalnızca `/usr` ve proje klasörü görünür (`/projekt` altında salt okunur),
   `.env` yok, veritabanı yok, ev klasörü yok. Betiğin çalışma dizinine yazdığı her şey `output/run/<zaman>/` içine düşer
   (en fazla 50 dosya/50 MB). Sınırlar: `PCL_RUN_TIMEOUT` (60 sn), `PCL_RUN_MEM_MB` (1024). Sistemin Python/Node'unu çalıştırır,
@@ -561,7 +563,7 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
 
 ## 🦀 Rust programlarını eksiksiz derleme
 
-**„Darf programmieren“**, **„Darf Dateien schreiben“** ve **„Darf Code ausführen“** (programlama yapabilir, dosya yazabilir, kod çalıştırabilir) haklarına sahip bir ajana
+**„May program“**, **„May write files“** ve **„May run code“** (programlama yapabilir, dosya yazabilir, kod çalıştırabilir) haklarına sahip bir ajana
 "Bana …, testleriyle birlikte bir Rust programı yaz ve bitmiş paketi teslim et" gibi bir görev verin. Ajan işi baştan sona yapar:
 
 1. `write_code` ile bir Cargo projesi oluşturur, ör. testleriyle (`#[test]`) `rust/rechner/Cargo.toml` ve `rust/rechner/src/main.rs`.
@@ -620,12 +622,12 @@ farklı projelerin görevleri. Bir ajan asla aynı anda iki görev üzerinde ça
 Kurulum ve anahtarların girilmesinden sonra `./venv/bin/python selftest.py` internet olmadan test edilemeyen her gerçek şeyi kontrol eder:
 web araması, sayfa okuma, görsel araması ve görsel üretici, SSRF koruması, her yapay zekâ sağlayıcısı mini bir istekle (Ollama dahil),
 Telegram (bot belirteci ve sohbet kimliğinize test mesajı), ffmpeg, sesli çıktı, Almanca karakterli PDF, OCR. Tek tek gruplar:
-`selftest.py web | llm | telegram | media | ocr | rust | film`. Her satır OK, FEHLT (isteğe bağlı) ya da somut bir notla FEHLER gösterir.
+`selftest.py web | llm | telegram | media | ocr | rust | film`. Her satır OK, MISSING (isteğe bağlı) ya da somut bir notla ERROR gösterir.
 
 ## Ollama (yerel modeller)
 
 Sağlayıcı „Ollama (lokal)“: anahtar gerekmez, model listesi doğrudan Ollama'dan gelir (`ollama pull qwen2.5:1.5b`). „Firma aus Vorlage“ (şablondan şirket) penceresinde
-„Alles lokal“ (her şey yerel) ve „Nur Mitarbeiter lokal“ (yalnızca çalışanlar yerel) düğmeleri vardır; aksi halde Ollama'yı ajan başına seçersiniz. Ollama başka bir bilgisayarda
+„Everything local (Ollama)“ (her şey yerel) ve „Only employees local (Ollama)“ (yalnızca çalışanlar yerel) düğmeleri vardır; aksi halde Ollama'yı ajan başına seçersiniz. Ollama başka bir bilgisayarda
 çalışıyorsa (ör. dizüstü) `OLLAMA_URL` değerini onun adresine ayarlayın. Küçük modeller (3B) Pi'de yavaştır ve araç protokolüne çoğu zaman zayıf uyar;
 patronlar için güçlü bir model, yerel olarak daha çok basit çalışanlar ya da sohbet için uygundur.
 
@@ -643,22 +645,22 @@ Pi 4'te saniyede birkaç kelime ve ilk kelimeye kadar birkaç dakika bekleyin (u
 ## Claude ve ChatGPT aboneliğinizle (API anahtarı yerine CLI)
 
 `.env` içinde: `PCL_ALLOW_CLI=1`. Programları Pi'de kendiniz kurup bir kez oturum açarsınız (üreticilerin kılavuzları:
-Claude Code `claude`, OpenAI Codex `codex`; aboneliğinizle giriş). Bundan sonra „Claude (CLI, dein Abo)“ ve „ChatGPT (Codex-CLI, dein Abo)“
+Claude Code `claude`, OpenAI Codex `codex`; aboneliğinizle giriş). Bundan sonra „Claude (CLI, your subscription)“ ve „ChatGPT (Codex CLI, your subscription)“
 tüm sağlayıcı listelerinde görünür. Sunucu bunları bir kabuk olmadan, boş bir klasörde ve **ortamda API anahtarlarımız olmadan** çağırır
 (aksi halde `claude` aboneliği değil API anahtarını faturalandırırdı). Sınırlar: API'den yavaştır (her yanıtta program başlatma), abonelik sınırları geçerlidir
 (çok ajan = hızla sınıra), ve CLI programlarının kendi araçları vardır; gerekirse komutu `PCL_CLI_CLAUDE` / `PCL_CLI_CODEX` ile uyarlayın.
 
 ## Model gitti mi? Ajanları değiştirin
 
-Hyperstead her 6 saatte bir (`PCL_MODEL_CHECK_HOURS`) ajanların modellerinin sağlayıcıda hâlâ var olup olmadığını kontrol eder ve bir çağrı „Modell nicht gefunden“ (model bulunamadı) bildirdiğinde de fark eder. O zaman bir Telegram mesajı gelir, görev açık bir notla başarısız olur ve **⚠ Modelle** (modeller) menüsünde etkilenen tüm ajanları tek tıkla başka bir modele çevirirsiniz.
+Hyperstead her 6 saatte bir (`PCL_MODEL_CHECK_HOURS`) ajanların modellerinin sağlayıcıda hâlâ var olup olmadığını kontrol eder ve bir çağrı „Modell nicht gefunden“ (model bulunamadı) bildirdiğinde de fark eder. O zaman bir Telegram mesajı gelir, görev açık bir notla başarısız olur ve **⚠ Models** (modeller) menüsünde etkilenen tüm ajanları tek tıkla başka bir modele çevirirsiniz.
 
 ## Büyük ekipler
 
-Bir patronun istediği kadar çalışanı olabilir. Patronun panelinde (Ayarlar) **Unterstellte Mitarbeiter** (bağlı çalışanlar) altında onay kutularıyla hepsini seçer ve atamayı kaydedersiniz. Alternatif olarak: patronun alt noktasını bir çalışanın üzerine sürükleyin. **🗂 Ordnen** (düzenle) düğmesi her şeyi bir organizasyon şeması olarak oluşturur (6 ve üzeri çalışanlı gruplar, 5'erli sıralar halinde).
+Bir patronun istediği kadar çalışanı olabilir. Patronun panelinde (Ayarlar) **Direct reports** (bağlı çalışanlar) altında onay kutularıyla hepsini seçer ve atamayı kaydedersiniz. Alternatif olarak: patronun alt noktasını bir çalışanın üzerine sürükleyin. **🗂 Arrange** (düzenle) düğmesi her şeyi bir organizasyon şeması olarak oluşturur (6 ve üzeri çalışanlı gruplar, 5'erli sıralar halinde).
 
 ## CEO ekibini kendisi kurar
 
-Palettedeki CEO, **„Darf sein Team selbst zusammenstellen“** (kendi ekibini kurabilir, `recruit`) hakkına sahiptir. Henüz çalışanı yoksa ve bir görev alırsa, görevi analiz eder ve rol, çalışma talimatı ve raporlama hatlarıyla çalışanlar oluşturur (20'ye kadar; kendi ekibi olan bölüm başkanları da dahil). Yeni çalışanların **henüz yapay zekâsı yoktur**: bunları **⚠ Modelle** menüsünde (hepsini birden) ya da ajan başına ayarlarda atarsınız; sonra görevin altındaki **Post**'a yanıt verirsiniz (ör. „Weiter“ = devam). Bundan sonra CEO işi her zamanki gibi dağıtır. CEO yeni çalışanlara yalnızca web, görseller, dosya okuma/yazma, medya ve programlama verebilir, asla kabuk vermez.
+Palettedeki CEO, **„May build its own team“** (kendi ekibini kurabilir, `recruit`) hakkına sahiptir. Henüz çalışanı yoksa ve bir görev alırsa, görevi analiz eder ve rol, çalışma talimatı ve raporlama hatlarıyla çalışanlar oluşturur (20'ye kadar; kendi ekibi olan bölüm başkanları da dahil). Yeni çalışanların **henüz yapay zekâsı yoktur**: bunları **⚠ Models** menüsünde (hepsini birden) ya da ajan başına ayarlarda atarsınız; sonra görevin altındaki **Post**'a yanıt verirsiniz (ör. „Weiter“ = devam). Bundan sonra CEO işi her zamanki gibi dağıtır. CEO yeni çalışanlara yalnızca web, görseller, dosya okuma/yazma, medya ve programlama verebilir, asla kabuk vermez.
 
 **Ekip zaten kurulmuş olsa bile**, bu hakka sahip bir CEO her görevde ekibini sizin görevlerinize ve koşullarınıza göre uyarlayabilir:
 - **İşe alma**: ek çalışanlar, yukarıdaki gibi yapay zekâsız. Telegram mesajı alırsınız ve onlara yapay zekâ atarsınız. İş ancak bir sonraki görevden ya da sizin „Weiter“ yanıtınızdan sonra alırlar.
@@ -671,12 +673,12 @@ Her ekip değişikliğini önceden görmek istiyorsanız **Freigaben** penceresi
 
 ## Çalışma saatleri ve günlük görevler
 
-Kenar çubuğunda **🕘 Zeitplan** (zamanlama): proje başına iş başlangıcı, mesai bitişi ve çalışma günlerini belirleyin. Her çalışan için **günlük görevler** oluşturabilirsiniz (sabit saat, iş başlangıcında ya da mesai bitişinde, seçilebilir haftanın günlerinde), ör. „her gün 15:00'te web sitesini kontrol et“. Sonuç her gönderi gibi „Post“ görünümüne (ve Telegram'a) gelir. Bir zamanlamanın son görevi hâlâ çalışıyorsa tekrar başlatılmaz; saatte Pi kapalıysa 6 saate kadar telafi edilir.
+Kenar çubuğunda **🕘 Schedule** (zamanlama): proje başına iş başlangıcı, mesai bitişi ve çalışma günlerini belirleyin. Her çalışan için **günlük görevler** oluşturabilirsiniz (sabit saat, iş başlangıcında ya da mesai bitişinde, seçilebilir haftanın günlerinde), ör. „her gün 15:00'te web sitesini kontrol et“. Sonuç her gönderi gibi „Post“ görünümüne (ve Telegram'a) gelir. Bir zamanlamanın son görevi hâlâ çalışıyorsa tekrar başlatılmaz; saatte Pi kapalıysa 6 saate kadar telafi edilir.
 İş başlangıcında şirket yarım kalan görevleri yeniden alır (başlamamış olanlar başlar, başarısız üst düzey görevler `PCL_MAX_RESUMES`=2 kereye kadar yeniden denenir). İsteğe bağlı olarak şirket çalışma saatleri dışında tamamen dinlenir. Saat Pi'nin saatidir; yanlışsa `.env` içine `PCL_TZ=Europe/Vienna` yazın.
 
 ## CEO kontrol turu
 
-**🕘 Zeitplan** penceresinde **👑 CEO-Kontrollgang** (CEO kontrol turu) en üst patron için günlük bir kontrol turu kurar (varsayılan: mesai bitişinde; diğer saatler „Neue tägliche Aufgabe“ + *Kontrollgang* onay kutusuyla). Sistem ona olgularla bir **durum raporu** ekler: çalışan başına bugün başlayan/biten/başarısız olan/açık kalan işler, çalışma saatleri dışındaki başlangıçlar, iş başlangıcı olmayan açık görevler, yapay zekâsı olmayan çalışanlar, yarım kalan görevler ve günlük görevlerin çalışıp çalışmadığı. CEO bunu değerlendirir, gerekirse ekibine takip görevleri dağıtır ve gönderiye bir kontrol raporu yazar. „📋 Statusbericht ansehen“ (durum raporunu gör) CEO olmadan olguları gösterir.
+**🕘 Schedule** penceresinde **👑 Set up CEO inspection** (CEO kontrol turu) en üst patron için günlük bir kontrol turu kurar (varsayılan: mesai bitişinde; diğer saatler „New daily task“ + *Kontrollgang* onay kutusuyla). Sistem ona olgularla bir **durum raporu** ekler: çalışan başına bugün başlayan/biten/başarısız olan/açık kalan işler, çalışma saatleri dışındaki başlangıçlar, iş başlangıcı olmayan açık görevler, yapay zekâsı olmayan çalışanlar, yarım kalan görevler ve günlük görevlerin çalışıp çalışmadığı. CEO bunu değerlendirir, gerekirse ekibine takip görevleri dağıtır ve gönderiye bir kontrol raporu yazar. „📋 View status report“ (durum raporunu gör) CEO olmadan olguları gösterir.
 
 ## Proje klasörü
 
@@ -684,4 +686,4 @@ Her projenin `workspace/` altında **kendi adını taşıyan bir klasörü** var
 
 ## Web sayfası yayınlama
 
-**📁 Dateien dieses Projekts** penceresinde **🚀 Veröffentlichen** (yayınla) vardır. Yalnızca proje klasöründeki `www/` klasörü yayınlanır (`www/index.html`, bununla birlikte CSS, görseller … göreli yollarla); projedeki diğer her şey (notlar, `output/`, `input/`, nokta dosyaları, dışarıya simgesel bağlantılar) görünmez kalır. `www/` klasörü yoksa proje klasörünün `index.html` dosyası eskisi gibi sunulur (`input/` ve gizli dosyalar olmadan). Sayfa kendi bağlantı noktasında (8800'den itibaren, `PCL_SITE_PORT_BASE`) kalıcı olarak çalışır; varsayılan olarak yalnızca Pi'nin kendisinde: `http://127.0.0.1:8800/`. Ağdan erişim için `.env` içinde `PCL_SITE_HOST=0.0.0.0` ayarlayın. „Darf die Webseite zur Veröffentlichung vorschlagen“ (web sayfasını yayınlamayı önerebilir) hakkına sahip ajanlar „veröffentlichen“ için bir onay isteyebilir; sayfayı çevrimiçi yapan yalnızca **Freigaben** altındaki tıklamanızdır. Ajanların değişiklikleri hemen görünür; yeniden başlatmadan sonra sayfa otomatik olarak yeniden çalışır. Açık internet için önüne HTTPS'li bir ters vekil (ör. Caddy) konmalıdır; küçük sunucunun kendisi değil.
+**📁 Files of this project** penceresinde **🚀 Publish website** (yayınla) vardır. Yalnızca proje klasöründeki `www/` klasörü yayınlanır (`www/index.html`, bununla birlikte CSS, görseller … göreli yollarla); projedeki diğer her şey (notlar, `output/`, `input/`, nokta dosyaları, dışarıya simgesel bağlantılar) görünmez kalır. `www/` klasörü yoksa proje klasörünün `index.html` dosyası eskisi gibi sunulur (`input/` ve gizli dosyalar olmadan). Sayfa kendi bağlantı noktasında (8800'den itibaren, `PCL_SITE_PORT_BASE`) kalıcı olarak çalışır; varsayılan olarak yalnızca Pi'nin kendisinde: `http://127.0.0.1:8800/`. Ağdan erişim için `.env` içinde `PCL_SITE_HOST=0.0.0.0` ayarlayın. „May propose the website for publishing“ (web sayfasını yayınlamayı önerebilir) hakkına sahip ajanlar „veröffentlichen“ için bir onay isteyebilir; sayfayı çevrimiçi yapan yalnızca **Freigaben** altındaki tıklamanızdır. Ajanların değişiklikleri hemen görünür; yeniden başlatmadan sonra sayfa otomatik olarak yeniden çalışır. Açık internet için önüne HTTPS'li bir ters vekil (ör. Caddy) konmalıdır; küçük sunucunun kendisi değil.

@@ -101,7 +101,7 @@ PROVIDERS = {
         "model": "gpt-4o-mini",
     },
     "openrouter": {
-        "label": "OpenRouter (viele Modelle, 1 Key)",
+        "label": "OpenRouter (many models, 1 key)",
         "url": "https://openrouter.ai/api/v1/chat/completions",
         "models_url": "https://openrouter.ai/api/v1/models",
         "key_env": "OPENROUTER_API_KEY",
@@ -646,7 +646,7 @@ def _call_llm(agent, messages, images=None):
     if not pid:
         raise RuntimeError("This agent has no AI assigned yet (Settings -> Provider or menu ⚠ Models).")
     if pid not in PROVIDERS:
-        raise RuntimeError(f"Unbekannter Anbieter: {pid}")
+        raise RuntimeError(f"Unknown provider: {pid}")
 
     if pid == "mock":
         return mock_llm(agent, messages)
@@ -2095,7 +2095,7 @@ def run_with_tools(a, perms, messages, final_only, root, ids, images=None, want=
                 for r in (d.get("review") if isinstance(d.get("review"), list) else []))
             if not busy:
                 pushed = True
-                log("tool", "Produktpflicht: " + ", ".join(want[0]), pid, aid, tid)
+                log("tool", "Required tools: " + ", ".join(want[0]), pid, aid, tid)
                 messages += [{"role": "assistant", "content": text},
                              {"role": "user", "content": "PRODUCT REQUIRED (from the server): the assignment asks for " + ", ".join(e[1:].upper() for e in want[0])
                               + ", but there is none in output/ yet. Create it NOW with make_document from the existing files (list_files shows them). "
@@ -2274,17 +2274,17 @@ def change_team(boss, project, data, notes):
         if it.get("role"):
             sets.append("role=?"); args.append(str(it["role"])[:100]); what.append("Rolle")
         if it.get("system_prompt"):
-            sets.append("system_prompt=?"); args.append(str(it["system_prompt"])[:3000]); what.append("Arbeitsanweisung")
+            sets.append("system_prompt=?"); args.append(str(it["system_prompt"])[:3000]); what.append("instructions")
         guessed = tools_for_role(d["name"], it.get("role"), it.get("system_prompt")) if (it.get("role") or it.get("system_prompt")) else set()
         if isinstance(it.get("tools"), list) or guessed:
             want = {str(x) for x in it["tools"]} | guessed if isinstance(it.get("tools"), list) else guessed
             perms = perms_of(d)
             perms.update({k: (k in want) for k in RECRUIT_PERMS if k != "read_files"})
-            sets.append("perms=?"); args.append(json.dumps(perms)); what.append("Rechte")
+            sets.append("perms=?"); args.append(json.dumps(perms)); what.append("permissions")
         if sets:
             ex(f"UPDATE agents SET {', '.join(sets)} WHERE id=?", args + [d["id"]])
             log("agent_updated", f"{d['name']}: {', '.join(what)} (by {boss['name']})", project["id"], d["id"])
-            notes.append(f"Geaendert: {d['name']} ({', '.join(what)})")
+            notes.append(f"Changed: {d['name']} ({', '.join(what)})")
     hired = recruit_team(boss, project, data.get("recruit"), notes) if data.get("recruit") else []
     if hired:
         notes.append(f"Hired ({len(hired)}): " + ", ".join(f"{h['name']} ({h['role']})" for h in hired)
@@ -2698,7 +2698,7 @@ def model_check_and_notify():
     try:
         bad = [b for b in model_health(refresh=True) if not b.get("unassigned")]
     except Exception as e:
-        print("Modellpruefung:", e)
+        print("Model check:", e)
         return
     sig = "|".join(sorted(f"{b['provider']}:{b['effective']}" for b in bad))
     if sig == get_setting("model_alert_sig", ""):
@@ -3021,7 +3021,7 @@ def tg_callback(cb):
         return
     if action in ("wa", "wd"):  # Nachruest-Antrag (Werkstatt): Besitzer bestaetigt per Knopf
         ap = q1("SELECT * FROM approvals WHERE id=?", (tid,))
-        msg = decide_werkstatt(ap, action == "wa") if ap and ap["kind"] == "werkstatt" else "Unbekannter Antrag."
+        msg = decide_werkstatt(ap, action == "wa") if ap and ap["kind"] == "werkstatt" else "Unknown request."
         tg("answerCallbackQuery", callback_query_id=cb["id"], text=msg[:190])
         tg_unbutton(cb)
         return
@@ -4418,7 +4418,7 @@ def api_sched_new(pid):
     if not a:
         abort(400, "Agent missing")
     kind = "inspect" if d.get("kind") == "inspect" else ""
-    title = str(d.get("title") or "").strip() or ("Kontrollgang" if kind else "")
+    title = str(d.get("title") or "").strip() or ("Inspection round" if kind else "")
     if not title:
         abort(400, "Title missing")
     at = str(d.get("at") or "")
@@ -4781,8 +4781,8 @@ def api_usage():
     abo = {p_: q1("SELECT COUNT(*) c FROM llm_calls WHERE provider=? AND ts>=?", (p_, time.time() - 5 * 3600))["c"]
            for p_ in ABO_PROVIDERS}
     return jsonify({"days": days, "total": total, "by_day": by_day,
-                    "by_project": grp("COALESCE(p.name, '(geloescht)') name", "LEFT JOIN projects p ON p.id=c.project_id"),
-                    "by_agent": grp("COALESCE(a.name, '(geloescht)') name, COALESCE(p.name, '') project",
+                    "by_project": grp("COALESCE(p.name, '(deleted)') name", "LEFT JOIN projects p ON p.id=c.project_id"),
+                    "by_agent": grp("COALESCE(a.name, '(deleted)') name, COALESCE(p.name, '') project",
                                     "LEFT JOIN agents a ON a.id=c.agent_id LEFT JOIN projects p ON p.id=c.project_id", 2),
                     "by_model": grp("c.provider name, c.model model", n=2),
                     "abo_5h": {k: v for k, v in abo.items() if v}, "abo_warn": ABO_WARN_5H,

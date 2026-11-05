@@ -16,7 +16,7 @@ može raditi paralelno; svaka ima svoje tvrtke i podatke.
 | --- | --- | --- |
 | Raspberry Pi / Linux (Debian, Ubuntu) | glavni sustav, puni opseg funkcija | dolje |
 | Windows 10/11 | radi, bez `run_code`, izrada Rust programa samo bez izolacije preko prekidača, neke funkcije traže dodatne programe | [docs/windows.md](docs/windows.md) |
-| macOS | nije testirano, osnovne funkcije bi trebale raditi | dolje (ručno) |
+| macOS | testirano (radi) | dolje (ručno) |
 | Vlastito računalo za slike (npr. stari laptop bez grafičke kartice) | besplatne slike s referentnim slikama za Hyperstead | [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md) |
 
 Selidba s jednog računala na drugo: zaustavite Hyperstead i kopirajte `data.db`, mapu `workspace/` i `.env`
@@ -25,7 +25,7 @@ Selidba s jednog računala na drugo: zaustavite Hyperstead i kopirajte `data.db`
 ### Raspberry Pi / Linux
 
 ```bash
-git clone https://github.com/KhungFu/hyperstead && cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
 ./install.sh --service     # venv, ovisnosti, .env s nasumičnom lozinkom, systemd servis
 nano .env                  # unesite API ključeve, zatim: sudo systemctl restart hyperstead
 ```
@@ -39,7 +39,7 @@ Više funkcija (video, OCR, prevoditelji, preglednik): `./install.sh --all`.
 PowerShell u mapi Hyperstead:
 
 ```powershell
-git clone https://github.com/KhungFu/hyperstead; cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead; cd hyperstead
 powershell -ExecutionPolicy Bypass -File install.ps1
 notepad .env
 deploy\windows\hyperstead-start.bat
@@ -48,10 +48,10 @@ deploy\windows\hyperstead-start.bat
 Što nedostaje na Windowsu, automatsko pokretanje i paralelni rad s Pi-jem: [docs/windows.md](docs/windows.md).
 Kasnije ažuriranje: `git pull`, pa ponovno pokrenite.
 
-### macOS (nije testirano)
+### macOS (testirano)
 
 ```bash
-git clone https://github.com/KhungFu/hyperstead && cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
 python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
 cp .env.example .env       # upišite APP_TOKEN=<duga lozinka>, dodajte API ključeve
 ./venv/bin/python app.py   # http://127.0.0.1:8787
@@ -148,9 +148,9 @@ nikada nisu ugroženi, jer ih Git ne poznaje.
 ### Čitanje samoprovjere
 
 - **OK:** radi.
-- **FEHLT (nedostaje):** neobavezno; redak navodi naredbu za dodavanje (na Windowsu naredbu za Windows).
+- **MISSING (nedostaje):** neobavezno; redak navodi naredbu za dodavanje (na Windowsu naredbu za Windows).
   Potrebno samo ako to vaši agenti koriste (npr. video, glasovni izlaz, skenirani PDF-ovi).
-- **FEHLER (pogreška):** nešto što ste unijeli ne radi, najčešće nevažeći ili istekao ključ ili servis koji
+- **ERROR (pogreška):** nešto što ste unijeli ne radi, najčešće nevažeći ili istekao ključ ili servis koji
   ne radi (npr. računalo za slike). Redak navodi razlog.
 - Pojedinačni timeout kod web servisa često je samo privremen: pokušajte kasnije.
 
@@ -184,57 +184,59 @@ Ovaj popis se dopunjuje pri svakoj promjeni programa. Svaki redak kaže što sus
 | --- | --- | --- |
 | `.env` | Hyperstead se pokreće bez ključeva i bez lozinke, dostupan samo s ovog računala. S `HOST=0.0.0.0` pokretanje se prekida dok je `APP_TOKEN` prazan. | `./install.sh` (Pi) odnosno `install.ps1` (Windows) ga stvara s nasumičnom lozinkom. |
 | `data.db` | Stvara se nova i prazna. Tvrtke, zadaci i pošta su nestali. | Prvo napravite sigurnosnu kopiju (vidi Rad). Vraćajte samo iz kopije. |
-| API ključ u `.env` | Pružatelj se u samoprovjeri prijavljuje kao FEHLT i agenti ga ne koriste. Ako je unesen, ali nevažeći: FEHLER s HTTP 401. | Unesite ključ ili isključite redak s `#`. |
-| Ollama nedostupna ili model prevelik | Zadatak ne uspijeva uz „Ollama nicht erreichbar“ odnosno „Zu wenig RAM für dieses Modell“; model koji nedostaje javlja „`ollama pull …`“. Ako Ollama `OLLAMA_TIMEOUT` sekundi ništa ne pošalje, zahtjev se prekida s tom napomenom, bez ponavljanja. | `systemctl status ollama`, preuzmite manji model (`ollama pull qwen2.5:1.5b`) i odaberite ga kod agenta, ili povećajte `OLLAMA_TIMEOUT`. |
-| `SDCPP_URL` (uz `IMAGE_PROVIDER=sdcpp`) | Zahtjevi za slike ne uspijevaju uz poruku „SDCPP_URL fehlt“ (nedostaje). Uz `IMAGE_FALLBACK=pollinations` izrađuje se besplatna nadomjesna slika bez referenci, uz napomenu u rezultatu. | Dodajte redak u `.env`, ponovno pokrenite Hyperstead. |
-| Računalo za slike nije dostupno (laptop isključen, vatrozid, kriva IP) | Kao gore: pogreška „Bildrechner … nicht erreichbar“ (nije dostupno), uz nadomjesnu sliku. | Uključite laptop, pokrenite `bildrechner-start.bat`, provjerite IP i vatrozid. |
+| API ključ u `.env` | Pružatelj se u samoprovjeri prijavljuje kao MISSING i agenti ga ne koriste. Ako je unesen, ali nevažeći: ERROR s HTTP 401. | Unesite ključ ili isključite redak s `#`. |
+| Ollama nedostupna ili model prevelik | Zadatak ne uspijeva uz „Ollama not reachable“ odnosno „Not enough RAM for this model“; model koji nedostaje javlja „`ollama pull …`“. Ako Ollama `OLLAMA_TIMEOUT` sekundi ništa ne pošalje, zahtjev se prekida s tom napomenom, bez ponavljanja. | `systemctl status ollama`, preuzmite manji model (`ollama pull qwen2.5:1.5b`) i odaberite ga kod agenta, ili povećajte `OLLAMA_TIMEOUT`. |
+| `SDCPP_URL` (uz `IMAGE_PROVIDER=sdcpp`) | Zahtjevi za slike ne uspijevaju uz poruku „SDCPP_URL is missing“ (nedostaje). Uz `IMAGE_FALLBACK=pollinations` izrađuje se besplatna nadomjesna slika bez referenci, uz napomenu u rezultatu. | Dodajte redak u `.env`, ponovno pokrenite Hyperstead. |
+| Računalo za slike nije dostupno (laptop isključen, vatrozid, kriva IP) | Kao gore: pogreška „ConnectionError“ (nije dostupno), uz nadomjesnu sliku. | Uključite laptop, pokrenite `bildrechner-start.bat`, provjerite IP i vatrozid. |
 | `sd-server.exe` (Windows, računalo za slike) | `bildrechner-start.bat` prikazuje „sd-server.exe fehlt“ (nedostaje) i ništa ne pokreće. | Pokrenite `deploy\windows\bildrechner-einrichten.ps1`. |
 | Datoteka modela (Windows, računalo za slike) | Startna datoteka navodi nedostajuću datoteku i ne pokreće se. Ako nedostaje samo veliki jezični model (`Qwen3-4B-Q4_K_M.gguf`), koristi se manji, ako postoji. | Ponovno pokrenite skriptu za postavljanje; preuzima samo nedostajuću datoteku. |
 | Windows runtime `VCOMP140.DLL` | `sd-server.exe` javlja „VCOMP140.DLL nicht gefunden“ (nije pronađen) i prekida rad. | Ponovno pokrenite skriptu za postavljanje (korak 3 instalira runtime), pa otvorite startnu datoteku. |
 | Pravilo vatrozida za port 1234 (Windows) | Samo Pi ne može doći do računala za slike. Sam laptop radi dalje. | Pokrenite naredbu iz [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md), odjeljak 4, kao administrator. |
-| Makro u `macros/` ili prijava `macros/<stranica>.json` (uz `PCL_MACROS=1`) | Bez makroa alat `site_macro` ne postoji. Bez sačuvane prijave makro staje uz napomenu. Ako MagicLight ili Flow promijene stranicu, `site_macro` javlja FEHLER i stavlja `<sajt>-fehler.png` u `output/`. Samoprovjera (`browser`) prikazuje FEHLT. | Makro (ponovo) snimiti prema [macros/README.md](macros/README.md). |
-| `ffmpeg`, `tesseract`, `pdftoppm`, glasovni izlaz | Funkcija nedostaje. Agenti koji je traže javljaju pogrešku u rezultatu. Samoprovjera prikazuje FEHLER (Pi) odnosno FEHLT (Windows). | Instalirajte program (naredbe u samoprovjeri i u [docs/windows.md](docs/windows.md)). |
-| Blender (alat `film`) | `save`, `check`, `voices` i `assemble` i dalje rade. `preview` i `render` javljaju „Blender wurde nicht gefunden“ (Blender nije pronađen) uz napomenu o `BLENDER_PATH`. Samoprovjera prikazuje FEHLT. | Instalirajte Blender (`winget install BlenderFoundation.Blender`) ili postavite `BLENDER_PATH` u `.env`, ponovno pokrenite. |
-| `film/film.json` (scenarij) | `film` javlja „film/film.json fehlt“ (nedostaje) i traži da se prvo s `op=save` spremi scenarij. Neispravan scenarij se ne sprema, odgovor navodi sve pogreške. | Ništa, agenti ga sami izrađuju. Možete ga napisati i ručno ([docs/filmstudio.md](docs/filmstudio.md)). |
+| Makro u `macros/` ili prijava `macros/<stranica>.json` (uz `PCL_MACROS=1`) | Bez makroa alat `site_macro` ne postoji. Bez sačuvane prijave makro staje uz napomenu. Ako MagicLight ili Flow promijene stranicu, `site_macro` javlja ERROR i stavlja `<sajt>-fehler.png` u `output/`. Samoprovjera (`browser`) prikazuje MISSING. | Makro (ponovo) snimiti prema [macros/README.md](macros/README.md). |
+| `ffmpeg`, `tesseract`, `pdftoppm`, glasovni izlaz | Funkcija nedostaje. Agenti koji je traže javljaju pogrešku u rezultatu. Samoprovjera prikazuje ERROR (Pi) odnosno MISSING (Windows). | Instalirajte program (naredbe u samoprovjeri i u [docs/windows.md](docs/windows.md)). |
+| Blender (alat `film`) | `save`, `check`, `voices` i `assemble` i dalje rade. `preview` i `render` javljaju „Blender was not found“ (Blender nije pronađen) uz napomenu o `BLENDER_PATH`. Samoprovjera prikazuje MISSING. | Instalirajte Blender (`winget install BlenderFoundation.Blender`) ili postavite `BLENDER_PATH` u `.env`, ponovno pokrenite. |
+| `film/film.json` (scenarij) | `film` javlja „film/film.json is missing“ (nedostaje) i traži da se prvo s `op=save` spremi scenarij. Neispravan scenarij se ne sprema, odgovor navodi sve pogreške. | Ništa, agenti ga sami izrađuju. Možete ga napisati i ručno ([docs/filmstudio.md](docs/filmstudio.md)). |
 | Slika, glazba ili `.blend` datoteka navedena u scenariju | Provjera navodi scenu, lik i putanju, ništa se ne renderira. | Stavite datoteku u `assets/` ili `input/` ili ispravite putanju u scenariju. |
 | Klip scene (`film/clips/`) | `assemble` navodi scene koje nedostaju i ništa ne montira. Ako se `render` prekine (vremensko ograničenje), gotove sličice ostaju spremljene i sljedeći poziv nastavlja odatle. | Ništa, agenti ponovno pozivaju `render`. |
-| Govor za film | `voices`/`render` se prekidaju porukom „Keine Sprachausgabe verfügbar“ (nema govora). Scene bez dijaloga i dalje rade. | Kao kod „govora“ iznad (na Windowsu `edge-tts` + `TTS_ENGINE=edge`). |
-| `cargo` (Rust, alat `rust_project`) | Alat se agentima ne prikazuje; `check_code` i dalje provjerava `.rs` datoteke ako postoji `rustc`. Samoprovjera (`selftest.py rust`) prikazuje FEHLT s naredbom za instalaciju. | Instalirajte Rust: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Zatim ponovno pokrenite Hyperstead. |
+| Govor za film | `voices`/`render` se prekidaju porukom „No speech output available“ (nema govora). Scene bez dijaloga i dalje rade. | Kao kod „govora“ iznad (na Windowsu `edge-tts` + `TTS_ENGINE=edge`). |
+| `cargo` (Rust, alat `rust_project`) | Alat se agentima ne prikazuje; `check_code` i dalje provjerava `.rs` datoteke ako postoji `rustc`. Samoprovjera (`selftest.py rust`) prikazuje MISSING s naredbom za instalaciju. | Instalirajte Rust: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Zatim ponovno pokrenite Hyperstead. |
 | bubblewrap pri izradi Rust programa (Pi/Linux) | `rust_project` ostaje skriven, isto kao `run_code`. | `./install.sh --run` |
 | `PCL_CARGO_UNSAFE=1` (Windows) | Windows nema izolaciju, zato `rust_project` bez prekidača ostaje skriven. S prekidačem laptop gradi bez izolacije. | Postavite ga samo ako znate rizik ([Rust programi](#-potpuna-izrada-rust-programa)), zatim ponovno pokrenite. |
-| `Cargo.toml` u Rust mapi | `rust_project` javlja „In … fehlt Cargo.toml“ i navodi datoteke koje agent prvo mora napraviti. | Ništa, agent ih pravi pomoću `write_code`. |
+| `Cargo.toml` u Rust mapi | `rust_project` javlja „Cargo.toml is missing in …“ i navodi datoteke koje agent prvo mora napraviti. | Ništa, agent ih pravi pomoću `write_code`. |
 | Internet za Rust ovisnosti (crates.io) | `cargo fetch` ne uspijeva, ništa se ne gradi, agent dobiva poruku o grešci. Već preuzete ovisnosti ostaju u `.rust/cargo-home` i rade dalje. | Provjerite internet i ponovno pokrenite zadatak. |
-| Položeni testovi za Rust paket | Paket se **ne** pravi („KEIN PAKET“); agent dobiva greške s brojem reda i mora ih ispraviti. Bez testova paket nastaje s upozorenjem WARNUNG u rezultatu. | Ništa, agent ispravlja i ponovno gradi. Ako odustane, vratite zadatak preko šefa. |
+| Položeni testovi za Rust paket | Paket se **ne** pravi („NO PACKAGE“); agent dobiva greške s brojem reda i mora ih ispraviti. Bez testova paket nastaje s upozorenjem WARNING u rezultatu. | Ništa, agent ispravlja i ponovno gradi. Ako odustane, vratite zadatak preko šefa. |
 | Mapa `.rust/` u projektu (mapa za izradu) | Pri sljedećoj izradi pravi se ponovno, što tada traje duže (sve se ponovno preuzima i kompajlira). Skrivena je i nije dio ZIP preuzimanja. | Ništa. Smijete je obrisati ako ponestane mjesta. |
-| Telegram token ili ID chata | Telegram ostaje isključen, sve ostalo radi. Samoprovjera prikazuje FEHLT. | Potrebno samo ako želite poruke na telefonu. |
+| Telegram token ili ID chata | Telegram ostaje isključen, sve ostalo radi. Samoprovjera prikazuje MISSING. | Potrebno samo ako želite poruke na telefonu. |
 | Mapa ili datoteka u projektu (`wissen/`, `input/`) | Mape koje ne postoje smatraju se praznima. Agenti rade dalje bez znanja o tvrtki. | Stvorite ili otpremite datoteku ili mapu u projektu. |
-| Ključ video pružatelja (npr. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` javlja „VIDEO_PROVIDER=…, aber … fehlt“ i ništa ne stvara; ostali pružatelji s popisa rade dalje. Samoprovjera prikazuje pružatelja kao FEHLT. | Unesite ključ ([docs/videodienste.md](docs/videodienste.md)) ili uklonite pružatelja iz `VIDEO_PROVIDER`, ponovno pokrenite. |
+| Ključ video pružatelja (npr. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` javlja „VIDEO_PROVIDER=…, but … is missing in .env“ i ništa ne stvara; ostali pružatelji s popisa rade dalje. Samoprovjera prikazuje pružatelja kao MISSING. | Unesite ključ ([docs/videodienste.md](docs/videodienste.md)) ili uklonite pružatelja iz `VIDEO_PROVIDER`, ponovno pokrenite. |
 | Kredit kod video pružatelja | Pružatelj odgovara pogreškom (često HTTP 402/429 ili „insufficient balance“), agent dobiva tekst u rezultatu. Nijedan drugi pružatelj ne uskače. | Nadoplatite kredit ili odaberite drugog pružatelja preko `provider` ili u `VIDEO_PROVIDER`. |
-| `FAL_KEY` (uz `VIDEO_PROVIDER=fal`, `VIDEO_AI=fal` ili `AUDIO_PROVIDER=fal`) | `video_generate`, `video_ai` odnosno `sound_generate` javlja „FAL_KEY fehlt“ i ništa ne stvara. | Unesite ključ s fal.ai ili uklonite redak `VIDEO_AI`/`AUDIO_PROVIDER`. |
-| `ELEVENLABS_API_KEY` (bolji glasovi po potrebi) | Sve radi kao prije s lokalnim glasovima. Ako se ipak koristi `engine: elevenlabs` ili `TTS_ENGINE=elevenlabs`, ili ElevenLabs/OpenAI ne uspije (ključ, kredit, internet), govori lokalni glas, a rezultat počinje s „HINWEIS: … nicht genutzt” i razlogom. U filmu se redak pri sljedećem `voices` ponovno pokuša s cloud glasom. S `TTS_FALLBACK=0` zadatak se umjesto toga prekida. | Ključ s elevenlabs.io upisati u `.env` i ponovno pokrenuti. Upute: 📖 → „🎙 Stimmen und ElevenLabs”. |
-| AI suradnika kojeg je CEO tek zaposlio | Novi suradnik se stvara, ali ne dobiva zadatke. Ako CEO nakon toga ponovno planira, zadatak se prekida s „Diesen Mitarbeitern ist noch keine KI zugewiesen: …“ (još nije dodijeljen AI). U izborniku **⚠ Modelle** stoji kao „Noch keine KI“. | Dodijelite AI u izborniku ⚠ Modelle i odgovorite „Weiter“ u pošti. |
+| `FAL_KEY` (uz `VIDEO_PROVIDER=fal`, `VIDEO_AI=fal` ili `AUDIO_PROVIDER=fal`) | `video_generate`, `video_ai` odnosno `sound_generate` javlja „FAL_KEY is missing“ i ništa ne stvara. | Unesite ključ s fal.ai ili uklonite redak `VIDEO_AI`/`AUDIO_PROVIDER`. |
+| `ELEVENLABS_API_KEY` (bolji glasovi po potrebi) | Sve radi kao prije s lokalnim glasovima. Ako se ipak koristi `engine: elevenlabs` ili `TTS_ENGINE=elevenlabs`, ili ElevenLabs/OpenAI ne uspije (ključ, kredit, internet), govori lokalni glas, a rezultat počinje s „NOTE: … nicht genutzt” i razlogom. U filmu se redak pri sljedećem `voices` ponovno pokuša s cloud glasom. S `TTS_FALLBACK=0` zadatak se umjesto toga prekida. | Ključ s elevenlabs.io upisati u `.env` i ponovno pokrenuti. Upute: 📖 → „🎙 Voices and ElevenLabs”. |
+| Kredit ili internet kod ElevenLabsa, odnosno `OPENAI_API_KEY` (`TTS_ENGINE=openai`) | Uskače lokalni glas, a rezultat sadrži NOTE s HTTP kodom. U filmu se redak pri sljedećem `voices` ponovo pokušava s cloud glasom. Uz `TTS_FALLBACK=0` zadatak se umjesto toga prekida. Ako nema ni lokalnog glasa, `speak` javlja "No speech output available". | Nadopunite kredit ili provjerite ključ. Za zamjenski glas instalirajte espeak-ng ili Piper. |
+| AI suradnika kojeg je CEO tek zaposlio | Novi suradnik se stvara, ali ne dobiva zadatke. Ako CEO nakon toga ponovno planira, zadatak se prekida s „These employees have no AI assigned yet: …“ (još nije dodijeljen AI). U izborniku **⚠ Models** stoji kao „No AI yet“. | Dodijelite AI u izborniku ⚠ Models i odgovorite „Weiter“ u pošti. |
 | Prava suradnika kojeg je zaposlio CEO | Sustav dodaje prava koja nedostaju na temelju uloge (popis gore). Ako se nijedna ključna riječ ne poklapa, dobiva samo *čitanje datoteka* i može odgovoriti samo tekstom. | Označite prava u panelu agenta ili CEO-u preciznije zadajte ulogu. |
 | Suradnik kojeg CEO želi otpustiti ili izmijeniti | Ako tog imena nema u njegovu timu (tipfeler, drugi tim, već otpušten), uputa se preskače i bilježi u rezultatu. Ako suradnik još ima otvoren zadatak, ostaje. | Ništa, ili kasnije ponovno zadajte. |
 | `video_providers.py` (programska datoteka) | Alati za video, zvuk i glasove iz oblaka nestaju za agente, sve ostalo radi dalje. | Ponovno pokrenite `git pull`, datoteka je dio programa. |
-| `GITHUB_UPLOAD_TOKEN` ili `GITHUB_UPLOAD_REPO` | GitHub se pod ☁️ Cloud prikazuje kao „nije postavljeno”, agentima se ne nudi kao cilj. Sve ostalo radi. | Unesite token i repozitorij ([docs/cloud.md](docs/cloud.md), na njemačkom), ponovno pokrenite. |
-| CUPS (`lp`) na Pi-ju, pisač ili pravo CEO-a na ispis | Pod 🖨 Drucker piše „CUPS fehlt” ili postoji samo testni pisač. 🖨 Drucken javlja „nije odabran pisač” ili „ispis je zabranjen” i ništa ne šalje. | `./install.sh --print`, postavite pisač ([docs/drucken.md](docs/drucken.md)), odaberite ga i dopustite pod 🖨 Drucker. |
-| `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` ili `ONEDRIVE_CLIENT_ID` | Usluga ostaje „nije postavljeno”, gumb „Prijava” ne postoji. | Registrirajte aplikaciju i unesite retke ([docs/cloud.md](docs/cloud.md)), ponovno pokrenite. |
-| Prijava kod Googlea/Microsofta (mapa `tokens/`) | Usluga stoji na „nije prijavljeno”. Prijenos javlja „još niste prijavljeni” odnosno „prijava je istekla” i ništa ne prenosi. | ☁️ Cloud → Prijava. Pri selidbi s Pi-ja na laptop jednostavno se ponovno prijavite na laptopu. |
+| `GITHUB_UPLOAD_TOKEN` ili `GITHUB_UPLOAD_REPO` | GitHub se pod ☁️ Cloud prikazuje kao „not set up”, agentima se ne nudi kao cilj. Sve ostalo radi. | Unesite token i repozitorij ([docs/cloud.md](docs/cloud.md), na njemačkom), ponovno pokrenite. |
+| CUPS (`lp`) na Pi-ju, pisač ili pravo CEO-a na ispis | Pod 🖨 Printer piše „CUPS missing” ili postoji samo testni pisač. 🖨 Print javlja „No printer chosen yet” ili „Printing is blocked” i ništa ne šalje. | `./install.sh --print`, postavite pisač ([docs/drucken.md](docs/drucken.md)), odaberite ga i dopustite pod 🖨 Printer. |
+| `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` ili `ONEDRIVE_CLIENT_ID` | Usluga ostaje „not set up”, gumb „Sign in” ne postoji. | Registrirajte aplikaciju i unesite retke ([docs/cloud.md](docs/cloud.md)), ponovno pokrenite. |
+| Prijava kod Googlea/Microsofta (mapa `tokens/`) | Usluga stoji na „not signed in”. Prijenos javlja „not signed in yet” odnosno „sign-in expired” i ništa ne prenosi. | ☁️ Cloud → Prijava. Pri selidbi s Pi-ja na laptop jednostavno se ponovno prijavite na laptopu. |
 | Datoteka veća od 50 MB za Telegram | Telegram je ne prima. `/datei` je označava s ⚠️ i ne šalje je, agent dobiva napomenu. | Kao cilj odaberite Google Drive, OneDrive ili GitHub. |
 | `cloud_upload.py` (programska datoteka) | Hyperstead se ne pokreće (pogreška pri uvozu). | Ponovno pokrenite `git pull`, datoteka je dio programa. |
 | `PCL_ALLOW_WERKSTATT=1` | Polje „Radionica” je sivo, nijedan agent ne dobiva `befehl` ni `nachruesten`. Sve ostalo radi kao i prije. | Dodajte redak u `.env`, ponovno pokrenite, označite polje kod agenta ([docs/werkstatt.md](docs/werkstatt.md)). |
 | Program koji je agentu potreban (npr. Node.js, Remotion, Python paket) | Agent s radionicom podnosi zahtjev za nadogradnju: CEO ga provjerava, vi dobivate ✅/❌ preko Telegrama i pod ✋ Odobrenja. Nakon vašeg „da” poslužitelj instalira i zadatak se nastavlja. Bez radionice agent samo navodi što nedostaje. | Pročitajte zahtjev i odlučite. Bez Telegrama samo preko weba. |
-| AI CEO-a (kod zahtjeva za nadogradnju) | Zahtjev stiže izravno vama uz napomenu „Nema CEO-a s AI” ili „CEO nije dostupan”. | Odlučite sami ili dodijelite CEO-u AI. |
+| AI CEO-a (kod zahtjeva za nadogradnju) | Zahtjev stiže izravno vama uz napomenu „No CEO with AI” ili „CEO not reachable”. | Odlučite sami ili dodijelite CEO-u AI. |
 | `werkstatt.py` (programska datoteka) | Hyperstead se ne pokreće (pogreška pri uvozu). | Ponovno pokrenite `git pull`, datoteka je dio programa. |
 | `growth.py` (programska datoteka) | Hyperstead se ne pokreće (pogreška pri uvozu). | Ponovno pokrenite `git pull`, datoteka je dio programa. |
-| Svijet projekta nikad nije odabran | Projekt prikazuje svijet svemira s njegovim razinama i pojmovima. | Ništa ne treba raditi. ⚛️ Atom u izboru grafike prebacuje na svijet Atom, 🌌 Weltall natrag. |
+| Svijet projekta nikad nije odabran | Projekt prikazuje svijet svemira s njegovim razinama i pojmovima. | Ništa ne treba raditi. Svjetovi Svemir i Atom više se ne nude u izborniku grafike. |
 | Datoteke logotipa u `static/logo/` | Bočna traka i stranica za prijavu prikazuju prazno polje za sliku, kartica preglednika nema ikonu. Sve ostalo radi normalno. | Ponovno pokrenuti `git pull`. Logotip se može ponovno izraditi s `docs/logo/logo_blender.py` ([upute](docs/logo-prompt.md), na njemačkom). |
 | Raniji svijet (Ceh, Tycoon, Gizmo grad) spremljen u projektu | Projekt automatski prikazuje svemir. Bodovi, razina i rangovi ostaju isti, mijenjaju se samo nazivi i ikone. | Ništa ne treba raditi. |
-| Danas nema poziva umjetne inteligencije (operativni centar, 💶 u traci) | Prikazuje 0 $ odnosno „keine Aufrufe“. | Ništa nije potrebno. Troškovi su procjene, vlastite cijene putem `PCL_PRICES` u `.env`. |
+| Danas nema poziva umjetne inteligencije (operativni centar, 💶 u traci) | Prikazuje 0 $ odnosno „no calls“. | Ništa nije potrebno. Troškovi su procjene, vlastite cijene putem `PCL_PRICES` u `.env`. |
 | Tablica `firm_links` (starija `data.db`) | Pri pokretanju se automatski stvara prazna: u gradu i kozmosu još nema suradnje. | Ništa. |
 | Logotip tvrtke `.logo.png` / `.logo.jpg` / `.logo.webp` u mapi projekta | Tvrtka u gradu i kozmosu nema logotip, sve ostalo radi normalno. | U prozoru s informacijama o tvrtki (🏙/🌌, dodirni tvrtku) pod „Logo“ odaberi 🖼 Hochladen: PNG, JPEG ili WebP, najviše 2 MB. |
+| Još nema projekta | Grad i kosmos prikazuju "No company yet". | Gumbom "＋ New project" s lijeve strane napravite tvrtku (praznu ili iz predloška). |
 | Preglednik ništa ne sprema (privatni prozor) | Svijetlo/tamno, odabrana grafika (svemir, vrsta organigrama, atom, nacrt), pomaknute kartice organigrama, pokreti i način pomoći pri svakom se učitavanju vraćaju na zadano. | Koristite običan prozor; podaci projekata nisu pogođeni. |
-| Agenti u nacrtu leže jedan preko drugoga (npr. svi na istom mjestu) | Linije veza se ne vide. Pri otvaranju nacrta Hyperstead ih jednom automatski razmješta i to javlja. | Ništa, ili pritisnite „🗂 Ordnen“. |
+| Agenti u nacrtu leže jedan preko drugoga (npr. svi na istom mjestu) | Linije veza se ne vide. Pri otvaranju nacrta Hyperstead ih jednom automatski razmješta i to javlja. | Ništa, ili pritisnite „🗂 Arrange“. |
 | Povijest za gumb ← (prethodna grafika) | Povijest postoji samo u otvorenoj kartici. Nakon ponovnog učitavanja ili u novoj kartici ← je sivo dok ponovno ne promijenite grafiku. | Ništa. |
 | Neki drugi jezik osim engleskog na nadzornoj ploči | Nadzorna ploča, upute agentima, predlošci i sustavski tekstovi su na engleskom. Ono što sami upisujete u polja ostaje na vašem jeziku, a agenti odgovaraju i izvještavaju na jeziku na kojem pišete. | Neka preglednik prevede (Chrome/Edge: desni klik → „Prevedi“). |
 | Nema prave umjetne inteligencije u projektu (samo `mock` ili bez pružatelja) | Fiksne poruke u Telegramu i u poštanskom sandučiću (npr. „✅ Done“, napomene o odobrenju) ostaju na engleskom jer ih nema tko prevesti. Izvješća agenata ipak stižu na vašem jeziku čim agenti imaju umjetnu inteligenciju. | Dajte CEO-u (ili drugom agentu) pravu umjetnu inteligenciju; od tada ona automatski prevodi poruke. |
@@ -291,7 +293,7 @@ S `TRUST_PROXY=1` aplikacija se pokreće samo ako `APP_TOKEN` ima najmanje 12 zn
 Nadređeni dobiva zadatak i **planira** (raspoređuje podzadatke) ili ga sam obavlja. Čim su svi
 suradnici gotovi, on se ponovno budi, **čita njihova izvješća**, vraća nedostatke uz povratnu informaciju ili
 sažima sve i izvještava svog nadređenog. Tako se rezultat penje kroz koliko god razina.
-Status „Wartet auf Team“ (čeka tim) znači: nadređeni čeka svoje ljude. U kartici zadataka vidite cijelo stablo.
+Status „Waiting for team“ (čeka tim) znači: nadređeni čeka svoje ljude. U kartici zadataka vidite cijelo stablo.
 
 ## Svemir i rast
 
@@ -308,17 +310,17 @@ sučelja. Agenti uvijek rade s jasnim pojmovima (zadatak, izvješće, tim), tako
 
 Bodovi se zovu zvjezdana prašina, zadaci se zovu misije. Raniji svjetovi Ceh, Tycoon i Gizmo grad više ne postoje; postojeći projekti automatski prikazuju svemir, bodovi i razine ostaju sačuvani. Sučelje prikazuje nazive na njemačkom.
 
-**Svijet Atom:** Osim svemira postoji i drugi svijet. Ako u izboru grafike odabereš ⚛️ Atom, za projekt vrijedi svijet Atom, a s 🌌 Weltall ponovno svemir (i u traci rasta, pri proslavi i u Telegramu). Velika kugla = najviše vodstvo, srednje kugle = voditelji timova, male kugle = zaposlenici. Razine: ✴️ Kvark → ⚛️ Atom → 🧪 Molekula → 💎 Kristal → 🧬 Stanica; rangovi: · Neutrino → ⚡ Elektron → 🔴 Proton → 💠 Nukleon (sučelje prikazuje njemačke nazive). Bodovi se zovu energija, zadaci pokusi. Bodovi i granice razina isti su u oba svijeta. Organigram i nacrt zadržavaju posljednji odabrani svijet.
+**Svijet Atom:** Napomena: prikazi Svemir i Atom više se ne nude u izborniku grafike (samo Classic i Modern); ovo opisuje crtež koji je još u kodu. Osim svemira postoji i drugi svijet. Ako u izboru grafike odabereš ⚛️ Atom, za projekt vrijedi svijet Atom, a s 🌌 Weltall ponovno svemir (i u traci rasta, pri proslavi i u Telegramu). Velika kugla = najviše vodstvo, srednje kugle = voditelji timova, male kugle = zaposlenici. Razine: ✴️ Kvark → ⚛️ Atom → 🧪 Molekula → 💎 Kristal → 🧬 Stanica; rangovi: · Neutrino → ⚡ Elektron → 🔴 Proton → 💠 Nukleon (sučelje prikazuje njemačke nazive). Bodovi se zovu energija, zadaci pokusi. Bodovi i granice razina isti su u oba svijeta. Organigram i nacrt zadržavaju posljednji odabrani svijet.
 
 **Upotreba:** Traka iznad površine prikazuje razinu, napredak do sljedeće razine i najvažnije brojeve. Desno prebacujete između svijetlog i tamnog prikaza (🌓) i s ⓘ otvarate pregled razina, bodova i rangova. Rang svakog agenta prikazan je kao ikona na njegovoj kartici.
 
-**Sunčev sustav:** Padajući gumb desno u traci (npr. „🌌 Weltall ▾“) bira grafiku: 🌌 svemir, tri organigrama, ⚛️ atom ili 📐 nacrt (uređivač čvorova). Svemir je nacrtan detaljno: sunce sa zrakama i pjegama, planeti s noćnom stranom, oblacima ili pojasevima, mjeseci s kraterima, pojas asteroida, daleke galaktike i Mliječni put. Planeti i mjeseci polako kruže, a planeti i sunce pritom se okreću i oko vlastite osi (oblaci, pojasevi i sunčeve pjege klize preko površine, sunčev vijenac zraka kruži), a u fazi galaktike okreće se i spirala u pozadini; kad mišem pokažete na jedan od njih, sve se zaustavi da biste ga lako pogodili. Plavi prsten koji pulsira znači "radi", žuti prsten "čeka vaše odobrenje", crveni prsten "pogreška", ljubičasti isprekidani prsten "čeka svoj tim". Dodir na Sunce ili planet prikazuje tim i radnje, dodir na mjesec otvara agenta. Sa svakom razinom nebo je punije, od zvjezdanog skupa svijetle maglice, a kao galaktika pojavljuje se spirala. Svemir ostaje taman i u svijetlom prikazu. Na telefonu se umjesto karte prikazuje popis: Sunce, ispod njega svaki planet sa svojim mjesecima. Pokreti se isključuju kad uređaj traži „smanji pokrete“.
+**Sunčev sustav:** Padajući gumb desno u traci (npr. “Org chart: Tree ▾”) bira grafiku: tri organigrama, nacrt (uređivač čvorova) ili pod Modern sve tvrtke kao grad, kosmos ili molekule. Svemir je nacrtan detaljno: sunce sa zrakama i pjegama, planeti s noćnom stranom, oblacima ili pojasevima, mjeseci s kraterima, pojas asteroida, daleke galaktike i Mliječni put. Planeti i mjeseci polako kruže, a planeti i sunce pritom se okreću i oko vlastite osi (oblaci, pojasevi i sunčeve pjege klize preko površine, sunčev vijenac zraka kruži), a u fazi galaktike okreće se i spirala u pozadini; kad mišem pokažete na jedan od njih, sve se zaustavi da biste ga lako pogodili. Plavi prsten koji pulsira znači "radi", žuti prsten "čeka vaše odobrenje", crveni prsten "pogreška", ljubičasti isprekidani prsten "čeka svoj tim". Dodir na Sunce ili planet prikazuje tim i radnje, dodir na mjesec otvara agenta. Sa svakom razinom nebo je punije, od zvjezdanog skupa svijetle maglice, a kao galaktika pojavljuje se spirala. Svemir ostaje taman i u svijetlom prikazu. Na telefonu se umjesto karte prikazuje popis: Sunce, ispod njega svaki planet sa svojim mjesecima. Pokreti se isključuju kad uređaj traži „smanji pokrete“.
 
-**Organigram:** prikazuje tim u tri vrste, svaka je zasebna stavka u izboru grafike: ⬇ Baum (stablo odozgo prema dolje, zaposlenici bez vlastitog tima stoje jedan ispod drugoga), ➡ Gliederung (jedan redak po agentu, uvučeno po razini, najbolje za telefon) i ◎ Kreis (krug, vodstvo u sredini, svaka razina jedan prsten). Boja pokazuje stanje: zeleno spremno, plavo radi, žuto čeka vaše odobrenje, crveno pogreška, ljubičasto čeka tim, sivo pauzirano. Dodir otvara agenta. Kartice se mogu povlačiti, linije ih prate; uređaj to pamti po projektu i vrsti, „↺ Anordnung zurücksetzen“ vraća raspored. Ako karticu spustite na drugu (ili u nacrtu agenta na drugog agenta), Hyperstead najprije pita i tek ga onda stavlja u taj tim.
+**Organigram:** prikazuje tim u tri vrste, svaka je zasebna stavka u izboru grafike: ⬇ Baum (stablo odozgo prema dolje, zaposlenici bez vlastitog tima stoje jedan ispod drugoga), ➡ Gliederung (jedan redak po agentu, uvučeno po razini, najbolje za telefon) i ◎ Kreis (krug, vodstvo u sredini, svaka razina jedan prsten). Boja pokazuje stanje: zeleno spremno, plavo radi, žuto čeka vaše odobrenje, crveno pogreška, ljubičasto čeka tim, sivo pauzirano. Dodir otvara agenta. Kartice se mogu povlačiti, linije ih prate; uređaj to pamti po projektu i vrsti, „↺ Reset layout“ vraća raspored. Ako karticu spustite na drugu (ili u nacrtu agenta na drugog agenta), Hyperstead najprije pita i tek ga onda stavlja u taj tim.
 
 **Atom:** ⚛️ prikazuje tim kao molekularnu mrežu: sjajne kugle povezane štapićima. Velika plava kugla je najviše vodstvo, srednje šarene kugle su voditelji timova, male kugle zaposlenici. Svaka kugla je štapićem vezana za svog nadređenog, pa se hijerarhija vidi po veličini i vezama; sve je raspoređeno slobodno i prostorno kao model molekule, a ne u krutim redovima. Svaka tvrtka ima vlastitu molekulu: oblik i boje proizlaze iz tvrtke, velika kugla nosi boju projekta. U modernom prikazu ⚛️ Molekül prikazuje sve tvrtke kao molekule jednu pokraj druge; partnerske tvrtke povezane su svijetlećim štapićem između svojih vodstava, po kojem putuju iskre (više kad obje rade). Dodir uvećava molekulu, svaka kugla otvara odjel i agenta. Grafika miruje kako bi se mogla čitati na miru. Kao svijet, slika raste s razinom: kao kvark u jezgri svijetle tri kvarka, od molekule su susjedni atomi povezani vezama, od kristala u pozadini leži atomska rešetka, kao stanica dodaju se stanična stijenka i dvostruka spirala DNK. Stanje i dodir rade kao u organigramu.
 
-**Englesko sučelje, natrag i mjeseci:** Nadzorna ploča je na međunarodnom engleskom; ostale jezike daje prevoditelj preglednika. Neki nazivi gumba u ovim uputama još su stari njemački (npr. „🗂 Ordnen“ se sada zove „🗂 Arrange“). Gumb **←** lijevo od izbornika grafike vraća na prethodnu grafiku, točno u dizajnu u kojem ste bili (i natrag u otvorenu tvrtku ili odjel). U info-kartici tvrtke više nema gumba „📐 Firma öffnen“; dodir na ime izravno otvara agenta, a grafika ostaje ista. U 🌌 Kozmosu suradnici su mjeseci koji kruže oko svog planeta (odjela); planeti i sunca se uz to okreću oko vlastite osi, a mjeseci samo kruže oko svog planeta.
+**Englesko sučelje, natrag i mjeseci:** Nadzorna ploča je na međunarodnom engleskom; ostale jezike daje prevoditelj preglednika. Neki nazivi gumba u ovim uputama još su stari njemački (npr. Gumb **←** lijevo od izbornika grafike vraća na prethodnu grafiku, točno u dizajnu u kojem ste bili (i natrag u otvorenu tvrtku ili odjel). U info-kartici tvrtke više nema gumba „📐 Firma öffnen“; dodir na ime izravno otvara agenta, a grafika ostaje ista. U 🌌 Kozmosu suradnici su mjeseci koji kruže oko svog planeta (odjela); planeti i sunca se uz to okreću oko vlastite osi, a mjeseci samo kruže oko svog planeta.
 
 **Sve na engleskom, komunikacija na vašem jeziku:** Sve što Hyperstead sam piše sada je na engleskom: sučelje, savjeti pri prelasku mišem, poruke o pogreškama, pitanja za potvrdu, upute agentima, predlošci tvrtki, poruke alata i samotest. Ono što sami unosite (zadaci, chat, ciljevi, imena) ostaje na vašem jeziku. Agenti odgovaraju, izvještavaju i izrađuju datoteke za vas na jeziku na kojem pišete, bilo da je to njemački, turski, albanski, svahili, ruski ili kineski; zakazani zadaci i kontrolni obilazak također prate vaš posljednji jezik. Fiksne poruke u Telegramu i u poštanskom sandučiću umjetna inteligencija vašeg CEO-a automatski prevodi na vaš jezik (jednom po tekstu, zatim iz predmemorije). Telegram naredbe sada se zovu /new, /project, /file i /help (stare njemačke i dalje rade). U izborniku grafike grupa „Classic“ prikazuje samo tekst bez simbola („Org chart: Tree“, „Org chart: Outline“, „Org chart: Circle“, „Blueprint“). Mape i ključevi koje agenti već poznaju (npr. `wissen/`, `film/film.json` s njemačkim ključevima) ostali su isti. Rust paket sada sadrži `README.txt`, `TEST_REPORT.txt`, `source/` i `program/`.
 
@@ -326,7 +328,7 @@ Bodovi se zovu zvjezdana prašina, zadaci se zovu misije. Raniji svjetovi Ceh, T
 
 **Napredovanje i upravljanje:** Kad projekt dosegne novi stupanj, pojavi se kratka proslava s novim stupnjem i sljedećim ciljem (Telegram šalje istu poruku). Kad agent napreduje u rangu, pojavi se kratka obavijest. Pod ⓘ u traci možete za ovaj uređaj isključiti pokrete i efekte proslave; ako uređaj traži „smanji pokrete“, sve ionako ostaje mirno. Svi se prozori zatvaraju tipkom Esc, Sunce, planeti i mjeseci u svemiru mogu se koristiti tipkama Tab i Enter.
 
-**Upute i pomoć:** 📖 Anleitung na vrhu bočne trake otvara upute za uporabu izravno na nadzornoj ploči (poglavlja na rasklapanje, s pretraživanjem, bez preuzimanja, radi i izvanmrežno). ⓘ na vrhu prozora vodi do odgovarajućeg poglavlja. Svaki gumb prikazuje kratko objašnjenje kad mišem pokažete na njega. Na mobitelu u uputama uključite način pomoći: prvi dodir gumba ga objašnjava, drugi ga izvršava.
+**Upute i pomoć:** 📖 Guide na vrhu bočne trake otvara upute za uporabu izravno na nadzornoj ploči (poglavlja na rasklapanje, s pretraživanjem, bez preuzimanja, radi i izvanmrežno). ⓘ na vrhu prozora vodi do odgovarajućeg poglavlja. Svaki gumb prikazuje kratko objašnjenje kad mišem pokažete na njega. Na mobitelu u uputama uključite način pomoći: prvi dodir gumba ga objašnjava, drugi ga izvršava.
 
 **Bodovi:** isporuka prihvaćena iz prve +10, nakon ispravka +5, zadatak označen kao završen u pošti +20,
 neuspješno −3, zatražena dorada −5. Razine od 0 / 100 / 300 / 700 / 1500 bodova. Postojeći projekti automatski
@@ -356,9 +358,9 @@ gotovi (najviše `PCL_MAX_TOOL_STEPS`). Prava po agentu: **pretraga interneta**,
 Sve što se napravi nalazi se pod `workspace/<id-projekta>/`. U bočnoj traci **📁 Dateien** prikazuju se datoteke, otvara se `index.html`
 kao web stranica (izolirani sandbox) i preuzima sve kao ZIP. Poveznica sadrži tajni ključ.
 
-**Projekti i prikazi:** U bočnoj traci ispod „Projekte“ veliki gumb „＋ Neues Projekt“ otvara prozor: prazan projekt ili gotova tvrtka iz predloška. Izbornik grafika gore desno ima dvije skupine: **Klassik** (tri organigrama stablo, pregled i krug te nacrt) i **Modern** (sve tvrtke kao grad, kozmos ili molekula). Svemir i molekula za pojedinačni projekt više ne postoje; tko ih je posljednji put imao otvorene, dolazi u organigram. Gornja traka s projektom i rastom ostaje i u gradu, kozmosu i molekuli, kao i traka „Agent hinzufügen“ ispod nje (novi agenti idu u projekt odabran gore). Grad, kozmos i molekula mogu se okretati i naginjati: gumbi ⟲ ⟳ ⤵ ⤴ ⌂ dolje desno, povlačenje desnom tipkom miša ili dva prsta na mobitelu. Kad lijevo odabereš projekt, njegova tvrtka zasvijetli u gradu, kozmosu i molekuli, a ostale se povuku. U gradu je svaka tvrtka zgrada vlastitog stila, a svjetla se pale dok tvrtka radi; kad je otvoriš, svaka razina hijerarhije ima svoj kat, koliko god duboko tvrtka ide: na najvišem katu uprava, ispod voditelji odjela, pa svaka sljedeća razina; svaka osoba ima svoj ured, pa odjel s 4 osobe na jednoj razini ondje ima 4 ureda u svojoj boji; svaki kat slaže svoje urede centrirano i s jednakim razmacima, odjeli ostaju zajedno, a zgrada je široka koliko i njezin najpuniji kat, a desno je organigram. S uspjehom zgrada raste: više razina daje više katova, od razine 2 dolaze aneks i krovni vrt, od razine 3 antena, od razine 4 heliodrom. U kozmosu je svaka tvrtka Sunčev sustav (Sunce = uprava, planeti = odjeli); Sunce raste s razinom i timom, planeti kruže i na mobitelu i zaustave se ispod prsta, a imena ostaju čitljiva kad se prikaz udalji. Svaka tvrtka može u prozoru s informacijama pod „Logo“ dobiti vlastiti logotip (🖼 Hochladen, PNG/JPEG/WebP do 2 MB): u gradu stoji kao svijetleći znak na krovu, u kozmosu usred Sunca.
+**Projekti i prikazi:** U bočnoj traci ispod „Projekte“ veliki gumb „＋ New project“ otvara prozor: prazan projekt ili gotova tvrtka iz predloška. Izbornik grafika gore desno ima dvije skupine: **Klassik** (tri organigrama stablo, pregled i krug te nacrt) i **Modern** (sve tvrtke kao grad, kozmos ili molekula). Svemir i molekula za pojedinačni projekt više ne postoje; tko ih je posljednji put imao otvorene, dolazi u organigram. Gornja traka s projektom i rastom ostaje i u gradu, kozmosu i molekuli, kao i traka „Add agent“ ispod nje (novi agenti idu u projekt odabran gore). Grad, kozmos i molekula mogu se okretati i naginjati: gumbi ⟲ ⟳ ⤵ ⤴ ⌂ dolje desno, povlačenje desnom tipkom miša ili dva prsta na mobitelu. Kad lijevo odabereš projekt, njegova tvrtka zasvijetli u gradu, kozmosu i molekuli, a ostale se povuku. U gradu je svaka tvrtka zgrada vlastitog stila, a svjetla se pale dok tvrtka radi; kad je otvoriš, svaka razina hijerarhije ima svoj kat, koliko god duboko tvrtka ide: na najvišem katu uprava, ispod voditelji odjela, pa svaka sljedeća razina; svaka osoba ima svoj ured, pa odjel s 4 osobe na jednoj razini ondje ima 4 ureda u svojoj boji; svaki kat slaže svoje urede centrirano i s jednakim razmacima, odjeli ostaju zajedno, a zgrada je široka koliko i njezin najpuniji kat, a desno je organigram. S uspjehom zgrada raste: više razina daje više katova, od razine 2 dolaze aneks i krovni vrt, od razine 3 antena, od razine 4 heliodrom. U kozmosu je svaka tvrtka Sunčev sustav (Sunce = uprava, planeti = odjeli); Sunce raste s razinom i timom, planeti kruže i na mobitelu i zaustave se ispod prsta, a imena ostaju čitljiva kad se prikaz udalji. Svaka tvrtka može u prozoru s informacijama pod „Logo“ dobiti vlastiti logotip (🖼 Hochladen, PNG/JPEG/WebP do 2 MB): u gradu stoji kao svijetleći znak na krovu, u kozmosu usred Sunca.
 
-**Predlošci tvrtki** (gumb „＋ Neues Projekt“): *Web agencija*, *Računovodstvo/porezni ured*, *Uvoz/izvoz trgovina* stvaraju projekt,
+**Predlošci tvrtki** (gumb „＋ New project“): *Web agencija*, *Računovodstvo/porezni ured*, *Uvoz/izvoz trgovina* stvaraju projekt,
 organigram, radne upute i prava u potpunosti. Vlastite tvrtke: napišite cilj projekta („vi ste …“, zemlja,
 djelatnost), postavite agente i prava. Agenti dobivaju datum i cilj projekta i trebaju prvo istražiti stvari koje se mijenjaju (zakoni,
 cijene) i navesti izvore.
@@ -392,11 +394,11 @@ Uz pravo **izrade medija i dokumenata** (i `ffmpeg`/fontovi na Pi-ju, vidi `inst
 **Samokontrola:** kada agent napravi PDF, poslužitelj ga nakon toga prikaže kao sliku (pregled svih stranica + 1. stranica uvećano) i pošalje
 mu uz obvezu da provjeri svaki zahtjev zadatka i ispravi pogreške prije nego što javi (`PCL_SELF_CHECKS`, zadano 1, 0 = isključeno).
 
-**Vlastite datoteke** (video za obradu, PDF-ovi, slike, rasporedi, tekstovi) otpremate u „📁 Dateien dieses Projekts“ ili ih šaljete
+**Vlastite datoteke** (video za obradu, PDF-ovi, slike, rasporedi, tekstovi) otpremate u „📁 Files of this project“ ili ih šaljete
 izravno u **💬 Chat** s agentom (gumb 📎, povucite ih ili zalijepite sliku, više odjednom). Završe u
 `input/` (ime se čisti, postojeće datoteke se nikada ne prepisuju nego postaju `name-1.png` …, granica `PCL_MAX_UPLOAD_MB`);
 u chatu agent dobiva **sadržaj** izravno uz poruku (tekstovi, PDF-ovi, Word kao tekst, slike kao slike, ako model razumije slike;
-inače prepoznavanje teksta). S **📂 aus input/** dodajete datoteke koje već stoje tamo, ili jednostavno upišete ime datoteke u poruku, a „Als Auftrag erteilen“ (pošalji kao zadatak) to prosljeđuje timu; gotovi rezultati su u `output/`, slike u `assets/`. Iskrena ograničenja: bez `video_generate` **nema AI generiranja videa** (tekst u video);
+inače prepoznavanje teksta). S **📂 aus input/** dodajete datoteke koje već stoje tamo, ili jednostavno upišete ime datoteke u poruku, a „Give as task“ (pošalji kao zadatak) to prosljeđuje timu; gotovi rezultati su u `output/`, slike u `assets/`. Iskrena ograničenja: bez `video_generate` **nema AI generiranja videa** (tekst u video);
 „animacija“ tada znači: scene kao slike uz AI slike + zum/pomicanje + govornik + montaža, ili prava animacija likova uz Blender preko alata `film`. Uz `video_generate` nastaju
 kratki isječci; duži filmovi se sastavljaju s `video_edit op=concat`. MagicLight i Flow nemaju API: sa `site_macro` robot u pregledniku ih koristi sa vašim računom, inače videe napravljene tamo otpremite u `input/`. Model iza Flow-a (Veo 3.1) dostupan je i preko fal: `FAL_VIDEO_MODEL=fal-ai/veo3.1/fast`. Na Raspberry Pi-ju
 ffmpeg radi sporo (jedna minuta 720p videa može trajati nekoliko minuta), vremensko ograničenje `PCL_FFMPEG_TIMEOUT` (zadano 1 sat po koraku).
@@ -408,7 +410,7 @@ ffmpeg radi sporo (jedna minuta 720p videa može trajati nekoliko minuta), vreme
 ## Chat i predlošci
 
 - **💬 Chat kartica** (u panelu agenta): slobodan razgovor sa svakim agentom, npr. s voditeljem *Gedankenwerkstatt*-a, za filozofiranje,
-  razvijanje ideja i preispitivanje. „📋 Als Auftrag erteilen“ prosljeđuje razgovor agentu i njegovom timu; rezultat se vraća kao objava.
+  razvijanje ideja i preispitivanje. „📋 Give as task“ prosljeđuje razgovor agentu i njegovom timu; rezultat se vraća kao objava.
   Chat radi bez alata.
 - **Predlošci tvrtki** (🏢): Web agencija, Računovodstvo/porezni ured, Uvoz/izvoz trgovina, **Animacijska agencija**, **Nakladnička kuća/agencija sadržaja**,
   **Radionica ideja**, **Istraživački ured** (pronalazi i čita PDF-ove). Pri osnivanju birate model za voditelja i suradnike.
@@ -416,10 +418,10 @@ ffmpeg radi sporo (jedna minuta 720p videa može trajati nekoliko minuta), vreme
 ## Pošta i Telegram
 
 Čim je **zadatak na vrhu** (onaj koji ste dali agentu, obično CEO-u) gotov, neuspješan ili
-blokiran, pošta je spremna za vas: u bočnoj traci „📬 Post“ i, ako je postavljeno, poruka na Telegramu s
+blokiran, pošta je spremna za vas: u bočnoj traci „📬 Mail“ i, ako je postavljeno, poruka na Telegramu s
 vrstom, zadatkom, brojevima tima i rezultatom. Lanac prava i izvješća ispod radi kao i prije.
-U pošti možete označiti poruke (pojedinačno ili „Alle auswählen“) i ukloniti ih sa „🗑 Ausgewählte löschen“;
-„🧹 Postkorb leeren“ nakon potvrde briše sve. Briše se samo pošta, zadaci, datoteke i povijest ostaju.
+U pošti možete označiti poruke (pojedinačno ili „Select all“) i ukloniti ih sa „🗑 Delete selected“;
+„🧹 Empty mailbox“ nakon potvrde briše sve. Briše se samo pošta, zadaci, datoteke i povijest ostaju.
 Bočna traka je podijeljena u kategorije koje se otvaraju i zatvaraju (Tagesgeschäft, Team & KI, Dateien & Verbindungen, Auswertung).
 
 **Postavljanje Telegrama (oko 2 minute):**
@@ -497,14 +499,14 @@ mogu nastati troškovi; bilancu po agentu vidite na čvoru.
   `wissen/firmenwissen.md` u mapi projekta. Svi `.md`/`.txt` datoteke u `wissen/` idu uz svaki zadatak i u chat (zajedno do
   `PCL_KNOWLEDGE_CHARS`, zadano 8000 znakova); ostale dokumente tamo (PDF, Word …) agenti vide kao popis i čitaju po potrebi.
 - **Pamćenje po agentu**: agent na kraju zadatka može zapamtiti najviše 5 trajnih činjenica (preference, odluke, klijenti,
-  što je radilo). One se prikazuju u panelu agenta pod „🧠 Gedächtnis“ (pamćenje); možete ih mijenjati ili brisati. Granica `PCL_MEMORY_CHARS`
+  što je radilo). One se prikazuju u panelu agenta pod „🧠 Memory“ (pamćenje); možete ih mijenjati ili brisati. Granica `PCL_MEMORY_CHARS`
   (4000); najstariji unosi prvi ispadaju. Svaka nova bilješka je u dnevniku revizije.
 
 ## Ciljevi, odobrenja, upotreba
 
 - **🎯 Ciljevi**: ciljevi i podciljevi po projektu. Pri dodjeljivanju zadatka neobavezno birate cilj; delegirani zadaci ga nasljeđuju.
   Nadređeni vide ciljeve s napretkom u promptu, a CEO-ov kontrolni obilazak to izvješćuje. Označeno = ostvareno.
-- **Prvo pitaj** (prozor ✋ Freigaben, po projektu, zadano isključeno): *Odobri plan najvišeg nadređenog* zadržava novi zadatak
+- **Prvo pitaj** (prozor ✋ Approvals, po projektu, zadano isključeno): *Odobri plan najvišeg nadređenog* zadržava novi zadatak
   dok ne odobrite plan raspodjele; *Odobri izmjene tima* („Teamänderungen freigeben“) zadržava CEO-ovo zapošljavanje, otpuštanje i mijenjanje suradnika. Odobravanje/odbijanje i preko
   Telegram gumba. Odbijeno = zadatak završi kao ❌ u pošti; vaš odgovor na to tjera nadređenog da ponovno planira.
   Odobrenja za shell i dalje idu samo preko weba.
@@ -521,14 +523,14 @@ Radi bez interneta i bez ključeva (pružatelj `mock`, vlastita baza).
 
 ## 🔌 Veze (webhookovi)
 
-- **Izlaz:** u prozoru 🔌 Verbindungen unosite adrese (n8n, Zapier, Make, vlastita usluga; i `http://127.0.0.1:…` na Pi-ju),
+- **Izlaz:** u prozoru 🔌 Connections unosite adrese (n8n, Zapier, Make, vlastita usluga; i `http://127.0.0.1:…` na Pi-ju),
   s opisom za agente i neobaveznim zaglavljima. Tajne pripadaju `.env` i koriste se kao `${NAME}`.
-  Agenti s pravom **„Darf Verbindungen nutzen“** (smije koristiti veze) zovu ih alatom `call_connection`; agent ne može mijenjati
-  adresu ni zaglavlja, samo šalje podatke. **„Nur nach meiner Freigabe“** (samo nakon mog odobrenja, zadano uključeno) svaki poziv prvo stavlja pod ✋ Freigaben.
+  Agenti s pravom **„May use connections“** (smije koristiti veze) zovu ih alatom `call_connection`; agent ne može mijenjati
+  adresu ni zaglavlja, samo šalje podatke. **„Only call after my approval“** (samo nakon mog odobrenja, zadano uključeno) svaki poziv prvo stavlja pod ✋ Approvals.
   **„Bei Post benachrichtigen“** (obavijesti u pošti) šalje svaki gotov rezultat zadatka na vrhu kao JSON na adresu. Vremensko ograničenje `PCL_CONN_TIMEOUT` (30 s).
 - **Ulaz:** uključite „Aufträge von außen“ (zadaci izvana), zatim `POST /hook/<projekt>/<ključ>` s `{"text": "…", "agent": "neobavezno"}`
   prima zadatak za nadređenog (npr. iz n8n, iOS prečaca ili DEXTER-a). Bez prijave; štiti ga samo ključ u adresi.
-  „Neuen Schlüssel“ (novi ključ) poništava staru adresu. Dostupna je samo onoliko koliko je dostupan i sam Hyperstead (npr. samo u tailnetu).
+  „New key“ (novi ključ) poništava staru adresu. Dostupna je samo onoliko koliko je dostupan i sam Hyperstead (npr. samo u tailnetu).
 
 ## ☁️ Prijenos u oblak (GitHub, Google Drive, OneDrive, Telegram)
 
@@ -548,9 +550,9 @@ Radi bez interneta i bez ključeva (pružatelj `mock`, vlastita baza).
 
 ## 🖨 Ispis večernjih izvještaja
 
-👑 Kontrolni obilazak CEO-a na kraju radnog dana piše večernji izvještaj. U 📬 pošti i u zadacima CEO-a nalazi se gumb **🖨 Drucken**: jedan klik, kratka potvrda, zatim ide na pisač. Pisač birate pod **🖨 Drucker** u bočnoj traci (Pi: mrežni pisač preko CUPS-a, `./install.sh --print`; Windows: dijeljeni pisač pod Pisači i skeneri). U istom prozoru CEO dopušta ili zabranjuje ispis (pravo „Darf Abendberichte drucken”). **Testdrucker (Datei)** samo sprema ispis kao tekstualnu datoteku u `workspace/.druck/`. Upute: [docs/drucken.md](docs/drucken.md) (na njemačkom).
+👑 Kontrolni obilazak CEO-a na kraju radnog dana piše večernji izvještaj. U 📬 pošti i u zadacima CEO-a nalazi se gumb **🖨 Print**: jedan klik, kratka potvrda, zatim ide na pisač. Pisač birate pod **🖨 Printer** u bočnoj traci (Pi: mrežni pisač preko CUPS-a, `./install.sh --print`; Windows: dijeljeni pisač pod Pisači i skeneri). U istom prozoru CEO dopušta ili zabranjuje ispis (pravo „May print evening reports”). **Testdrucker (Datei)** samo sprema ispis kao tekstualnu datoteku u `workspace/.druck/`. Upute: [docs/drucken.md](docs/drucken.md) (na njemačkom).
 
-**Pravi pisač?** U prozoru 🖨 Drucker odaberite pisač i kliknite **🧾 Testseite drucken** (ispiši probnu stranicu). Stranica navodi pisač, računalo i vrijeme i sadrži posebna slova. Ako izađe na pravom pisaču, kliknite **Speichern** (spremi). Sama probna stranica ništa ne sprema i ne treba joj pravo CEO-a na ispis.
+**Pravi pisač?** U prozoru 🖨 Printer odaberite pisač i kliknite **🧾 Testseite drucken** (ispiši probnu stranicu). Stranica navodi pisač, računalo i vrijeme i sadrži posebna slova. Ako izađe na pravom pisaču, kliknite **Speichern** (spremi). Sama probna stranica ništa ne sprema i ne treba joj pravo CEO-a na ispis.
 
 ## 🌐 Pravi preglednik i ▶ pokretanje koda
 
@@ -559,7 +561,7 @@ Radi bez interneta i bez ključeva (pružatelj `mock`, vlastita baza).
   po želji snimku zaslona (vidi je kao kod `view_image`; `save` je sprema u `assets/screenshots/`). Svaki zahtjev stranice
   (skripte, okviri, XHR, WebSocketi) mora ići na javnu adresu; LAN/localhost je blokiran, WebRTC i preuzimanja su isključeni.
   Samo jedan preglednik u isto vrijeme (RAM), vremensko ograničenje `PCL_BROWSER_TIMEOUT` (30 s). Vlastiti Chromium: `PCL_BROWSER_PATH`, isključeno: `PCL_BROWSER=0`.
-- **Pokretanje koda** (`./install.sh --run`, instalira bubblewrap): pravo „Darf Code ausführen“ (smije pokretati kod, zadano isključeno) daje `run_code`.
+- **Pokretanje koda** (`./install.sh --run`, instalira bubblewrap): pravo „May run code“ (smije pokretati kod, zadano isključeno) daje `run_code`.
   Skripta radi izolirano: **bez interneta**, vidljivi su samo `/usr` i mapa projekta (samo za čitanje pod `/projekt`),
   bez `.env`-a, bez baze, bez kućne mape. Ono što skripta upiše u svoj radni direktorij završi u `output/run/<vrijeme>/`
   (najviše 50 datoteka/50 MB). Granice: `PCL_RUN_TIMEOUT` (60 s), `PCL_RUN_MEM_MB` (1024). Pokreće Python/Node sustava,
@@ -568,7 +570,7 @@ Radi bez interneta i bez ključeva (pružatelj `mock`, vlastita baza).
 
 ## 🦀 Potpuna izrada Rust programa
 
-Agentu s pravima **„Darf programmieren“**, **„Darf Dateien schreiben“** i **„Darf Code ausführen“** (smije programirati, pisati datoteke, pokretati kod) dajte zadatak kao
+Agentu s pravima **„May program“**, **„May write files“** i **„May run code“** (smije programirati, pisati datoteke, pokretati kod) dajte zadatak kao
 „Napiši mi Rust program koji …, s testovima, i isporuči gotov paket“. Agent tada radi od A do Ž:
 
 1. Pomoću `write_code` pravi Cargo projekt, npr. `rust/rechner/Cargo.toml` i `rust/rechner/src/main.rs` s testovima (`#[test]`).
@@ -627,12 +629,12 @@ različitih projekata. Agent nikada ne radi na dva zadatka odjednom, a istodobno
 Nakon instalacije i unosa ključeva `./venv/bin/python selftest.py` provjerava sve stvarne stvari koje se bez interneta nisu mogle testirati:
 web pretragu, čitanje stranica, pretragu slika i generator slika, SSRF zaštitu, svakog AI pružatelja mini zahtjevom (uključujući Ollama),
 Telegram (token bota i probna poruka na vaš ID chata), ffmpeg, glasovni izlaz, PDF s dijakriticima, OCR. Pojedinačne skupine:
-`selftest.py web | llm | telegram | media | ocr | rust | film`. Svaki redak prikazuje OK, FEHLT (neobavezno) ili FEHLER s konkretnom napomenom.
+`selftest.py web | llm | telegram | media | ocr | rust | film`. Svaki redak prikazuje OK, MISSING (neobavezno) ili ERROR s konkretnom napomenom.
 
 ## Ollama (lokalni modeli)
 
 Pružatelj „Ollama (lokal)“: ključ nije potreban, popis modela dolazi izravno iz Ollama (`ollama pull qwen2.5:1.5b`). U dijalogu „Firma aus Vorlage“ (tvrtka iz predloška)
-postoje gumbi „Alles lokal“ (sve lokalno) i „Nur Mitarbeiter lokal“ (samo suradnici lokalno); inače Ollamu birate po agentu. Ako Ollama radi na drugom računalu
+postoje gumbi „Everything local (Ollama)“ (sve lokalno) i „Only employees local (Ollama)“ (samo suradnici lokalno); inače Ollamu birate po agentu. Ako Ollama radi na drugom računalu
 (npr. laptopu), postavite `OLLAMA_URL` na njegovu adresu. Mali modeli (3B) su na Pi-ju spori i često loše drže protokol alata;
 za nadređene jak model, lokalno prije svega za jednostavne suradnike ili chat.
 
@@ -650,22 +652,22 @@ Na Pi 4 računajte s nekoliko riječi u sekundi i nekoliko minuta do prve riječ
 ## Claude i ChatGPT preko vaše pretplate (CLI umjesto API ključa)
 
 U `.env`: `PCL_ALLOW_CLI=1`. Programe sami instalirate i jednom prijavljujete na Pi-ju (upute proizvođača:
-Claude Code `claude`, OpenAI Codex `codex`; prijava s vašom pretplatom). Nakon toga se „Claude (CLI, dein Abo)“ i „ChatGPT (Codex-CLI, dein Abo)“
+Claude Code `claude`, OpenAI Codex `codex`; prijava s vašom pretplatom). Nakon toga se „Claude (CLI, your subscription)“ i „ChatGPT (Codex CLI, your subscription)“
 pojavljuju u svim popisima pružatelja. Poslužitelj ih poziva bez shella, u praznoj mapi i **bez naših API ključeva u okruženju**
 (inače bi `claude` naplaćivao API ključ umjesto pretplate). Ograničenja: sporije od API-ja (pokretanje programa po odgovoru), vrijede limiti pretplate
 (mnogo agenata = brzo do limita), a CLI programi imaju vlastite alate; po potrebi prilagodite naredbu preko `PCL_CLI_CLAUDE` / `PCL_CLI_CODEX`.
 
 ## Model nestao? Prebacite agente
 
-Hyperstead svakih 6 sati (`PCL_MODEL_CHECK_HOURS`) provjerava postoje li modeli agenata još kod pružatelja i primjećuje i kada poziv javi „Modell nicht gefunden“ (model nije pronađen). Tada stiže Telegram poruka, zadatak pada uz jasnu napomenu, a u izborniku **⚠ Modelle** sve pogođene agente prebacujete na drugi model jednim klikom.
+Hyperstead svakih 6 sati (`PCL_MODEL_CHECK_HOURS`) provjerava postoje li modeli agenata još kod pružatelja i primjećuje i kada poziv javi „Modell nicht gefunden“ (model nije pronađen). Tada stiže Telegram poruka, zadatak pada uz jasnu napomenu, a u izborniku **⚠ Models** sve pogođene agente prebacujete na drugi model jednim klikom.
 
 ## Veliki timovi
 
-Nadređeni može imati koliko god želite suradnika. U panelu nadređenog (Postavke) pod **Unterstellte Mitarbeiter** (podređeni suradnici) označite sve potvrdnim poljima i spremite dodjelu. Alternativno: povucite donju točku nadređenog na suradnika. Gumb **🗂 Ordnen** (poredaj) izrađuje cijeli organigram (skupine od 6 i više suradnika u redovima po 5).
+Nadređeni može imati koliko god želite suradnika. U panelu nadređenog (Postavke) pod **Direct reports** (podređeni suradnici) označite sve potvrdnim poljima i spremite dodjelu. Alternativno: povucite donju točku nadređenog na suradnika. Gumb **🗂 Arrange** (poredaj) izrađuje cijeli organigram (skupine od 6 i više suradnika u redovima po 5).
 
 ## CEO sam sastavlja svoj tim
 
-CEO iz palete ima pravo **„Darf sein Team selbst zusammenstellen“** (smije sam sastaviti svoj tim, `recruit`). Ako još nema suradnike i dobije zadatak, analizira ga i stvara suradnike s ulogom, radnim uputama i linijama izvješćivanja (do 20, uključujući voditelje odjela s vlastitim timom). Novi suradnici **još nemaju AI**: dodjeljujete ih u izborniku **⚠ Modelle** (svi odjednom) ili po agentu u postavkama, pa odgovorite u **Pošti** na zadatak (npr. „Weiter“ = nastavi). Nakon toga CEO raspoređuje posao kao i obično. CEO novim suradnicima može dati samo web, slike, čitanje/pisanje datoteka, medije i programiranje, nikada shell.
+CEO iz palete ima pravo **„May build its own team“** (smije sam sastaviti svoj tim, `recruit`). Ako još nema suradnike i dobije zadatak, analizira ga i stvara suradnike s ulogom, radnim uputama i linijama izvješćivanja (do 20, uključujući voditelje odjela s vlastitim timom). Novi suradnici **još nemaju AI**: dodjeljujete ih u izborniku **⚠ Models** (svi odjednom) ili po agentu u postavkama, pa odgovorite u **Pošti** na zadatak (npr. „Weiter“ = nastavi). Nakon toga CEO raspoređuje posao kao i obično. CEO novim suradnicima može dati samo web, slike, čitanje/pisanje datoteka, medije i programiranje, nikada shell.
 
 **I kada tim već postoji**, CEO s ovim pravom smije pri svakom zadatku prilagoditi svoj tim vašim zadacima i uvjetima:
 - **Zapošljavanje**: dodatni suradnici, kao gore bez AI. Dobivate poruku na Telegramu i dodjeljujete im AI. Posao dobivaju tek od sljedećeg zadatka ili nakon vašeg „Weiter“.
@@ -678,12 +680,12 @@ Ako želite unaprijed vidjeti svaku izmjenu tima, označite u prozoru **Freigabe
 
 ## Radno vrijeme i dnevni zadaci
 
-Bočna traka **🕘 Zeitplan** (raspored): za svaki projekt postavite početak rada, kraj rada i radne dane. Za svakog suradnika možete napraviti **dnevne zadatke** (fiksno vrijeme, na početku ili na kraju rada, na odabranim danima u tjednu), npr. „svaki dan u 15:00 provjeri web stranicu“. Rezultat stiže u prikaz „Post“ kao svaka objava (i preko Telegrama). Ako je posljednji zadatak nekog rasporeda još u tijeku, ne pokreće se dvaput; ako je Pi u to vrijeme bio isključen, nadoknađuje se do 6 sati.
+Bočna traka **🕘 Schedule** (raspored): za svaki projekt postavite početak rada, kraj rada i radne dane. Za svakog suradnika možete napraviti **dnevne zadatke** (fiksno vrijeme, na početku ili na kraju rada, na odabranim danima u tjednu), npr. „svaki dan u 15:00 provjeri web stranicu“. Rezultat stiže u prikaz „Post“ kao svaka objava (i preko Telegrama). Ako je posljednji zadatak nekog rasporeda još u tijeku, ne pokreće se dvaput; ako je Pi u to vrijeme bio isključen, nadoknađuje se do 6 sati.
 Na početku rada tvrtka ponovno preuzima zadatke koji su ostali nedovršeni (nepokrenuti se pokreću, neuspješni zadaci na vrhu ponavljaju se do `PCL_MAX_RESUMES`=2 puta). Neobavezno tvrtka potpuno miruje izvan radnog vremena. Vrijeme je ono s Pi-ja; ako nije točno, u `.env` postavite `PCL_TZ=Europe/Vienna`.
 
 ## CEO kontrolni obilazak
 
-U prozoru **🕘 Zeitplan** **👑 CEO-Kontrollgang** (CEO kontrolni obilazak) postavlja se dnevni kontrolni obilazak najvišeg nadređenog (zadano: na kraju rada; ostala vremena preko „Neue tägliche Aufgabe“ + potvrdno polje *Kontrollgang*). Sustav mu prilaže **statusno izvješće** s činjenicama: po suradniku danas započeto/završeno/neuspješno/otvoreno, početci rada izvan radnog vremena, otvoreni zadaci bez početka rada, suradnici bez AI, nedovršeni zadaci i jesu li dnevni zadaci izvršeni. CEO to procjenjuje, po potrebi raspoređuje naredne zadatke svom timu i u pošti piše kontrolno izvješće. „📋 Statusbericht ansehen“ (pogledaj statusno izvješće) prikazuje činjenice bez CEO-a.
+U prozoru **🕘 Schedule** **👑 Set up CEO inspection** (CEO kontrolni obilazak) postavlja se dnevni kontrolni obilazak najvišeg nadređenog (zadano: na kraju rada; ostala vremena preko „New daily task“ + potvrdno polje *Kontrollgang*). Sustav mu prilaže **statusno izvješće** s činjenicama: po suradniku danas započeto/završeno/neuspješno/otvoreno, početci rada izvan radnog vremena, otvoreni zadaci bez početka rada, suradnici bez AI, nedovršeni zadaci i jesu li dnevni zadaci izvršeni. CEO to procjenjuje, po potrebi raspoređuje naredne zadatke svom timu i u pošti piše kontrolno izvješće. „📋 View status report“ (pogledaj statusno izvješće) prikazuje činjenice bez CEO-a.
 
 ## Projektna mapa
 
@@ -691,4 +693,4 @@ Svaki projekt ima **mapu sa svojim imenom** pod `workspace/` (npr. `workspace/Bu
 
 ## Objavljivanje web stranice
 
-U prozoru **📁 Dateien dieses Projekts** postoji **🚀 Veröffentlichen** (objavi). Objavljuje se **samo mapa `www/` u mapi projekta** (`www/index.html`, uz CSS, slike … s relativnim putanjama); sve ostalo u projektu (bilješke, `output/`, `input/`, datoteke s točkom, simboličke veze prema vanjskome) ostaje nevidljivo. Ako nema mape `www/`, isporučuje se, kao i prije, `index.html` iz mape projekta (bez `input/` i skrivenih datoteka). Stranica trajno radi na vlastitom portu (od 8800, `PCL_SITE_PORT_BASE`), zadano samo na samom Pi-ju: `http://127.0.0.1:8800/`. Za pristup u mreži u `.env` postavite `PCL_SITE_HOST=0.0.0.0`. Agenti s pravom „Darf die Webseite zur Veröffentlichung vorschlagen“ (smije predložiti web stranicu za objavu) mogu zatražiti odobrenje za „veröffentlichen“; stranicu na mreži tek vaš klik pod **Freigaben** pušta online. Promjene agenata su odmah vidljive; nakon ponovnog pokretanja stranica se sama ponovno pokreće. Za otvoreni internet ispred mora stajati obrnuti proxy s HTTPS-om (npr. Caddy), a ne mali poslužitelj.
+U prozoru **📁 Files of this project** postoji **🚀 Publish website** (objavi). Objavljuje se **samo mapa `www/` u mapi projekta** (`www/index.html`, uz CSS, slike … s relativnim putanjama); sve ostalo u projektu (bilješke, `output/`, `input/`, datoteke s točkom, simboličke veze prema vanjskome) ostaje nevidljivo. Ako nema mape `www/`, isporučuje se, kao i prije, `index.html` iz mape projekta (bez `input/` i skrivenih datoteka). Stranica trajno radi na vlastitom portu (od 8800, `PCL_SITE_PORT_BASE`), zadano samo na samom Pi-ju: `http://127.0.0.1:8800/`. Za pristup u mreži u `.env` postavite `PCL_SITE_HOST=0.0.0.0`. Agenti s pravom „May propose the website for publishing“ (smije predložiti web stranicu za objavu) mogu zatražiti odobrenje za „veröffentlichen“; stranicu na mreži tek vaš klik pod **Freigaben** pušta online. Promjene agenata su odmah vidljive; nakon ponovnog pokretanja stranica se sama ponovno pokreće. Za otvoreni internet ispred mora stajati obrnuti proxy s HTTPS-om (npr. Caddy), a ne mali poslužitelj.

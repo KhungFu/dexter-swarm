@@ -16,7 +16,7 @@ can run in parallel; each has its own companies and data.
 | --- | --- | --- |
 | Raspberry Pi / Linux (Debian, Ubuntu) | main system, full feature set | below |
 | Windows 10/11 | works, without `run_code`, building Rust only without isolation via a switch, some features need extra programs | [docs/windows.md](docs/windows.md) |
-| macOS | untested, basic functions should work | below (by hand) |
+| macOS | tested (works) | below (by hand) |
 | Own image computer (e.g. an old laptop without a graphics card) | free images with reference images for Hyperstead | [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md) |
 
 Moving from one computer to another: stop Hyperstead and copy `data.db`, the folder `workspace/` and `.env`
@@ -25,7 +25,7 @@ Moving from one computer to another: stop Hyperstead and copy `data.db`, the fol
 ### Raspberry Pi / Linux
 
 ```bash
-git clone https://github.com/KhungFu/hyperstead && cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
 ./install.sh --service     # venv, dependencies, .env with a random password, systemd service
 nano .env                  # enter API keys, then: sudo systemctl restart hyperstead
 ```
@@ -39,7 +39,7 @@ More features (video, OCR, compilers, browser): `./install.sh --all`.
 PowerShell in the Hyperstead folder:
 
 ```powershell
-git clone https://github.com/KhungFu/hyperstead; cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead; cd hyperstead
 powershell -ExecutionPolicy Bypass -File install.ps1
 notepad .env
 deploy\windows\hyperstead-start.bat
@@ -48,10 +48,10 @@ deploy\windows\hyperstead-start.bat
 What is missing under Windows, autostart and running in parallel with the Pi: [docs/windows.md](docs/windows.md).
 Update later: `git pull`, then restart.
 
-### macOS (untested)
+### macOS (tested)
 
 ```bash
-git clone https://github.com/KhungFu/hyperstead && cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
 python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
 cp .env.example .env       # set APP_TOKEN=<long password>, add API keys
 ./venv/bin/python app.py   # http://127.0.0.1:8787
@@ -148,9 +148,9 @@ is never affected, because Git does not know them.
 ### Reading the self-test
 
 - **OK:** works.
-- **FEHLT (missing):** optional; the line names the command to install it (on Windows the Windows command).
+- **MISSING (missing):** optional; the line names the command to install it (on Windows the Windows command).
   Only needed if your agents use it (e.g. video, speech output, scanned PDFs).
-- **FEHLER (error):** something you entered does not work, usually an invalid or expired key or a service that is not
+- **ERROR (error):** something you entered does not work, usually an invalid or expired key or a service that is not
   running (e.g. the image computer). The line gives the reason.
 - A single timeout at a web service is often only temporary: try again later.
 
@@ -184,57 +184,59 @@ This list is extended with every change to the program. Each row says what the s
 | --- | --- | --- |
 | `.env` | Hyperstead starts without keys and without a password, reachable only from this computer. With `HOST=0.0.0.0` the start is aborted as long as `APP_TOKEN` is empty. | `./install.sh` (Pi) or `install.ps1` (Windows) creates it with a random password. |
 | `data.db` | Is created new and empty. Companies, tasks and posts are gone. | Back it up first (see Operations). Only copy back from a backup. |
-| API key in `.env` | The provider is reported as FEHLT in the self-test and the agents do not use it. If it is set but invalid: FEHLER with HTTP 401. | Enter the key, or switch the line off with `#`. |
-| Ollama not reachable or model too big | The task fails with „Ollama nicht erreichbar“ or „Zu wenig RAM für dieses Modell“; a missing model reports „`ollama pull …`“. If Ollama delivers nothing for `OLLAMA_TIMEOUT` seconds, the request stops with this hint, without repetition. | `systemctl status ollama`, pull a smaller model (`ollama pull qwen2.5:1.5b`) and choose it in the agent, or raise `OLLAMA_TIMEOUT`. |
-| `SDCPP_URL` (with `IMAGE_PROVIDER=sdcpp`) | Image requests fail with „SDCPP_URL fehlt“ (SDCPP_URL missing). With `IMAGE_FALLBACK=pollinations` a free replacement image without references is made, with a note in the result. | Add the line to `.env`, restart Hyperstead. |
-| Image computer not reachable (laptop off, firewall, wrong IP) | As above: error „Bildrechner … nicht erreichbar“ (not reachable), with the fallback a replacement image. | Switch on the laptop, start `bildrechner-start.bat`, check the IP and the firewall. |
+| API key in `.env` | The provider is reported as MISSING in the self-test and the agents do not use it. If it is set but invalid: ERROR with HTTP 401. | Enter the key, or switch the line off with `#`. |
+| Ollama not reachable or model too big | The task fails with „Ollama not reachable“ or „Not enough RAM for this model“; a missing model reports „`ollama pull …`“. If Ollama delivers nothing for `OLLAMA_TIMEOUT` seconds, the request stops with this hint, without repetition. | `systemctl status ollama`, pull a smaller model (`ollama pull qwen2.5:1.5b`) and choose it in the agent, or raise `OLLAMA_TIMEOUT`. |
+| `SDCPP_URL` (with `IMAGE_PROVIDER=sdcpp`) | Image requests fail with „SDCPP_URL is missing“ (SDCPP_URL missing). With `IMAGE_FALLBACK=pollinations` a free replacement image without references is made, with a note in the result. | Add the line to `.env`, restart Hyperstead. |
+| Image computer not reachable (laptop off, firewall, wrong IP) | As above: error „ConnectionError“ (not reachable), with the fallback a replacement image. | Switch on the laptop, start `bildrechner-start.bat`, check the IP and the firewall. |
 | `sd-server.exe` (Windows, image computer) | `bildrechner-start.bat` shows „sd-server.exe fehlt“ (missing) and starts nothing. | Run `deploy\windows\bildrechner-einrichten.ps1`. |
 | Model file (Windows, image computer) | The start file names the missing file and does not start. If only the large language model (`Qwen3-4B-Q4_K_M.gguf`) is missing, it uses the smaller one if present. | Run the set-up script again; it only downloads the missing file. |
 | Windows runtime `VCOMP140.DLL` | `sd-server.exe` reports „VCOMP140.DLL nicht gefunden“ (not found) and aborts. | Run the set-up script again (step 3 installs the runtime), then open the start file. |
 | Firewall rule for port 1234 (Windows) | Only the Pi cannot reach the image computer. The laptop itself keeps working. | Run the command from [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md), section 4, as administrator. |
-| Macro in `macros/` or login `macros/<site>.json` (with `PCL_MACROS=1`) | Without a macro the `site_macro` tool does not exist. Without a saved login the macro stops with a hint. If MagicLight or Flow change their page, `site_macro` reports FEHLER and puts `<site>-fehler.png` into `output/`. The self-test (`browser`) shows FEHLT. | Record the macro (again) as described in [macros/README.md](macros/README.md). |
-| `ffmpeg`, `tesseract`, `pdftoppm`, speech output | The function is missing. Agents that need it report the error in the result. The self-test shows FEHLER (Pi) or FEHLT (Windows). | Install the program (commands in the self-test and in [docs/windows.md](docs/windows.md)). |
-| Blender (tool `film`) | `save`, `check`, `voices` and `assemble` still work. `preview` and `render` report „Blender wurde nicht gefunden“ (Blender not found) with a hint about `BLENDER_PATH`. The self-test shows FEHLT. | Install Blender (`winget install BlenderFoundation.Blender`) or set `BLENDER_PATH` in `.env`, restart. |
-| `film/film.json` (script) | `film` reports „film/film.json fehlt“ (missing) and asks to save a script with `op=save` first. A faulty script is not saved, the answer lists all errors. | Nothing, the agents create it themselves. You can also write it by hand ([docs/filmstudio.md](docs/filmstudio.md)). |
+| Macro in `macros/` or login `macros/<site>.json` (with `PCL_MACROS=1`) | Without a macro the `site_macro` tool does not exist. Without a saved login the macro stops with a hint. If MagicLight or Flow change their page, `site_macro` reports ERROR and puts `<site>-fehler.png` into `output/`. The self-test (`browser`) shows MISSING. | Record the macro (again) as described in [macros/README.md](macros/README.md). |
+| `ffmpeg`, `tesseract`, `pdftoppm`, speech output | The function is missing. Agents that need it report the error in the result. The self-test shows ERROR (Pi) or MISSING (Windows). | Install the program (commands in the self-test and in [docs/windows.md](docs/windows.md)). |
+| Blender (tool `film`) | `save`, `check`, `voices` and `assemble` still work. `preview` and `render` report „Blender was not found“ (Blender not found) with a hint about `BLENDER_PATH`. The self-test shows MISSING. | Install Blender (`winget install BlenderFoundation.Blender`) or set `BLENDER_PATH` in `.env`, restart. |
+| `film/film.json` (script) | `film` reports „film/film.json is missing“ (missing) and asks to save a script with `op=save` first. A faulty script is not saved, the answer lists all errors. | Nothing, the agents create it themselves. You can also write it by hand ([docs/filmstudio.md](docs/filmstudio.md)). |
 | Image, music or `.blend` file named in the script | The check names scene, character and path, nothing is rendered. | Put the file into `assets/` or `input/` or fix the path in the script. |
 | Clip of a scene (`film/clips/`) | `assemble` names the missing scenes and cuts nothing. If `render` stops (time limit), the finished frames are kept and the next call continues there. | Nothing, the agents call `render` again. |
-| Speech output for the film | `voices`/`render` stop with „Keine Sprachausgabe verfügbar“ (no speech output). Scenes without any dialogue still work. | As for „speech output“ above (on Windows `edge-tts` + `TTS_ENGINE=edge`). |
-| `cargo` (Rust, tool `rust_project`) | The tool is not shown to the agents; `check_code` keeps checking `.rs` files if `rustc` is there. The self-test (`selftest.py rust`) shows FEHLT with the install command. | Install Rust: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Then restart Hyperstead. |
+| Speech output for the film | `voices`/`render` stop with „No speech output available“ (no speech output). Scenes without any dialogue still work. | As for „speech output“ above (on Windows `edge-tts` + `TTS_ENGINE=edge`). |
+| `cargo` (Rust, tool `rust_project`) | The tool is not shown to the agents; `check_code` keeps checking `.rs` files if `rustc` is there. The self-test (`selftest.py rust`) shows MISSING with the install command. | Install Rust: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Then restart Hyperstead. |
 | bubblewrap when building Rust (Pi/Linux) | `rust_project` stays hidden, just like `run_code`. | `./install.sh --run` |
 | `PCL_CARGO_UNSAFE=1` (Windows) | Windows has no isolation, so `rust_project` stays hidden without the switch. With the switch the laptop builds without isolation. | Only set it if you know the risk ([Rust programs](#-building-complete-rust-programs)), then restart. |
-| `Cargo.toml` in the Rust folder | `rust_project` reports "In … fehlt Cargo.toml" and names the files the agent has to create first. | Nothing, the agent creates them with `write_code`. |
+| `Cargo.toml` in the Rust folder | `rust_project` reports "Cargo.toml is missing in …" and names the files the agent has to create first. | Nothing, the agent creates them with `write_code`. |
 | Internet for Rust dependencies (crates.io) | `cargo fetch` fails, nothing is built, the agent gets the error message. Dependencies already downloaded are kept in `.rust/cargo-home` and keep working. | Check the internet connection and start the task again. |
-| Passing tests for the Rust package | **No** package is created ("KEIN PAKET"); the agent gets the errors with line numbers and has to fix them. Without tests the package is created with a WARNUNG in the result. | Nothing, the agent fixes and builds again. Send it back via the boss if it gives up. |
+| Passing tests for the Rust package | **No** package is created ("NO PACKAGE"); the agent gets the errors with line numbers and has to fix them. Without tests the package is created with a WARNING in the result. | Nothing, the agent fixes and builds again. Send it back via the boss if it gives up. |
 | Folder `.rust/` in the project (build folder) | Recreated on the next build, which then takes longer (everything is downloaded and compiled again). It is hidden and not part of the ZIP download. | Nothing. You may delete it if space runs out. |
-| Telegram token or chat ID | Telegram stays off, everything else runs. The self-test shows FEHLT. | Only needed if you want messages on your phone. |
+| Telegram token or chat ID | Telegram stays off, everything else runs. The self-test shows MISSING. | Only needed if you want messages on your phone. |
 | A folder or file in the project (`wissen/`, `input/`) | Folders that do not exist count as empty. The agents keep working without company knowledge. | Create or upload the file or folder in the project. |
-| Key of a video provider (e.g. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` reports “VIDEO_PROVIDER=…, aber … fehlt” and creates nothing; the other providers in the list keep working. The self-test shows the provider as FEHLT. | Enter the key ([docs/videodienste.md](docs/videodienste.md)) or remove the provider from `VIDEO_PROVIDER`, restart. |
+| Key of a video provider (e.g. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` reports “VIDEO_PROVIDER=…, but … is missing in .env” and creates nothing; the other providers in the list keep working. The self-test shows the provider as MISSING. | Enter the key ([docs/videodienste.md](docs/videodienste.md)) or remove the provider from `VIDEO_PROVIDER`, restart. |
 | Credit with the video provider | The provider answers with an error (often HTTP 402/429 or “insufficient balance”); the agent gets the text in its result. No other provider steps in. | Top up the credit, or choose another provider with `provider` or in `VIDEO_PROVIDER`. |
-| `FAL_KEY` (with `VIDEO_PROVIDER=fal`, `VIDEO_AI=fal` or `AUDIO_PROVIDER=fal`) | `video_generate`, `video_ai` or `sound_generate` reports “FAL_KEY fehlt” and creates nothing. | Enter the key from fal.ai, or remove the `VIDEO_AI`/`AUDIO_PROVIDER` line. |
-| `ELEVENLABS_API_KEY` (better voices when needed) | Everything runs as before with the local voices. If `engine: elevenlabs` or `TTS_ENGINE=elevenlabs` is used anyway, or ElevenLabs/OpenAI fails (key, credit, internet), the local voice speaks and the result starts with “HINWEIS: … nicht genutzt” and the reason. In a film the line is retried with the cloud voice on the next `voices`. `TTS_FALLBACK=0` makes the task stop instead. | Put the key from elevenlabs.io into `.env` and restart. Guide: 📖 → “🎙 Stimmen und ElevenLabs”. |
-| AI of an employee newly hired by the CEO | The new one is created but gets no tasks. If the CEO plans again afterwards, the task stops with „Diesen Mitarbeitern ist noch keine KI zugewiesen: …“ (no AI assigned yet). In the menu **⚠ Modelle** he is listed as „Noch keine KI“. | Assign an AI in the menu ⚠ Modelle and reply „Weiter“ in the post. |
+| `FAL_KEY` (with `VIDEO_PROVIDER=fal`, `VIDEO_AI=fal` or `AUDIO_PROVIDER=fal`) | `video_generate`, `video_ai` or `sound_generate` reports “FAL_KEY is missing” and creates nothing. | Enter the key from fal.ai, or remove the `VIDEO_AI`/`AUDIO_PROVIDER` line. |
+| `ELEVENLABS_API_KEY` (better voices when needed) | Everything runs as before with the local voices. If `engine: elevenlabs` or `TTS_ENGINE=elevenlabs` is used anyway, or ElevenLabs/OpenAI fails (key, credit, internet), the local voice speaks and the result starts with “NOTE: … nicht genutzt” and the reason. In a film the line is retried with the cloud voice on the next `voices`. `TTS_FALLBACK=0` makes the task stop instead. | Put the key from elevenlabs.io into `.env` and restart. Guide: 📖 → “🎙 Voices and ElevenLabs”. |
+| Credit or internet at ElevenLabs, or `OPENAI_API_KEY` (`TTS_ENGINE=openai`) | The local voice steps in and the result carries a NOTE with the HTTP code. In a film the line is tried again with the cloud voice at the next `voices`. With `TTS_FALLBACK=0` the task aborts instead. If there is no local voice either, `speak` reports "No speech output available". | Top up the credit or check the key. Install espeak-ng or Piper for the substitute voice. |
+| AI of an employee newly hired by the CEO | The new one is created but gets no tasks. If the CEO plans again afterwards, the task stops with „These employees have no AI assigned yet: …“ (no AI assigned yet). In the menu **⚠ Models** he is listed as „No AI yet“. | Assign an AI in the menu ⚠ Models and reply „Weiter“ in the post. |
 | Rights of an employee hired by the CEO | The system adds missing rights based on the role (list above). If no keyword matches, he only gets *read files* and can only answer with text. | Set the ticks in the agent panel or give the CEO the role more precisely. |
 | Employee the CEO wants to fire or change | If the name is not in his team (typo, other team, already fired), the instruction is skipped and noted in the result. If the employee still has an open task, he stays. | Nothing, or assign it again later. |
 | `video_providers.py` (program file) | The video, sound and cloud voice tools disappear for the agents; everything else keeps running. | Run `git pull` again, the file is part of the program. |
 | `GITHUB_UPLOAD_TOKEN` or `GITHUB_UPLOAD_REPO` | GitHub shows as "not set up" under ☁️ Cloud and agents are not offered it as a target. Everything else keeps running. | Enter token and repo ([docs/cloud.md](docs/cloud.md), German), restart. |
-| CUPS (`lp`) on the Pi, a printer or the CEO's print right | 🖨 Drucker shows "CUPS fehlt" or only the test printer. 🖨 Print reports "no printer chosen" or "printing is blocked" and sends nothing. | `./install.sh --print`, set up the printer ([docs/drucken.md](docs/drucken.md)), choose and allow it under 🖨 Drucker. |
+| CUPS (`lp`) on the Pi, a printer or the CEO's print right | 🖨 Printer shows "CUPS missing" or only the test printer. 🖨 Print reports "No printer chosen yet" or "Printing is blocked" and sends nothing. | `./install.sh --print`, set up the printer ([docs/drucken.md](docs/drucken.md)), choose and allow it under 🖨 Printer. |
 | `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` or `ONEDRIVE_CLIENT_ID` | The service stays "not set up", the "Sign in" button is missing. | Register the app and enter the lines ([docs/cloud.md](docs/cloud.md)), restart. |
 | Sign-in at Google/Microsoft (folder `tokens/`) | The service shows "not signed in". An upload reports "not signed in yet" or "sign-in expired" and uploads nothing. | ☁️ Cloud → Sign in. When moving from Pi to laptop, simply sign in again on the laptop. |
 | File over 50 MB for Telegram | Telegram does not accept it. `/datei` marks it with ⚠️ and does not send it, the agent gets a notice. | Choose Google Drive, OneDrive or GitHub as the target. |
 | `cloud_upload.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
 | `PCL_ALLOW_WERKSTATT=1` | The “Workshop” checkbox is grey, no agent gets `befehl` or `nachruesten`. Everything else works as before. | Add the line to `.env`, restart, tick the box for the agent ([docs/werkstatt.md](docs/werkstatt.md)). |
 | A program an agent needs (e.g. Node.js, Remotion, a Python package) | With the workshop the agent files an upgrade request: the CEO checks it, you get ✅/❌ via Telegram and under ✋ Approvals. After your yes the server installs it and the task continues. Without the workshop the agent only names what is missing. | Read the request and decide. Without Telegram only on the web. |
-| The CEO's AI (for an upgrade request) | The request comes straight to you with the note “no CEO with AI” or “CEO not reachable”. | Decide yourself or assign an AI to the CEO. |
+| The CEO's AI (for an upgrade request) | The request comes straight to you with the note “No CEO with AI” or “CEO not reachable”. | Decide yourself or assign an AI to the CEO. |
 | `werkstatt.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
 | `growth.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
-| World of a project never chosen | The project shows the space world with its stages and terms. | Nothing to do. ⚛️ Atom in the graphic selection switches to the Atom world, 🌌 Weltall switches back. |
+| World of a project never chosen | The project shows the space world with its stages and terms. | Nothing to do. The Space and Atom worlds are no longer offered in the graphic menu. |
 | Logo files in `static/logo/` | The sidebar and the login page show an empty image box, the browser tab shows no icon. Everything else works normally. | Run `git pull` again. The logo can be recreated with `docs/logo/logo_blender.py` ([guide](docs/logo-prompt.md), German). |
 | Former world (Guild, Tycoon, Gizmo City) saved in a project | The project shows space automatically. Points, stage and ranks stay the same, only names and icons change. | Nothing to do. |
-| No AI calls today (operations centre, 💶 in the bar) | Shows 0 $ or “keine Aufrufe”. | Nothing to do. Costs are estimates, set your own prices with `PCL_PRICES` in `.env`. |
+| No AI calls today (operations centre, 💶 in the bar) | Shows 0 $ or “no calls”. | Nothing to do. Costs are estimates, set your own prices with `PCL_PRICES` in `.env`. |
 | Table `firm_links` (older `data.db`) | Created automatically at start, empty: city and cosmos show no collaboration yet. | Nothing. |
 | Company logo `.logo.png` / `.logo.jpg` / `.logo.webp` in the project folder | The company shows no logo in city and cosmos, everything else works normally. | In the company's info window (🏙/🌌, tap the company) choose 🖼 Hochladen under „Logo“: PNG, JPEG or WebP, at most 2 MB. |
+| No project yet | City and cosmos show "No company yet". | Create a company with the "＋ New project" button on the left (empty or from a template). |
 | Browser stores nothing (private window) | Light/dark, the chosen graphic (space, org chart style, atom, blueprint), dragged org chart cards, motion and help mode fall back to the default on every load. | Use a normal window; the project data is not affected. |
-| Agents in the blueprint lie on top of each other (e.g. all in the same spot) | The connecting lines cannot be seen. When the blueprint opens, Hyperstead arranges them once automatically and says so. | Nothing, or press “🗂 Ordnen”. |
+| Agents in the blueprint lie on top of each other (e.g. all in the same spot) | The connecting lines cannot be seen. When the blueprint opens, Hyperstead arranges them once automatically and says so. | Nothing, or press “🗂 Arrange”. |
 | History for the ← button (previous graphic) | The history lives only in the open tab. After reloading or in a new tab ← is grey until you switch graphics again. | Nothing to do. |
 | A language other than English in the dashboard | Dashboard, agent instructions, templates and system texts are in English. What you type into fields yourself stays in your language, and the agents answer and report in the language you write in. | Let the browser translate (Chrome/Edge: right-click → “Translate”). |
 | No real AI in the project (only `mock` or no provider) | Fixed notices in Telegram and the mailbox (e.g. “✅ Done”, approval notes) stay in English because nobody can translate them. Agent reports still come in your language as soon as the agents have an AI. | Give the CEO (or another agent) a real AI; from then on that AI translates the notices automatically. |
@@ -291,7 +293,7 @@ With `TRUST_PROXY=1` the app only starts if `APP_TOKEN` has at least 12 characte
 A boss receives a task and **plans** (distributes sub-tasks) or does it himself. As soon as all
 employees are finished, he wakes up again, **reads their reports**, returns defects with feedback or
 summarises everything and reports to his own boss. This is how the result moves up through any number of levels.
-The status „Wartet auf Team“ (waiting for team) means: the boss is waiting for his people. In the tasks tab you see the whole tree.
+The status „Waiting for team“ (waiting for team) means: the boss is waiting for his people. In the tasks tab you see the whole tree.
 
 ## Space and growth
 
@@ -308,17 +310,17 @@ of the interface. The agents always work with clear terms (task, report, team), 
 
 Points are called stardust, tasks are called missions. The former worlds Guild, Tycoon and Gizmo City no longer exist; existing projects show space automatically, and points and stages are kept. The interface shows the names in German.
 
-**Atom world:** Besides space there is a second world. If you pick ⚛️ Atom in the graphic selection, the project uses the Atom world, 🌌 Weltall switches back to space (also in the growth bar, the celebration and Telegram). Large sphere = top lead, medium spheres = team leads, small spheres = employees. Stages: ✴️ Quark → ⚛️ Atom → 🧪 Molecule → 💎 Crystal → 🧬 Cell; ranks: · Neutrino → ⚡ Electron → 🔴 Proton → 💠 Nucleon (the interface shows the German names). Points are called energy, tasks experiments. Points and stage limits are the same in both worlds. Org chart and blueprint keep the last chosen world.
+**Atom world:** Note: the Space and Atom views are no longer offered in the graphic menu (Classic and Modern only); this describes the drawing that is still in the code. Besides space there is a second world. If you pick ⚛️ Atom in the graphic selection, the project uses the Atom world, 🌌 Weltall switches back to space (also in the growth bar, the celebration and Telegram). Large sphere = top lead, medium spheres = team leads, small spheres = employees. Stages: ✴️ Quark → ⚛️ Atom → 🧪 Molecule → 💎 Crystal → 🧬 Cell; ranks: · Neutrino → ⚡ Electron → 🔴 Proton → 💠 Nucleon (the interface shows the German names). Points are called energy, tasks experiments. Points and stage limits are the same in both worlds. Org chart and blueprint keep the last chosen world.
 
 **Usage:** The bar above the canvas shows the stage, progress to the next stage and the key numbers. On the right you switch between light and dark (🌓) and open the overview of stages, points and ranks with ⓘ. Each agent's rank is shown as an icon on its card.
 
-**Solar system:** The drop-down button on the right of the bar (e.g. “🌌 Weltall ▾”) picks the graphic: 🌌 space, three org charts, ⚛️ atom or 📐 blueprint (node editor). Space is drawn in detail: a sun with rays and spots, planets with a night side, clouds or bands, moons with craters, an asteroid belt, distant galaxies and the Milky Way. Planets and moons orbit slowly, and the planets and the sun also spin on their own axis (clouds, bands and sunspots drift across the surface, the sun's ray crown turns), and at the galaxy stage the spiral in the background turns as well; when you point at one with the mouse, everything stops so you can hit it easily. A pulsing blue ring means "working", a yellow ring "waiting for your approval", a red ring "error", a dashed purple ring "waiting for its team". Tapping the sun or a planet shows the team and actions, tapping a moon opens the agent. With every stage the sky gets fuller, from star cluster on nebulae glow, and as a galaxy a spiral appears. Space stays dark even in the light theme. On the phone a list replaces the map: the sun, below it each planet with its moons. Motion is turned off when the device asks for "reduce motion".
+**Solar system:** The drop-down button on the right of the bar (e.g. “Org chart: Tree ▾”) picks the graphic: three org charts, blueprint (node editor), or under Modern all companies as city, cosmos or molecules. Space is drawn in detail: a sun with rays and spots, planets with a night side, clouds or bands, moons with craters, an asteroid belt, distant galaxies and the Milky Way. Planets and moons orbit slowly, and the planets and the sun also spin on their own axis (clouds, bands and sunspots drift across the surface, the sun's ray crown turns), and at the galaxy stage the spiral in the background turns as well; when you point at one with the mouse, everything stops so you can hit it easily. A pulsing blue ring means "working", a yellow ring "waiting for your approval", a red ring "error", a dashed purple ring "waiting for its team". Tapping the sun or a planet shows the team and actions, tapping a moon opens the agent. With every stage the sky gets fuller, from star cluster on nebulae glow, and as a galaxy a spiral appears. Space stays dark even in the light theme. On the phone a list replaces the map: the sun, below it each planet with its moons. Motion is turned off when the device asks for "reduce motion".
 
-**Org chart:** shows the team in three styles, each its own entry in the graphic menu: ⬇ Baum (tree from top to bottom, members without their own team are stacked), ➡ Gliederung (outline, one row per agent, indented by level, best on the phone) and ◎ Kreis (circle, the lead in the middle, each level a ring). Colour shows the state: green ready, blue working, yellow waiting for your approval, red error, purple waiting for the team, grey paused. Tapping opens the agent. Cards can be dragged and the lines follow; the device remembers this per project and style, “↺ Anordnung zurücksetzen” restores the order. If you drop a card onto another one (or, in the blueprint, an agent onto another agent), Hyperstead asks first and only then moves it into that team.
+**Org chart:** shows the team in three styles, each its own entry in the graphic menu: ⬇ Baum (tree from top to bottom, members without their own team are stacked), ➡ Gliederung (outline, one row per agent, indented by level, best on the phone) and ◎ Kreis (circle, the lead in the middle, each level a ring). Colour shows the state: green ready, blue working, yellow waiting for your approval, red error, purple waiting for the team, grey paused. Tapping opens the agent. Cards can be dragged and the lines follow; the device remembers this per project and style, “↺ Reset layout” restores the order. If you drop a card onto another one (or, in the blueprint, an agent onto another agent), Hyperstead asks first and only then moves it into that team.
 
 **Atom:** ⚛️ shows the team as a molecular network: glossy spheres connected by rods. The large blue sphere is the top lead, medium coloured spheres are the team leads, small spheres the members. Every sphere hangs on its superior by a rod, so size and connections show the hierarchy; everything is arranged loosely and spatially like a molecular model, not in rigid rows. Every company has its own molecule: shape and colours come from the company, the large sphere carries the project colour. In the modern view, ⚛️ Molekül shows all companies as molecules side by side; partner companies are connected by a glowing rod between their leads, with sparks travelling along it (more when both are working). Tapping zooms into the molecule, every sphere opens its department and agent. The graphic stands still so you can read it calmly. As a world, the picture grows with the stage: as a quark three quarks glow in the nucleus, from molecule on neighbouring atoms are attached by bonds, from crystal an atomic lattice lies in the background, as a cell a cell wall and a DNA double helix are added. State and tapping work as in the org chart.
 
-**English interface, back and moons:** The dashboard is in international English; other languages come from the browser's translator. Some button names in this guide are still the old German ones (for example “🗂 Ordnen” is now “🗂 Arrange”). The **←** button to the left of the graphic menu returns to the previous graphic, in exactly the design you were in (also back into an opened company or department). The company info card no longer has the button “📐 Firma öffnen”; tapping a name opens the agent directly and the graphic stays the same. In 🌌 Cosmos the employees are moons that orbit their planet (department); planets and suns also spin on their own axis, the moons only orbit their planet.
+**English interface, back and moons:** The dashboard is in international English; other languages come from the browser's translator. The **←** button to the left of the graphic menu returns to the previous graphic, in exactly the design you were in (also back into an opened company or department). The company info card no longer has the button “📐 Firma öffnen”; tapping a name opens the agent directly and the graphic stays the same. In 🌌 Cosmos the employees are moons that orbit their planet (department); planets and suns also spin on their own axis, the moons only orbit their planet.
 
 **Everything in English, communication in your language:** Everything Hyperstead writes itself is now in English: interface, hover hints, error messages, confirmations, instructions to the agents, company templates, tool messages and the self-test. What you enter yourself (assignments, chat, goals, names) stays in your language. The agents answer, report and write files for you in the language you write in, whether German, Turkish, Albanian, Swahili, Russian or Chinese; scheduled tasks and the inspection round also follow your latest language. Fixed notices in Telegram and the mailbox are translated into your language automatically by your CEO's AI (once per text, then from the cache). The Telegram commands are now /new, /project, /file and /help (the old German ones still work). In the graphic menu the “Classic” group shows text only, without symbols (“Org chart: Tree”, “Org chart: Outline”, “Org chart: Circle”, “Blueprint”). Folders and keys the agents already know (e.g. `wissen/`, `film/film.json` with German keys) are unchanged. The Rust package now contains `README.txt`, `TEST_REPORT.txt`, `source/` and `program/`.
 
@@ -326,7 +328,7 @@ Points are called stardust, tasks are called missions. The former worlds Guild, 
 
 **Level-ups and controls:** When a project reaches a new stage, a short celebration shows the new stage and the next goal (Telegram sends the same message). When an agent rises in rank, a short notice appears. Under ⓘ in the bar you can turn off motion and celebration effects for this device; if the device asks for “reduce motion”, everything stays still anyway. All windows close with Esc, the sun, planets and moons in space can be used with Tab and Enter.
 
-**Guide and help:** 📖 Anleitung at the top of the sidebar opens the user guide right in the dashboard (expandable chapters, with search, no download, works offline). ⓘ at the top of a window jumps to the matching chapter. Every button shows a short explanation when you point at it with the mouse. On the phone, turn on help mode in the guide: the first tap on a button explains it, the second runs it.
+**Guide and help:** 📖 Guide at the top of the sidebar opens the user guide right in the dashboard (expandable chapters, with search, no download, works offline). ⓘ at the top of a window jumps to the matching chapter. Every button shows a short explanation when you point at it with the mouse. On the phone, turn on help mode in the guide: the first tap on a button explains it, the second runs it.
 
 **Points:** delivery accepted the first time +10, after revision +5, task marked as done in the mail +20,
 failed −3, rework requested −5. Stages from 0 / 100 / 300 / 700 / 1500 points. Existing projects get
@@ -356,9 +358,9 @@ are finished (max. `PCL_MAX_TOOL_STEPS`). Rights per agent: **research the inter
 Everything created lies under `workspace/<project-id>/`. In the sidebar, **📁 Dateien** shows the files, opens `index.html`
 as a web page (isolated sandbox) and downloads everything as a ZIP. The link contains a secret key.
 
-**Projects and views:** In the sidebar under „Projekte“, the large button „＋ Neues Projekt“ opens a window: empty project or a ready-made company from a template. The graphics menu at the top right has two groups: **Klassik** (the three org charts tree, outline and circle, plus the blueprint) and **Modern** (all companies as city, cosmos or molecule). Space and molecule for a single project are gone; whoever had them open last lands in the org chart. The top bar with project and growth also stays in city, cosmos and molecule, and so does the „Agent hinzufügen“ bar below it (new agents go into the project selected at the top). City, cosmos and molecule can be rotated and tilted: buttons ⟲ ⟳ ⤵ ⤴ ⌂ at the bottom right, dragging with the right mouse button, or two fingers on a phone. Selecting a project on the left makes its company light up in city, cosmos and molecule while the others fade back. In the city every company is a building with its own style, and its lights go on while it is working; opening it shows one floor per hierarchy level, as deep as the company goes: management at the top floor, then the department heads, then every further level; each person has their own room, so a department with 4 people on one level has 4 rooms there in its colour; every floor lines up its rooms centred and evenly spaced, departments stay together, and the building is as wide as its fullest floor, with an org chart on the right. With success the building grows: more levels add floors, from stage 2 an annex and a roof garden appear, from stage 3 an antenna, from stage 4 a helipad. In the cosmos every company is a solar system (sun = management, planets = departments); the sun grows with the stage and the team, the planets orbit on phones too and stop under your finger, and names stay readable when you zoom out. Every company can get its own logo in the info window under „Logo“ (🖼 Hochladen, PNG/JPEG/WebP up to 2 MB): in the city it stands as a glowing sign on the roof, in the cosmos in the middle of the sun.
+**Projects and views:** In the sidebar under „Projekte“, the large button „＋ New project“ opens a window: empty project or a ready-made company from a template. The graphics menu at the top right has two groups: **Klassik** (the three org charts tree, outline and circle, plus the blueprint) and **Modern** (all companies as city, cosmos or molecule). Space and molecule for a single project are gone; whoever had them open last lands in the org chart. The top bar with project and growth also stays in city, cosmos and molecule, and so does the „Add agent“ bar below it (new agents go into the project selected at the top). City, cosmos and molecule can be rotated and tilted: buttons ⟲ ⟳ ⤵ ⤴ ⌂ at the bottom right, dragging with the right mouse button, or two fingers on a phone. Selecting a project on the left makes its company light up in city, cosmos and molecule while the others fade back. In the city every company is a building with its own style, and its lights go on while it is working; opening it shows one floor per hierarchy level, as deep as the company goes: management at the top floor, then the department heads, then every further level; each person has their own room, so a department with 4 people on one level has 4 rooms there in its colour; every floor lines up its rooms centred and evenly spaced, departments stay together, and the building is as wide as its fullest floor, with an org chart on the right. With success the building grows: more levels add floors, from stage 2 an annex and a roof garden appear, from stage 3 an antenna, from stage 4 a helipad. In the cosmos every company is a solar system (sun = management, planets = departments); the sun grows with the stage and the team, the planets orbit on phones too and stop under your finger, and names stay readable when you zoom out. Every company can get its own logo in the info window under „Logo“ (🖼 Hochladen, PNG/JPEG/WebP up to 2 MB): in the city it stands as a glowing sign on the roof, in the cosmos in the middle of the sun.
 
-**Company templates** (button „＋ Neues Projekt“): *Web agency*, *Accounting/tax office*, *Import/export trade* create project,
+**Company templates** (button „＋ New project“): *Web agency*, *Accounting/tax office*, *Import/export trade* create project,
 organisation chart, work instructions and rights completely. Your own companies: write a project goal („you are a …“, country,
 industry), set agents and rights. The agents receive the date and the project goal and should first research things that change (laws,
 prices) and name their sources.
@@ -392,11 +394,11 @@ With the right **create media & documents** (and `ffmpeg`/fonts on the Pi, see `
 **Self-check:** if an agent creates a PDF, the server then renders it as an image (overview of all pages + page 1 large) and sends it
 back to him with the duty to check every requirement of the task and fix errors before he reports (`PCL_SELF_CHECKS`, default 1, 0 = off).
 
-**Your own files** (videos to edit, PDFs, images, layouts, texts) you upload in „📁 Dateien dieses Projekts“ or send
+**Your own files** (videos to edit, PDFs, images, layouts, texts) you upload in „📁 Files of this project“ or send
 directly in the **💬 Chat** with an agent (📎 button, drag them in or paste an image, several at once). They land in
 `input/` (name cleaned up, existing files are never overwritten but become `name-1.png` …, limit `PCL_MAX_UPLOAD_MB`); in the chat
 the agent gets the **content** directly with the message (texts, PDFs, Word as text, images as images, if the model understands images;
-otherwise text recognition). With **📂 aus input/** you attach files that are already there, or you simply write the file name into the message, and „Als Auftrag erteilen“ (give as task) passes it to the team; finished results lie in `output/`, images in `assets/`. Honest limits: without `video_generate` there is **no AI video generation**
+otherwise text recognition). With **📂 aus input/** you attach files that are already there, or you simply write the file name into the message, and „Give as task“ (give as task) passes it to the team; finished results lie in `output/`, images in `assets/`. Honest limits: without `video_generate` there is **no AI video generation**
 (text to video); „animation“ then means: scene images by image AI + zoom/pan + speaker + cut, or real character animation with Blender via `film`. With `video_generate`
 short clips arise; longer films are put together with `video_edit op=concat`. MagicLight and Flow have no API: with `site_macro` a browser robot operates them with your account, otherwise upload videos made there to `input/`. The model behind Flow (Veo 3.1) is also available via fal: `FAL_VIDEO_MODEL=fal-ai/veo3.1/fast`. On the Raspberry Pi
 ffmpeg is slow (one minute of 720p video can take several minutes), time limit `PCL_FFMPEG_TIMEOUT` (default 1 hour per step).
@@ -408,7 +410,7 @@ ffmpeg is slow (one minute of 720p video can take several minutes), time limit `
 ## Chat and templates
 
 - **💬 Chat tab** (in the agent panel): free conversation with any agent, e.g. with the head of the *Gedankenwerkstatt*, for philosophising,
-  developing ideas and questioning. „📋 Als Auftrag erteilen“ hands the conversation to the agent and his team; the result comes back as a post.
+  developing ideas and questioning. „📋 Give as task“ hands the conversation to the agent and his team; the result comes back as a post.
   The chat runs without tools.
 - **Company templates** (🏢): Web agency, Accounting/tax office, Import/export trade, **Animation agency**, **Book publisher/content agency**,
   **Thought workshop**, **Research office** (finds and reads PDFs). When founding, you choose the model for the head and the employees.
@@ -416,10 +418,10 @@ ffmpeg is slow (one minute of 720p video can take several minutes), time limit `
 ## Post and Telegram
 
 As soon as a **top-level task** (the one you gave to an agent, usually the CEO) is finished, failed or
-blocked, a post is ready for you: sidebar „📬 Post“ and, if set up, a Telegram message with the
+blocked, a post is ready for you: sidebar „📬 Mail“ and, if set up, a Telegram message with the
 type, the task, team figures and the result. The chain of rights and reports underneath runs as before.
-In the post you can tick messages (one by one or „Alle auswählen“) and remove them with „🗑 Ausgewählte löschen“;
-„🧹 Postkorb leeren“ deletes all of them after a confirmation. Only the post is deleted, tasks, files and history stay.
+In the post you can tick messages (one by one or „Select all“) and remove them with „🗑 Delete selected“;
+„🧹 Empty mailbox“ deletes all of them after a confirmation. Only the post is deleted, tasks, files and history stay.
 The sidebar is grouped into collapsible categories (Tagesgeschäft, Team & KI, Dateien & Verbindungen, Auswertung).
 
 **Set up Telegram (about 2 minutes):**
@@ -498,14 +500,14 @@ costs can arise; you see the tokens per agent on the node.
   `wissen/firmenwissen.md` in the project folder. All `.md`/`.txt` files in `wissen/` go into every task and into the chat (together up to
   `PCL_KNOWLEDGE_CHARS`, default 8000 characters); other documents there (PDF, Word …) the agents see as a list and read when needed.
 - **Memory per agent**: at the end of a task an agent can remember up to 5 lasting facts (preferences, decisions, customers,
-  what worked). They are shown in the agent panel under „🧠 Gedächtnis“ (memory); you can change or clear them. Limit `PCL_MEMORY_CHARS`
+  what worked). They are shown in the agent panel under „🧠 Memory“ (memory); you can change or clear them. Limit `PCL_MEMORY_CHARS`
   (4000); the oldest entries drop out first. Every new note is in the audit log.
 
 ## Goals, approvals, usage
 
 - **🎯 Goals**: goals and sub-goals per project. When assigning a task you optionally choose the goal; delegated tasks inherit it.
   Bosses see the goals with progress in the prompt, the CEO's inspection round reports it. Tick off = reached.
-- **Ask first** (window ✋ Freigaben, per project, default off): *Approve the plan of the top boss* holds a new task
+- **Ask first** (window ✋ Approvals, per project, default off): *Approve the plan of the top boss* holds a new task
   until you approve the distribution plan; *Approve team changes* („Teamänderungen freigeben“) holds the CEO's hiring, firing and changing of employees. Approve/reject also via a
   Telegram button. Rejected = the task lands as ❌ in the post; your reply to it makes the boss plan again.
   Shell approvals still only go through the web.
@@ -522,14 +524,14 @@ Runs without internet and without keys (provider `mock`, own database).
 
 ## 🔌 Connections (webhooks)
 
-- **Outgoing:** in the window 🔌 Verbindungen you enter addresses (n8n, Zapier, Make, your own service; also `http://127.0.0.1:…` on the Pi),
+- **Outgoing:** in the window 🔌 Connections you enter addresses (n8n, Zapier, Make, your own service; also `http://127.0.0.1:…` on the Pi),
   with a description for the agents and optional headers. Secrets belong in `.env` and are used as `${NAME}`.
-  Agents with the right **„Darf Verbindungen nutzen“** (may use connections) call them with the tool `call_connection`; the agent cannot change
-  the address or headers, it only sends data. **„Nur nach meiner Freigabe“** (only after my approval, default on) puts every call first under ✋ Freigaben.
+  Agents with the right **„May use connections“** (may use connections) call them with the tool `call_connection`; the agent cannot change
+  the address or headers, it only sends data. **„Only call after my approval“** (only after my approval, default on) puts every call first under ✋ Approvals.
   **„Bei Post benachrichtigen“** (notify on post) sends every finished result of a top-level task as JSON to the address. Time limit `PCL_CONN_TIMEOUT` (30 s).
 - **Incoming:** switch on „Aufträge von außen“ (tasks from outside); then `POST /hook/<project>/<key>` with `{"text": "…", "agent": "optional"}`
   accepts a task for the boss (e.g. from n8n, iOS shortcuts or DEXTER). No login; protected only by the key in the address.
-  „Neuen Schlüssel“ (new key) invalidates the old address. It is only reachable as far as Hyperstead itself is (e.g. only in the tailnet).
+  „New key“ (new key) invalidates the old address. It is only reachable as far as Hyperstead itself is (e.g. only in the tailnet).
 
 ## ☁️ Cloud upload (GitHub, Google Drive, OneDrive, Telegram)
 
@@ -549,9 +551,9 @@ Runs without internet and without keys (provider `mock`, own database).
 
 ## 🖨 Printing evening reports
 
-The 👑 CEO inspection writes an evening report at closing time. In 📬 Post and in the CEO's tasks it has a **🖨 Print** button: one click, a short confirmation, then it goes to the printer. Choose the printer under **🖨 Drucker** in the sidebar (Pi: network printer via CUPS, `./install.sh --print`; Windows: shared printer under Printers & scanners). In the same window the CEO allows or blocks printing (right "Darf Abendberichte drucken"). The **Testdrucker (Datei)** only saves the printout as a text file in `workspace/.druck/`. Guide: [docs/drucken.md](docs/drucken.md) (German).
+The 👑 CEO inspection writes an evening report at closing time. In 📬 Mail and in the CEO's tasks it has a **🖨 Print** button: one click, a short confirmation, then it goes to the printer. Choose the printer under **🖨 Printer** in the sidebar (Pi: network printer via CUPS, `./install.sh --print`; Windows: shared printer under Printers & scanners). In the same window the CEO allows or blocks printing (right "May print evening reports"). The **Testdrucker (Datei)** only saves the printout as a text file in `workspace/.druck/`. Guide: [docs/drucken.md](docs/drucken.md) (German).
 
-**Right printer?** In the 🖨 Drucker window choose a printer and click **🧾 Testseite drucken** (print test page). The page names the printer, computer and time and contains umlauts. If it comes out of the right printer, click **Speichern** (save). The test page alone saves nothing and needs no print right from the CEO.
+**Right printer?** In the 🖨 Printer window choose a printer and click **🧾 Testseite drucken** (print test page). The page names the printer, computer and time and contains umlauts. If it comes out of the right printer, click **Speichern** (save). The test page alone saves nothing and needs no print right from the CEO.
 
 ## 🌐 Real browser and ▶ run code
 
@@ -560,7 +562,7 @@ The 👑 CEO inspection writes an evening report at closing time. In 📬 Post a
   on request a screenshot (it sees it as with `view_image`; `save` puts it in `assets/screenshots/`). Every request of the page
   (scripts, frames, XHR, WebSockets) must go to a public address; LAN/localhost is blocked, WebRTC and downloads are off.
   Only one browser at a time (RAM), time limit `PCL_BROWSER_TIMEOUT` (30 s). Own Chromium: `PCL_BROWSER_PATH`, off: `PCL_BROWSER=0`.
-- **Run code** (`./install.sh --run`, installs bubblewrap): the right „Darf Code ausführen“ (may run code, default off) gives `run_code`.
+- **Run code** (`./install.sh --run`, installs bubblewrap): the right „May run code“ (may run code, default off) gives `run_code`.
   The script runs sealed off: **no internet**, only `/usr` and the project folder (read-only under `/projekt`) are visible,
   no `.env`, no database, no home. What the script writes into its work directory lands in `output/run/<time>/`
   (max. 50 files/50 MB). Limits: `PCL_RUN_TIMEOUT` (60 s), `PCL_RUN_MEM_MB` (1024). It runs the system's Python/Node,
@@ -569,7 +571,7 @@ The 👑 CEO inspection writes an evening report at closing time. In 📬 Post a
 
 ## 🦀 Building complete Rust programs
 
-Give an agent with the rights **„Darf programmieren“**, **„Darf Dateien schreiben“** and **„Darf Code ausführen“** (may program, write files, run code) a task like
+Give an agent with the rights **„May program“**, **„May write files“** and **„May run code“** (may program, write files, run code) a task like
 "Write me a Rust program that …, with tests, and deliver the finished package". The agent then works from A to Z:
 
 1. With `write_code` it creates a Cargo project, e.g. `rust/rechner/Cargo.toml` and `rust/rechner/src/main.rs` with tests (`#[test]`).
@@ -628,12 +630,12 @@ of different projects. An agent never works on two tasks at once, and at most on
 After installation and entering the keys, `./venv/bin/python selftest.py` checks everything real that could not be tested without internet:
 web search, reading pages, image search and image generator, SSRF protection, every AI provider with a mini request (incl. Ollama), Telegram
 (bot token and test message to your chat ID), ffmpeg, speech output, PDF with umlauts, OCR. Single groups:
-`selftest.py web | llm | telegram | media | ocr | rust | film`. Each line shows OK, FEHLT (optional) or FEHLER with a concrete note.
+`selftest.py web | llm | telegram | media | ocr | rust | film`. Each line shows OK, MISSING (optional) or ERROR with a concrete note.
 
 ## Ollama (local models)
 
 Provider „Ollama (lokal)“: no key needed, the model list comes directly from Ollama (`ollama pull qwen2.5:1.5b`). In the dialog „Firma aus Vorlage“
-there are the buttons „Alles lokal“ (everything local) and „Nur Mitarbeiter lokal“ (only employees local); otherwise you choose Ollama per agent. If Ollama runs on another computer
+there are the buttons „Everything local (Ollama)“ (everything local) and „Only employees local (Ollama)“ (only employees local); otherwise you choose Ollama per agent. If Ollama runs on another computer
 (e.g. the laptop), set `OLLAMA_URL` to its address. Small models (3B) are slow on the Pi and often keep the tool protocol
 poorly; for bosses a strong model, locally rather for simple employees or the chat.
 
@@ -651,22 +653,22 @@ On a Pi 4 expect a few words per second and several minutes before the first wor
 ## Claude and ChatGPT via your subscription (CLI instead of API key)
 
 In `.env`: `PCL_ALLOW_CLI=1`. You install the programs yourself on the Pi and sign in once (manufacturers' guides:
-Claude Code `claude`, OpenAI Codex `codex`; sign-in with your subscription). Then „Claude (CLI, dein Abo)“ and „ChatGPT (Codex-CLI, dein Abo)“
+Claude Code `claude`, OpenAI Codex `codex`; sign-in with your subscription). Then „Claude (CLI, your subscription)“ and „ChatGPT (Codex CLI, your subscription)“
 appear in all provider lists. The server calls them without a shell, in an empty folder and **without our API keys in the environment**
 (otherwise `claude` would bill the API key instead of the subscription). Limits: slower than the API (program start per answer), subscription limits apply
 (many agents = quickly at the limit), and the CLI programs have their own tools – adjust the command if needed via `PCL_CLI_CLAUDE` / `PCL_CLI_CODEX`.
 
 ## Model gone? Switch agents
 
-Hyperstead checks every 6 hours (`PCL_MODEL_CHECK_HOURS`) whether the agents' models still exist at the provider, and also notices when a call reports „model not found“. Then a Telegram message arrives, the task fails with a clear note, and in the menu **⚠ Modelle** you switch all affected agents to another model with one click.
+Hyperstead checks every 6 hours (`PCL_MODEL_CHECK_HOURS`) whether the agents' models still exist at the provider, and also notices when a call reports „model not found“. Then a Telegram message arrives, the task fails with a clear note, and in the menu **⚠ Models** you switch all affected agents to another model with one click.
 
 ## Large teams
 
-A boss can have any number of employees. In the boss's panel (settings) you select all of them under **Unterstellte Mitarbeiter** (subordinate employees) with tick boxes and save the assignment. Alternatively: drag the lower dot of the boss onto an employee. The button **🗂 Ordnen** (arrange) creates the whole organisation chart (groups of 6 or more employees in rows of 5).
+A boss can have any number of employees. In the boss's panel (settings) you select all of them under **Direct reports** (subordinate employees) with tick boxes and save the assignment. Alternatively: drag the lower dot of the boss onto an employee. The button **🗂 Arrange** (arrange) creates the whole organisation chart (groups of 6 or more employees in rows of 5).
 
 ## CEO assembles his team himself
 
-The CEO from the palette has the right **„Darf sein Team selbst zusammenstellen“** (may assemble his team himself, `recruit`). If he has no employees yet and gets a task, he analyses it and creates employees with role, work instruction and reporting lines (up to 20, also department heads with their own team). The new ones have **no AI yet**: you assign them in the menu **⚠ Modelle** (all at once) or per agent in the settings, and then reply in the **Post** to the task (e.g. „Weiter“ = continue). After that the CEO distributes the work as usual. The CEO can give the new ones only web, images, read/write files, media and programming, never shell.
+The CEO from the palette has the right **„May build its own team“** (may assemble his team himself, `recruit`). If he has no employees yet and gets a task, he analyses it and creates employees with role, work instruction and reporting lines (up to 20, also department heads with their own team). The new ones have **no AI yet**: you assign them in the menu **⚠ Models** (all at once) or per agent in the settings, and then reply in the **Post** to the task (e.g. „Weiter“ = continue). After that the CEO distributes the work as usual. The CEO can give the new ones only web, images, read/write files, media and programming, never shell.
 
 **Even when the team already exists**, a CEO with this right may adapt his team to your tasks and conditions with every task:
 - **Hire**: more employees, as above without AI. You get a Telegram message and assign them an AI. They only get work from the next task or after your „Weiter“.
@@ -679,12 +681,12 @@ If you want to see every team change beforehand, tick *Teamänderungen freigeben
 
 ## Opening hours and daily tasks
 
-Sidebar **🕘 Zeitplan** (schedule): for each project set start of work, end of work and working days. For each employee you can create **daily tasks** (fixed time, at start of work or at end of work, on chosen weekdays), e.g. „every day at 15:00 check the website“. The result comes into the view „Post“ like every post (and via Telegram). If the last task of a schedule is still running, it is not started twice; if the Pi was off at the time, up to 6 hours are caught up.
+Sidebar **🕘 Schedule** (schedule): for each project set start of work, end of work and working days. For each employee you can create **daily tasks** (fixed time, at start of work or at end of work, on chosen weekdays), e.g. „every day at 15:00 check the website“. The result comes into the view „Post“ like every post (and via Telegram). If the last task of a schedule is still running, it is not started twice; if the Pi was off at the time, up to 6 hours are caught up.
 At the start of work the company takes up unfinished tasks again (not started ones start, failed top-level tasks are retried up to `PCL_MAX_RESUMES`=2 times). Optionally the company rests completely outside opening hours. The time is that of the Pi; if it is wrong, set `PCL_TZ=Europe/Vienna` in `.env`.
 
 ## CEO inspection round
 
-In the window **🕘 Zeitplan** the **👑 CEO-Kontrollgang** (CEO inspection round) sets up a daily inspection round of the top boss (default: at end of work; further times via „Neue tägliche Aufgabe“ + tick *Kontrollgang*). The system attaches a **status report** with facts: per employee today started/finished/failed/open, starts outside opening hours, open tasks without a start of work, employees without AI, unfinished tasks and whether the daily tasks ran. The CEO assesses this, distributes follow-up tasks to his team if needed and writes an inspection report into the post. „📋 Statusbericht ansehen“ (view status report) shows the facts without the CEO.
+In the window **🕘 Schedule** the **👑 Set up CEO inspection** (CEO inspection round) sets up a daily inspection round of the top boss (default: at end of work; further times via „New daily task“ + tick *Kontrollgang*). The system attaches a **status report** with facts: per employee today started/finished/failed/open, starts outside opening hours, open tasks without a start of work, employees without AI, unfinished tasks and whether the daily tasks ran. The CEO assesses this, distributes follow-up tasks to his team if needed and writes an inspection report into the post. „📋 View status report“ (view status report) shows the facts without the CEO.
 
 ## Project folder
 
@@ -692,4 +694,4 @@ Each project has a **folder with its name** under `workspace/` (e.g. `workspace/
 
 ## Publish a web page
 
-In the window **📁 Dateien dieses Projekts** there is **🚀 Veröffentlichen** (publish). Only the folder `www/` in the project folder is published (`www/index.html`, plus CSS, images … with relative paths); everything else in the project (notes, `output/`, `input/`, dotfiles, symlinks to the outside) stays invisible. If there is no `www/` folder, the `index.html` of the project folder is served as before (without `input/` and hidden files). The page runs permanently on its own port (from 8800, `PCL_SITE_PORT_BASE`), by default only on the Pi itself: `http://127.0.0.1:8800/`. For access on the network set `PCL_SITE_HOST=0.0.0.0` in `.env`. Agents with the right „Darf die Webseite zur Veröffentlichung vorschlagen“ (may propose the web page for publication) can request an approval for „publish“; only your click under **Freigaben** puts the page online. Changes by the agents are visible immediately; after a restart the page runs again automatically. For the open internet a reverse proxy with HTTPS belongs in front (e.g. Caddy), not the small server.
+In the window **📁 Files of this project** there is **🚀 Publish website** (publish). Only the folder `www/` in the project folder is published (`www/index.html`, plus CSS, images … with relative paths); everything else in the project (notes, `output/`, `input/`, dotfiles, symlinks to the outside) stays invisible. If there is no `www/` folder, the `index.html` of the project folder is served as before (without `input/` and hidden files). The page runs permanently on its own port (from 8800, `PCL_SITE_PORT_BASE`), by default only on the Pi itself: `http://127.0.0.1:8800/`. For access on the network set `PCL_SITE_HOST=0.0.0.0` in `.env`. Agents with the right „May propose the website for publishing“ (may propose the web page for publication) can request an approval for „publish“; only your click under **Freigaben** puts the page online. Changes by the agents are visible immediately; after a restart the page runs again automatically. For the open internet a reverse proxy with HTTPS belongs in front (e.g. Caddy), not the small server.

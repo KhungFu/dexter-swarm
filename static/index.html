@@ -1502,7 +1502,7 @@ $('#btnSched').onclick=()=>{
     $('#s_insp').onclick=async()=>{
       const roots=ags.filter(a=>!a.parent_id), cnt=a=>ags.filter(x=>x.parent_id===a.id).length;
       const boss=roots.sort((x,y)=>cnt(y)-cnt(x))[0]; if(!boss){ toast('Create agents first.'); return; }
-      await api('/projects/'+S.pid+'/schedules','POST',{agent_id:boss.id,kind:'inspect',title:'Kontrollgang',at:'close',days:h.days});
+      await api('/projects/'+S.pid+'/schedules','POST',{agent_id:boss.id,kind:'inspect',title:'Inspection round',at:'close',days:h.days});
       toast('Inspection set up for '+boss.name+' (at closing time, on the company\'s working days)'); load(); };
     $('#s_rep').onclick=async()=>{ const r=await api('/projects/'+S.pid+'/report'); body.insertAdjacentHTML('afterbegin','<pre style="white-space:pre-wrap;font-size:12px;background:#0004;padding:10px;border-radius:6px;margin-bottom:10px">'+esc(r.report)+'</pre>'); };
     body.querySelectorAll('[data-srun]').forEach(b=>b.onclick=async()=>{ try{ await api('/schedules/'+b.dataset.srun+'/run','POST',{}); toast('Task started – the result arrives in the mail'); }catch(_){} });
