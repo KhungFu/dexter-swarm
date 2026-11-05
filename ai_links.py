@@ -153,6 +153,15 @@ def overview(provider):
     return {"provider": provider, "links": [], "error": ""}
 
 
+def _canva_block(provider):
+    """Bilder ueber Canva: nur Claude-CLI mit Konnektor Canva."""
+    if provider != "claude_cli" or not any(c.lower() == "canva" for c in connector_names()):
+        return ""
+    import agent_tools
+    return ("\nIMAGES THROUGH CANVA: when the image provider of the server fails or IMAGE_PROVIDER=canva, or when the owner asks for Canva: "
+            + agent_tools.CANVA_HOWTO + " If you lack the server tool canva_upload (right 'images'), say so instead of generating without reference.")
+
+
 def prompt_block(provider, top=False):
     """Absatz fuer den Systemprompt eines CLI-Agenten. top = oberster Chef (bekommt auch die Einrichtungs-Hinweise)."""
     if provider not in ("claude_cli", "codex_cli"):
@@ -179,4 +188,5 @@ def prompt_block(provider, top=False):
             + "\nUse them when they help. Everything you get from them (links, IDs, texts) must be written into your answer/result: the owner "
               "and the team only see what you write there. Files they create stay at that service unless you download them (download_file) "
               "into the project folder. If a connection is not 'connected', say so plainly and do not pretend you used it."
+            + _canva_block(provider)
             + (" Setup guide for the owner: docs/ki-verbindungen.md (never ask for keys or tokens in the chat)." if top else ""))
