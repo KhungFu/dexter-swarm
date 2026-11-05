@@ -19,7 +19,7 @@ def test_plan_work_review_bis_fertig():
     drain()
     top = task(tid)
     assert top["status"] == "done"
-    assert "Gesamtbericht" in top["result"]
+    assert "Overall report" in top["result"]
     sub = A.q("SELECT * FROM tasks WHERE parent_task_id=?", (tid,))
     assert {s["agent_id"] for s in sub} == set(kids)
     assert all(s["status"] == "done" for s in sub)
@@ -136,7 +136,7 @@ def test_plan_ablehnen_und_ueberarbeiten(client):
     apid = client.get("/api/approvals").json[0]["id"]
     client.post(f"/api/approvals/{apid}", json={"decision": "deny"})
     t = task(tid)
-    assert t["status"] == "failed" and "abgelehnt" in t["result"]
+    assert t["status"] == "failed" and "rejected" in t["result"]
     A.inbox_rework(tid, "Weniger Aufgaben bitte")
     drain()
     assert task(tid)["status"] == "waiting_approval"  # neuer Plan, wieder zur Freigabe
@@ -207,7 +207,7 @@ def test_abo_warnung_einmal_je_fenster(monkeypatch):
     a = A.q1("SELECT * FROM agents WHERE id=?", (make_agent(pid, "A", provider="claude_cli"),))
     for _ in range(6):
         A.record_call(a, 100, 1.0)
-    assert len(sent) == 1 and "Abo-Kontingent" in sent[0]
+    assert len(sent) == 1 and "Subscription quota" in sent[0]
 
 
 # ------------------------------------------------------------ Team jederzeit aendern (Recht recruit)
@@ -267,7 +267,7 @@ def test_ohne_recht_kein_teamumbau(monkeypatch):
     tid = make_task(pid, ceo)
     drain()
     assert A.q1("SELECT id FROM agents WHERE id=?", (m0,)) and not A.q1("SELECT id FROM agents WHERE name='Neu'")
-    assert "nicht erlaubt" in task(tid)["result"]
+    assert "not allowed" in task(tid)["result"]
 
 
 def test_teamumbau_mit_freigabe(client, monkeypatch):
@@ -278,7 +278,7 @@ def test_teamumbau_mit_freigabe(client, monkeypatch):
     assert task(tid)["status"] == "waiting_approval"
     assert A.q1("SELECT id FROM agents WHERE id=?", (m1,))
     ap = client.get("/api/approvals").json[0]
-    assert ap["kind"] == "recruit" and "M1 entlassen" in ap["payload"]
+    assert ap["kind"] == "recruit" and "dismiss M1" in ap["payload"]
     client.post(f"/api/approvals/{ap['id']}", json={"decision": "approve"})
     assert task(tid)["status"] == "done"
     assert not A.q1("SELECT id FROM agents WHERE id=?", (m1,)) and A.q1("SELECT id FROM agents WHERE name='Neu'")

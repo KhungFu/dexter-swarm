@@ -247,7 +247,7 @@ def load_blend(f, root, parts):
     if f.get("objekt"):
         top = next((o for o in objs if o.name == f["objekt"] or o.name.startswith(f["objekt"] + ".")), None)
         if top is None:
-            raise RuntimeError(f"Objekt '{f['objekt']}' nicht in {os.path.basename(f['datei'])}. Vorhanden: "
+            raise RuntimeError(f"Object '{f['objekt']}' not in {os.path.basename(f['datei'])}. Available: "
                                + ", ".join(o.name for o in objs[:20]))
         keep = {top} | set(top.children_recursive) if hasattr(top, "children_recursive") else {top}
         objs = [o for o in objs if o in keep]

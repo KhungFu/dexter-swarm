@@ -103,13 +103,13 @@ def test_standardwerte_grosszuegig(monkeypatch):
 
 def test_zu_wenig_ram_klare_meldung(ollama):
     FakeOllama.mode = "memory"
-    with pytest.raises(RuntimeError, match="kleineres"):
+    with pytest.raises(RuntimeError, match="smaller one"):
         A.call_llm(agent(), [{"role": "user", "content": "hi"}])
 
 
 def test_modell_fehlt(ollama):
     FakeOllama.mode = "missing"
-    with pytest.raises(RuntimeError, match="MODELL_WEG.*ollama pull"):
+    with pytest.raises(RuntimeError, match="MODEL_GONE.*ollama pull"):
         A.call_llm(agent(), [{"role": "user", "content": "hi"}])
 
 

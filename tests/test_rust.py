@@ -33,11 +33,11 @@ def crate(root, main=MAIN, name="rechner"):
 def test_paket_mit_tests(tmp_path):
     crate(tmp_path)
     out = R.rust_project(tmp_path, {"op": "package", "dir": "rust/rechner"})
-    assert "2 passed" in out and "PAKET FERTIG: output/rechner.zip" in out
+    assert "2 passed" in out and "PACKAGE DONE: output/rechner.zip" in out
     names = zipfile.ZipFile(tmp_path / "output" / "rechner.zip").namelist()
-    assert {"rechner/LIESMICH.txt", "rechner/TESTBERICHT.txt", "rechner/quelle/Cargo.toml",
-            "rechner/quelle/src/main.rs", "rechner/quelle/Cargo.lock"} <= set(names)
-    assert any(n.startswith("rechner/programm/rechner") for n in names)
+    assert {"rechner/README.txt", "rechner/TEST_REPORT.txt", "rechner/source/Cargo.toml",
+            "rechner/source/src/main.rs", "rechner/source/Cargo.lock"} <= set(names)
+    assert any(n.startswith("rechner/program/rechner") for n in names)
     assert (tmp_path / "rust" / "rechner" / "Cargo.lock").is_file()  # feste Versionen zurueck ins Projekt
 
 
@@ -45,8 +45,8 @@ def test_paket_mit_tests(tmp_path):
 def test_kein_paket_bei_fehlern(tmp_path):
     crate(tmp_path, main="fn main() { let x: i32 = \"text\"; }\n")
     out = R.rust_project(tmp_path, {"op": "package", "dir": "rust/rechner"})
-    assert "FEHLER" in out and "mismatched types" in out and "src/main.rs" in out
-    assert "KEIN PAKET" in out and not (tmp_path / "output" / "rechner.zip").exists()
+    assert "ERROR" in out and "mismatched types" in out and "src/main.rs" in out
+    assert "NO PACKAGE" in out and not (tmp_path / "output" / "rechner.zip").exists()
 
 
 @needs_cargo
@@ -54,7 +54,7 @@ def test_run_mit_stdin_und_warnung_ohne_tests(tmp_path):
     crate(tmp_path, main=MAIN.split("#[cfg(test)]")[0])
     out = R.rust_project(tmp_path, {"op": "run", "dir": "rust/rechner", "stdin": "hallo\n"})
     assert "5 hallo" in out
-    assert "WARNUNG: Es gibt keine Tests" in R.rust_project(tmp_path, {"op": "test", "dir": "rust/rechner"})
+    assert "WARNING: There are no tests" in R.rust_project(tmp_path, {"op": "test", "dir": "rust/rechner"})
 
 
 @needs_cargo
@@ -71,7 +71,7 @@ def test_eingaben_werden_geprueft(tmp_path, monkeypatch):
     (tmp_path / "leer").mkdir()
     with pytest.raises(T.ToolError, match="Cargo.toml"):
         R.rust_project(tmp_path, {"op": "test", "dir": "leer"})
-    with pytest.raises(T.ToolError, match="ausserhalb"):
+    with pytest.raises(T.ToolError, match="outside"):
         R.rust_project(tmp_path, {"op": "test", "dir": "../.."})
     with pytest.raises(T.ToolError, match="op:"):
         R.rust_project(tmp_path, {"op": "loeschen", "dir": "leer"})
@@ -114,7 +114,7 @@ def test_agent_liefert_fertiges_paket(monkeypatch):
     tid = make_task(pid, a)
     drain()
     assert task(tid)["status"] == "done"
-    assert "PAKET FERTIG" in seen[-1]
+    assert "PACKAGE DONE" in seen[-1]
     assert (A.proj_dir(pid) / "output" / "rechner.zip").is_file()
     shutil.rmtree(A.proj_dir(pid) / ".rust", ignore_errors=True)
 

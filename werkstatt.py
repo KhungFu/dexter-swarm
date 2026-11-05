@@ -84,24 +84,24 @@ def classify(cmd, root):
     """-> (art, grund): art 'frei' | 'antrag' | 'verboten'."""
     c = str(cmd or "")
     if not c.strip():
-        return "verboten", "leerer Befehl"
+        return "verboten", "empty command"
     for p in SECRET:
         if re.search(p, c, re.I):
-            return "verboten", "Zugangsdaten (.env, Tokens, Umgebungsvariablen, Anmeldedaten) sind für Agenten gesperrt"
+            return "verboten", "access data (.env, tokens, environment variables, credentials) is blocked for agents"
     for p in INSTALL:
         if re.search(p, c, re.I):
-            return "antrag", "Installation/Nachrüsten"
+            return "antrag", "installation/new tool"
     for p in DANGER:
         if re.search(p, c, re.I):
-            return "antrag", "Löschen oder Eingriff ins System"
+            return "antrag", "deleting or changing the system"
     if re.search(r"(^|[\\/\s\"'=])\.\.([\\/]|$|\s)", c):
-        return "antrag", "Pfad außerhalb des Projektordners (..)"
+        return "antrag", "path outside the project folder (..)"
     rs = str(Path(root).resolve())
     for m in _ABS.finditer(c):
         rest = c[m.start():].split()[0].strip("\"'")
         if rest.lower().startswith(rs.lower()):
             continue
-        return "antrag", "Pfad außerhalb des Projektordners"
+        return "antrag", "path outside the project folder"
     return "frei", ""
 
 
@@ -147,14 +147,14 @@ def run(cmd, root, shell=None, timeout=None):
             p = subprocess.Popen(shell_argv(cmd, shell), cwd=str(root), env=clean_env(root), stdin=subprocess.DEVNULL,
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", **kw)
         except FileNotFoundError as e:
-            return 127, f"Shell nicht gefunden: {e}"
+            return 127, f"Shell not found: {e}"
         try:
             out, _ = p.communicate(timeout=tmo)
         except subprocess.TimeoutExpired:
             _kill(p)
             out = (p.communicate()[0] or "") if p.stdout else ""
-            return 124, clip(out) + f"\n(Zeitlimit {tmo} s erreicht - abgebrochen)"
-        return p.returncode, clip(out) + f"\n(fertig in {time.time() - t0:.0f} s)"
+            return 124, clip(out) + f"\n(time limit {tmo} s reached - stopped)"
+        return p.returncode, clip(out) + f"\n(done in {time.time() - t0:.0f} s)"
 
 
 def _kill(p):
@@ -172,49 +172,49 @@ def _kill(p):
 
 def clip(s, n=OUT_CHARS):
     s = s or ""
-    return s if len(s) <= n else s[:n // 3] + f"\n... ({len(s) - n} Zeichen gekuerzt) ...\n" + s[-(2 * n // 3):]
+    return s if len(s) <= n else s[:n // 3] + f"\n... ({len(s) - n} characters shortened) ...\n" + s[-(2 * n // 3):]
 
 
 def note_installed(root, cmd, wozu, who, code):
     """Firmenwissen: was schon nachgeruestet ist, damit es niemand doppelt beantragt."""
     f = Path(root) / "wissen" / "werkzeuge.md"
     f.parent.mkdir(parents=True, exist_ok=True)
-    head = "" if f.exists() else ("# Nachgeruestete Werkzeuge\n\nVom Besitzer freigegeben und installiert. "
-                                   "Vor einem neuen Antrag hier nachsehen.\n\n")
-    line = (f"- {time.strftime('%d.%m.%Y')}: `{cmd}`" + (f" fuer {wozu}" if wozu else "") + f" (beantragt von {who}, "
-            + ("ok" if code == 0 else f"Fehler, Exit {code}") + ")\n")
+    head = "" if f.exists() else ("# Installed tools\n\nApproved and installed by the owner. "
+                                   "Check here before a new request.\n\n")
+    line = (f"- {time.strftime('%Y-%m-%d')}: `{cmd}`" + (f" for {wozu}" if wozu else "") + f" (requested by {who}, "
+            + ("ok" if code == 0 else f"error, exit {code}") + ")\n")
     with f.open("a", encoding="utf-8") as fh:
         fh.write(head + line)
 
 
 def platform_hint():
     if IS_WIN:
-        return ("Windows: Befehle laufen in PowerShell (oder \"shell\": \"cmd\"). Programme installierst du mit winget "
+        return ("Windows: commands run in PowerShell (or \"shell\": \"cmd\"). You install programs with winget "
                 "(z. B. winget install --id OpenJS.NodeJS.LTS -e --scope user --accept-package-agreements --accept-source-agreements), "
-                "Pakete mit npm/pip.")
-    return "Linux: Befehle laufen in bash. Programme ueber apt (braucht sudo), Pakete mit npm/pip (pip am besten in einem venv im Projekt)."
+                "packages with npm/pip.")
+    return "Linux: commands run in bash. Programs via apt (needs sudo), packages with npm/pip (pip preferably in a venv in the project)."
 
 
 def doc(lvl, native=""):
-    lv = {1: "1 (vorsichtig): JEDER Befehl ist ein Antrag",
-          2: "2 (normal): Befehle im Projektordner laufen sofort; Installationen, Loeschen und Pfade ausserhalb des Projekts sind Antraege",
-          3: "3 (frei): alles laeuft sofort, der Besitzer bekommt nur eine Meldung"}[lvl]
-    return ("\nWERKSTATT (du arbeitest wie an einem echten Rechner, Stufe " + lv + "):\n"
+    lv = {1: "1 (careful): EVERY command is a request",
+          2: "2 (normal): commands in the project folder run immediately; installations, deleting and paths outside the project are requests",
+          3: "3 (free): everything runs immediately, the owner only gets a notice"}[lvl]
+    return ("\nWORKSHOP (you work like on a real computer, level " + lv + "):\n"
             + (native + "\n" if native else "")
             + "- befehl: {\"tool\": \"befehl\", \"befehl\": \"npx remotion render src/index.ts Main output/film.mp4\", \"shell\": \"\"} "
-              f"fuehrt einen Befehl im Projektordner aus (Zeitlimit {cmd_timeout()} s) und liefert die Ausgabe. {platform_hint()}\n"
-            + "- nachruesten: {\"tool\": \"nachruesten\", \"befehl\": \"npm install remotion @remotion/cli\", \"wozu\": \"Vorspann animieren\", "
-              "\"groesse\": \"ca. 300 MB\"} beantragt ein Programm oder Paket, das dir fehlt. Der Antrag geht an den CEO, der CEO legt ihn dem "
-              "Besitzer vor, nach dessen Ja installiert der Server genau diesen Befehl und du bekommst die Aufgabe mit dem Ergebnis zurueck. "
-              "Beantrage nur, was die Arbeit wirklich besser macht, schau vorher in wissen/werkzeuge.md und pruefe mit befehl (z. B. node --version), "
-              "ob es schon da ist. Stell einen Antrag nur einmal, arbeite am Rest weiter und schreib im result, worauf du wartest.\n"
-            + "- Zugangsdaten (.env, Tokens, Umgebungsvariablen) sind gesperrt. Was du installierst, gilt fuer alle Projekte auf diesem Rechner.")
+              f"runs a command in the project folder (time limit {cmd_timeout()} s) and returns the output. {platform_hint()}\n"
+            + "- nachruesten: {\"tool\": \"nachruesten\", \"befehl\": \"npm install remotion @remotion/cli\", \"wozu\": \"animate the intro\", "
+              "\"groesse\": \"approx. 300 MB\"} requests a program or package you are missing (keys befehl = command, wozu = what for, groesse = size). "
+              "The request goes to the CEO, the CEO presents it to the owner, after their yes the server installs exactly this command and you get the task back with the result. "
+              "Only request what really makes the work better, look in wissen/werkzeuge.md first and check with befehl (e.g. node --version) "
+              "whether it is already there. Submit a request only once, keep working on the rest and write in result what you are waiting for.\n"
+            + "- Access data (.env, tokens, environment variables) is blocked. What you install applies to all projects on this computer.")
 
 
 def ceo_prompt(req_name, req_role, cmd, wozu, groesse, project):
-    return (f"Ein Mitarbeiter deiner Firma '{project}' beantragt, ein Programm/Paket auf dem Rechner nachzuruesten.\n"
-            f"Mitarbeiter: {req_name} ({req_role or 'ohne Rolle'})\nBefehl: {cmd}\nWofuer: {wozu or '(nicht angegeben)'}\n"
-            f"Groesse: {groesse or '(nicht angegeben)'}\n\nPruefe als Chef: Braucht die Firma das wirklich fuer bessere Arbeit, ist der Befehl "
-            "sinnvoll und aus einer serioesen Quelle (offizielle Paketquellen npm/PyPI/winget/apt), gibt es das schon? Du entscheidest NICHT "
-            "endgueltig, der Besitzer bestaetigt danach. Lehne nur ab, was offensichtlich unnoetig, doppelt oder gefaehrlich ist.\n"
-            "Antworte NUR mit JSON: {\"weiterleiten\": true oder false, \"empfehlung\": \"ein bis zwei Saetze an den Besitzer\"}")
+    return (f"An employee of your company '{project}' requests to install a program/package on the computer.\n"
+            f"Employee: {req_name} ({req_role or 'no role'})\nCommand: {cmd}\nWhat for: {wozu or '(not given)'}\n"
+            f"Size: {groesse or '(not given)'}\n\nCheck as the boss: does the company really need this for better work, is the command "
+            "sensible and from a reputable source (official package sources npm/PyPI/winget/apt), does it already exist? You do NOT decide "
+            "finally, the owner confirms afterwards. Only reject what is obviously unnecessary, duplicate or dangerous.\n"
+            "Answer ONLY with JSON: {\"forward\": true or false, \"recommendation\": \"one or two sentences to the owner, in the owner's language\"}")

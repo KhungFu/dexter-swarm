@@ -57,7 +57,7 @@ def test_liste_ohne_cups(monkeypatch):
     monkeypatch.setattr(P, "is_windows", lambda: False)
     monkeypatch.setattr(P.shutil, "which", lambda n: None)
     names, err = P.list_printers()
-    assert names == [P.TEST_PRINTER] and "CUPS fehlt" in err
+    assert names == [P.TEST_PRINTER] and "CUPS missing" in err
 
 
 def test_druck_nur_mit_bestaetigung_und_recht(client, firm, monkeypatch):
@@ -68,7 +68,7 @@ def test_druck_nur_mit_bestaetigung_und_recht(client, firm, monkeypatch):
     r = client.post(f"/api/tasks/{tid}/print", json={})
     assert r.status_code == 400 and "confirmation" in r.get_data(as_text=True)
     r = client.post(f"/api/tasks/{tid}/print", json={"confirm": True})
-    assert r.status_code == 400 and "gesperrt" in r.get_data(as_text=True)
+    assert r.status_code == 400 and "blocked" in r.get_data(as_text=True)
     assert not f.calls
     # CEO erlaubt das Drucken
     assert client.put(f"/api/projects/{pid}/print", json={"allowed": True}).get_json()["allowed"]
@@ -76,7 +76,7 @@ def test_druck_nur_mit_bestaetigung_und_recht(client, firm, monkeypatch):
     assert r.status_code == 200, r.get_data(as_text=True)
     cmd = f.calls[-1][0]
     assert cmd[:3] == ["lp", "-d", "Buero_HP"] and "--" in cmd
-    assert "ABENDBERICHT" in f.printed and "Druckerei" in f.printed and "Morgen: Angebote" in f.printed
+    assert "EVENING REPORT" in f.printed and "Druckerei" in f.printed and "Morgen: Angebote" in f.printed
     assert A.q1("SELECT 1 x FROM audit WHERE event='print'")
     # wieder sperren
     client.put(f"/api/projects/{pid}/print", json={"allowed": False})
@@ -107,8 +107,8 @@ def test_testdrucker_schreibt_datei(client, firm):
     assert client.put("/api/printers", json={"printer": P.TEST_PRINTER}).status_code == 200
     tid = report_task(pid, ceo)
     r = client.post(f"/api/tasks/{tid}/print", json={"confirm": True})
-    assert r.status_code == 200 and "Testdrucker" in r.get_json()["message"]
-    files = list((A.WORKSPACE / ".druck").glob("druck-*.txt"))
+    assert r.status_code == 200 and "Test printer" in r.get_json()["message"]
+    files = list((A.WORKSPACE / ".druck").glob("print-*.txt"))
     assert files and any("Morgen: Angebote" in f.read_text(encoding="utf-8") for f in files)
 
 
@@ -161,7 +161,7 @@ def test_testseite_auf_cups_drucker(client, monkeypatch):
     r = client.post("/api/printers/test", json={"printer": "Buero_Laser"})
     assert r.status_code == 200
     lp = [c for c, _ in f.calls if c[0] == "lp"][0]
-    assert lp[:3] == ["lp", "-d", "Buero_Laser"] and "TESTSEITE" in f.printed and "Buero_Laser" in f.printed
+    assert lp[:3] == ["lp", "-d", "Buero_Laser"] and "TEST PAGE" in f.printed and "Buero_Laser" in f.printed
     assert not A.get_setting("printer", "")  # Testseite speichert den Drucker nicht
 
 
@@ -173,4 +173,4 @@ def test_testseite_nur_drucker_aus_der_liste(client, monkeypatch):
 
 def test_testseite_testdrucker(client):
     r = client.post("/api/printers/test", json={"printer": P.TEST_PRINTER})
-    assert r.status_code == 200 and "Testdrucker" in r.get_json()["message"]
+    assert r.status_code == 200 and "Test printer" in r.get_json()["message"]

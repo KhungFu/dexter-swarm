@@ -30,8 +30,8 @@ class Script:
     def __call__(self, agent, messages, images=None):
         last = str(messages[-1]["content"])
         self.seen.append((agent["name"], last))
-        if "beantragt, ein Programm" in last:
-            return json.dumps(self.ceo_reply or {"weiterleiten": True, "empfehlung": "Sinnvoll."}), 10
+        if "requests to install a program" in last:
+            return json.dumps(self.ceo_reply or {"forward": True, "recommendation": "Sinnvoll."}), 10
         return (self.replies.pop(0) if self.replies else json.dumps({"result": "fertig"})), 10
 
 
@@ -83,7 +83,7 @@ def test_free_command_runs(ws, monkeypatch):
     assert t["status"] == "done", t["result"]
     assert (A.proj_dir(pid) / "output" / "x.txt").read_text().strip() == "hallo"
     assert "Exit 0" in sc.seen[1][1] and "OK" in sc.seen[1][1]
-    assert "WERKSTATT" in A.build_system(A.q1("SELECT * FROM agents WHERE id=?", (dev,)), A.q1("SELECT * FROM projects WHERE id=?", (pid,)), "work")
+    assert "WORKSHOP" in A.build_system(A.q1("SELECT * FROM agents WHERE id=?", (dev,)), A.q1("SELECT * FROM projects WHERE id=?", (pid,)), "work")
 
 
 def test_secret_blocked(ws, monkeypatch):
@@ -91,7 +91,7 @@ def test_secret_blocked(ws, monkeypatch):
     sc = Script(monkeypatch, [tools({"tool": "befehl", "befehl": "cat .env"}), json.dumps({"result": "ok"})])
     make_task(pid, dev)
     drain()
-    assert "FEHLER: Zugangsdaten" in sc.seen[1][1]
+    assert "ERROR: access data" in sc.seen[1][1]
     assert not A.q("SELECT * FROM approvals")
 
 
@@ -117,7 +117,7 @@ def test_request_ceo_owner_install_resume(ws, monkeypatch, client):
     drain()
     t = A.q1("SELECT * FROM tasks WHERE id=?", (tid,))
     assert t["status"] == "done" and "Film fertig" in t["result"]
-    assert "freigegeben" in sc.seen[-1][1] and "Exit 0" in sc.seen[-1][1]
+    assert "approved" in sc.seen[-1][1] and "exit 0" in sc.seen[-1][1]
     assert "echo installiert" in (A.proj_dir(pid) / "wissen" / "werkzeuge.md").read_text()
     assert client.post(f"/api/approvals/{ap['id']}", json={"decision": "approve"}).status_code == 404  # nur einmal
 
@@ -167,7 +167,7 @@ def test_no_werkstatt_without_switch(monkeypatch):
     sc = Script(monkeypatch, [tools({"tool": "befehl", "befehl": "echo hi"}), json.dumps({"result": "ok"})])
     make_task(pid, dev)
     drain()
-    assert "Keine Werkstatt" in sc.seen[1][1]
+    assert "no workshop" in sc.seen[1][1]
 
 
 def test_cli_args(ws):

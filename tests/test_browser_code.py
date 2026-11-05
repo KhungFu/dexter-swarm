@@ -65,7 +65,7 @@ def test_run_code_nur_mit_recht():
     assert "run_code" not in T.available(dict(A.DEFAULT_PERMS))
     assert A.DEFAULT_PERMS["run_code"] is False
     out, _ = T.run_tool({"tool": "run_code", "code": "print(1)"}, "/tmp", dict(A.DEFAULT_PERMS))
-    assert "nicht erlaubt" in out
+    assert "not allowed" in out
 
 
 def test_run_code_global_gesperrt(monkeypatch):

@@ -78,8 +78,8 @@ def test_save_checks_before_writing(root):
         F.film(root, {"op": "save", "film": {"szenen": []}})
     assert not (root / "film" / "film.json").exists()
     out = F.film(root, {"op": "save", "film": json.dumps(plan())})
-    assert "Gespeichert: film/film.json" in out and "s01" in out
-    assert "Drehbuch ok" in F.film(root, {"op": "check"})
+    assert "Saved: film/film.json" in out and "s01" in out
+    assert "Script ok" in F.film(root, {"op": "check"})
 
 
 # ----------------------------------------------------------------------------- Zeitlogik
@@ -132,7 +132,7 @@ def test_timing_uses_audio_lengths():
 def test_tool_needs_media_right(root):
     assert "film" in T.available({"media": True}) and "film" not in T.available({"web": True})
     out, _ = T.run_tool({"tool": "film", "op": "check"}, root, {"media": True})
-    assert out.startswith("FEHLER") and "op=save" in out
+    assert out.startswith("ERROR") and "op=save" in out
     out, made = T.run_tool({"tool": "film", "op": "save", "film": plan()}, root, {"media": True})
     assert made == "film/film.json"
 

@@ -76,7 +76,7 @@ def _version_key(path):
 
 
 def blender_hint():
-    return ("Blender wurde nicht gefunden. In der .env BLENDER_PATH setzen, z. B. "
+    return ("Blender was not found. Set BLENDER_PATH in the .env, e.g. "
             "BLENDER_PATH=C:\\Program Files\\Blender Foundation\\Blender 4.2\\blender.exe (Raspberry Pi: sudo apt install blender).")
 
 
@@ -87,7 +87,7 @@ def _f(v, default, lo, hi, what):
     try:
         x = float(v)
     except (TypeError, ValueError):
-        raise ToolError(f"{what}: '{v}' ist keine Zahl")
+        raise ToolError(f"{what}: '{v}' is not a number")
     if not math.isfinite(x):
         raise ToolError(f"{what}: ungueltige Zahl")
     return max(lo, min(hi, x))
@@ -97,7 +97,7 @@ def _pos(v, default, what):
     if v in (None, ""):
         return list(default)
     if not isinstance(v, (list, tuple)) or len(v) not in (2, 3):
-        raise ToolError(f"{what}: pos muss [x, tiefe] sein, z. B. [-2, 0]")
+        raise ToolError(f"{what}: pos must be [x, tiefe] (x, depth), e.g. [-2, 0]")
     return [_f(v[0], 0, -30, 30, what), _f(v[1], 0, -5, 40, what)] + ([_f(v[2], 0, -5, 30, what)] if len(v) == 3 else [])
 
 
@@ -118,7 +118,7 @@ def _color(v, default):
 def _sid(v):
     s = re.sub(r"[^a-z0-9_-]+", "-", str(v or "").lower()).strip("-")[:40]
     if not s:
-        raise ToolError("jede Szene braucht eine id (z. B. \"s01\")")
+        raise ToolError("every scene needs an id (e.g. \"s01\")")
     return s
 
 
@@ -126,13 +126,13 @@ def _file(root, rel, what, exts=None):
     try:
         f = T._inside(root, rel)
     except ValueError:
-        raise ToolError(f"{what}: Pfad liegt ausserhalb des Projektordners")
+        raise ToolError(f"{what}: path is outside the project folder")
     if not f.is_file():
-        raise ToolError(f"{what}: Datei '{rel}' gibt es nicht")
+        raise ToolError(f"{what}: file '{rel}' does not exist")
     if any(part.startswith(".") for part in Path(str(rel)).parts):
-        raise ToolError(f"{what}: versteckte Pfade sind nicht erlaubt")
+        raise ToolError(f"{what}: hidden paths are not allowed")
     if exts and f.suffix.lower() not in exts:
-        raise ToolError(f"{what}: erlaubt sind {', '.join(exts)}")
+        raise ToolError(f"{what}: allowed are {', '.join(exts)}")
     return f
 
 
@@ -158,18 +158,18 @@ def _mtime(f):
 def plan_path(root, call):
     name = str(call.get("datei") or PLAN)
     if not name.startswith("film/") or not name.endswith(".json") or ".." in name:
-        raise ToolError("datei muss in film/ liegen und auf .json enden (Standard film/film.json)")
+        raise ToolError("datei (file) must be in film/ and end in .json (default film/film.json)")
     return T._inside(root, name)
 
 
 def load_plan(root, call):
     p = plan_path(root, call)
     if not p.is_file():
-        raise ToolError(f"{_rel(root, p)} fehlt. Erst mit op=save ein Drehbuch speichern (oder write_file).")
+        raise ToolError(f"{_rel(root, p)} is missing. First save a script with op=save (or write_file).")
     try:
         data = json.loads(p.read_text(encoding="utf-8-sig"))
     except ValueError as e:
-        raise ToolError(f"{_rel(root, p)} ist kein gueltiges JSON: {e}")
+        raise ToolError(f"{_rel(root, p)} is not valid JSON: {e}")
     return normalize(root, data)
 
 
@@ -180,7 +180,7 @@ def _rel(root, p):
 def normalize(root, data):
     """Prueft das Drehbuch und fuellt Standardwerte. Wirft ToolError mit ALLEN gefundenen Fehlern."""
     if not isinstance(data, dict):
-        raise ToolError("Das Drehbuch muss ein JSON-Objekt sein ({\"titel\": ..., \"figuren\": {...}, \"szenen\": [...]})")
+        raise ToolError("The script must be a JSON object ({\"titel\": ..., \"figuren\": {...}, \"szenen\": [...]})")
     errs = []
 
     def guard(fn, *a):
@@ -210,55 +210,55 @@ def normalize(root, data):
     if isinstance(figs, list):  # auch [{"name": ...}, ...] annehmen
         figs = {str(x.get("name")): x for x in figs if isinstance(x, dict) and x.get("name")}
     if not isinstance(figs, dict):
-        errs.append("figuren muss ein Objekt sein: {\"Bello\": {\"art\": \"hund\", ...}}")
+        errs.append("figuren must be an object: {\"Bello\": {\"art\": \"hund\", ...}}")
         figs = {}
     plan["figuren"] = {}
     for name, fd in list(figs.items())[:20]:
         fd = fd if isinstance(fd, dict) else {}
         art = str(fd.get("art") or "mensch").lower()
-        fig = {"name": str(name)[:40], "groesse": guard(_f, fd.get("groesse"), 1.0, 0.2, 5, f"Figur {name}: groesse") or 1.0}
+        fig = {"name": str(name)[:40], "groesse": guard(_f, fd.get("groesse"), 1.0, 0.2, 5, f"Figure {name}: groesse") or 1.0}
         if art in FIGUR_ARTEN:
             fig.update(typ="figur", art=art, farbe=_color(fd.get("farbe"), "#c8843c" if art != "mensch" else "#3b6fd1"),
                        farbe2=_color(fd.get("farbe2"), "#f6e7d0" if art != "mensch" else "#f1c27d"),
                        haar=_color(fd.get("haar"), "#4a2c17"))
         elif art == "bild":
-            f = guard(_file, root, fd.get("bild"), f"Figur {name}: bild", IMG_EXT)
+            f = guard(_file, root, fd.get("bild"), f"Figure {name}: bild", IMG_EXT)
             fig.update(typ="bild", bild=str(f) if f else "", freistellen=fd.get("freistellen", True) is not False,
                        blick=str(fd.get("blickrichtung") or "vorne").lower())
-            fig["groesse"] = guard(_f, fd.get("groesse"), 1.8, 0.2, 8, f"Figur {name}: groesse") or 1.8
+            fig["groesse"] = guard(_f, fd.get("groesse"), 1.8, 0.2, 8, f"Figure {name}: groesse") or 1.8
         elif art == "blend":
-            f = guard(_file, root, fd.get("datei"), f"Figur {name}: datei", (".blend",))
+            f = guard(_file, root, fd.get("datei"), f"Figure {name}: datei", (".blend",))
             fig.update(typ="blend", datei=str(f) if f else "", objekt=str(fd.get("objekt") or "")[:80],
                        aktion=str(fd.get("aktion") or "")[:80])
         else:
-            errs.append(f"Figur {name}: art '{art}' unbekannt. Erlaubt: {', '.join(FIGUR_ARTEN)}, bild, blend")
+            errs.append(f"Figure {name}: art '{art}' unknown. Allowed: {', '.join(FIGUR_ARTEN)}, bild, blend")
             continue
         st = fd.get("stimme") if isinstance(fd.get("stimme"), dict) else {}
         fig["stimme"] = {"lang": str(st.get("lang") or "de")[:5], "voice": str(st.get("voice") or "")[:60],
                          "pitch": st.get("pitch", st.get("tonhoehe")), "rate": st.get("rate", st.get("tempo")),
-                         "engine": _engine(st, f"Figur {name}", errs)}
+                         "engine": _engine(st, f"Figure {name}", errs)}
         plan["figuren"][fig["name"]] = fig
 
     scenes = data.get("szenen")
     if not isinstance(scenes, list) or not scenes:
-        errs.append("szenen fehlt: Liste von Szenen [{\"id\": \"s01\", ...}]")
+        errs.append("szenen missing: list of scenes [{\"id\": \"s01\", ...}]")
         scenes = []
     if len(scenes) > MAX_SZENEN:
-        errs.append(f"hoechstens {MAX_SZENEN} Szenen je Drehbuch (fuer mehr: zweite Datei film/teil2.json)")
+        errs.append(f"at most {MAX_SZENEN} scenes per script (for more: second file film/teil2.json)")
     plan["szenen"], seen = [], set()
     for i, sc in enumerate(scenes[:MAX_SZENEN]):
         if not isinstance(sc, dict):
-            errs.append(f"Szene {i + 1}: muss ein Objekt sein")
+            errs.append(f"Scene {i + 1}: must be an object")
             continue
         sid = guard(_sid, sc.get("id") or f"s{i + 1:02d}")
         if not sid:
             continue
         if sid in seen:
-            errs.append(f"Szene {sid}: id doppelt")
+            errs.append(f"Scene {sid}: duplicate id")
         seen.add(sid)
         plan["szenen"].append(_norm_scene(root, sc, sid, plan, errs, guard))
     if errs:
-        raise ToolError("Drehbuch hat Fehler:\n- " + "\n- ".join(errs[:30]))
+        raise ToolError("Script has errors:\n- " + "\n- ".join(errs[:30]))
     return plan
 
 
@@ -268,53 +268,53 @@ def _norm_scene(root, sc, sid, plan, errs, guard):
     licht = str(ort.get("licht") or "tag").lower()
     bg = None
     if ort.get("hintergrund"):
-        f = guard(_file, root, ort.get("hintergrund"), f"Szene {sid}: hintergrund", IMG_EXT)
+        f = guard(_file, root, ort.get("hintergrund"), f"Scene {sid}: hintergrund", IMG_EXT)
         bg = str(f) if f else None
     boden = ort.get("boden", None)
     s["ort"] = {"himmel": _color(ort.get("himmel"), {"tag": "#9fd7ff", "abend": "#f4a582", "nacht": "#1b2a4a"}.get(licht, "#9fd7ff")),
                 "boden": None if boden is False or (boden is None and bg) else _color(boden, "#7cc96b"),
                 "hintergrund": bg, "licht": licht if licht in LICHT else "tag"}
-    s["dauer_min"] = guard(_f, sc.get("dauer"), 3.0, 0.5, MAX_DAUER, f"Szene {sid}: dauer") or 3.0
+    s["dauer_min"] = guard(_f, sc.get("dauer"), 3.0, 0.5, MAX_DAUER, f"Scene {sid}: dauer") or 3.0
     s["musik"] = None
     if sc.get("musik"):
-        f = guard(_file, root, sc.get("musik"), f"Szene {sid}: musik", AUDIO_EXT)
+        f = guard(_file, root, sc.get("musik"), f"Scene {sid}: musik", AUDIO_EXT)
         s["musik"] = str(f) if f else None
-    s["musik_lautstaerke"] = guard(_f, sc.get("musik_lautstaerke"), 0.3, 0, 2, f"Szene {sid}: musik_lautstaerke") or 0.3
+    s["musik_lautstaerke"] = guard(_f, sc.get("musik_lautstaerke"), 0.3, 0, 2, f"Scene {sid}: musik_lautstaerke") or 0.3
 
     ents = []
     figs = sc.get("figuren") or {}
     if isinstance(figs, list):  # ["Bello", "Mimi"] oder [{"name": ..., "pos": ...}]
         figs = {(x if isinstance(x, str) else str(x.get("name"))): ({} if isinstance(x, str) else x) for x in figs}
     if not isinstance(figs, dict):
-        errs.append(f"Szene {sid}: figuren muss ein Objekt sein: {{\"Bello\": {{\"pos\": [-2, 0]}}}}")
+        errs.append(f"Scene {sid}: figuren must be an object: {{\"Bello\": {{\"pos\": [-2, 0]}}}}")
         figs = {}
     n = max(1, len(figs))
     for k, (name, fd) in enumerate(figs.items()):
         if name not in plan["figuren"]:
-            errs.append(f"Szene {sid}: Figur '{name}' ist oben unter figuren nicht definiert")
+            errs.append(f"Scene {sid}: figure '{name}' is not defined above under figuren")
             continue
         fd = fd if isinstance(fd, dict) else {}
         default = [round((k - (n - 1) / 2) * 2.5, 2), 0]
         blick = str(fd.get("blick") or "vorne").lower()
-        ents.append({"id": name, "fig": name, "pos": guard(_pos, fd.get("pos"), default, f"Szene {sid}/{name}") or default,
+        ents.append({"id": name, "fig": name, "pos": guard(_pos, fd.get("pos"), default, f"Scene {sid}/{name}") or default,
                      "blick": RICHTUNG.get(blick, 0.0), "sichtbar": fd.get("sichtbar", True) is not False})
     for k, rq in enumerate((sc.get("requisiten") or [])[:40]):
         if not isinstance(rq, dict):
             continue
         typ = str(rq.get("typ") or "").lower()
         if typ not in REQUISITEN:
-            errs.append(f"Szene {sid}: Requisit '{typ}' unbekannt. Erlaubt: {', '.join(REQUISITEN)}")
+            errs.append(f"Scene {sid}: prop '{typ}' unknown. Allowed: {', '.join(REQUISITEN)}")
             continue
         e = {"id": str(rq.get("id") or f"{typ}{k + 1}")[:40], "prop": typ, "farbe": _color(rq.get("farbe"), _PROP_COLORS.get(typ, "#999999")),
-             "groesse": guard(_f, rq.get("groesse"), 1.0, 0.1, 10, f"Szene {sid}/{typ}: groesse") or 1.0,
-             "pos": guard(_pos, rq.get("pos"), [0, 3], f"Szene {sid}/{typ}") or [0, 3], "blick": 0.0, "sichtbar": True}
+             "groesse": guard(_f, rq.get("groesse"), 1.0, 0.1, 10, f"Scene {sid}/{typ}: groesse") or 1.0,
+             "pos": guard(_pos, rq.get("pos"), [0, 3], f"Scene {sid}/{typ}") or [0, 3], "blick": 0.0, "sichtbar": True}
         if typ == "bild":
-            f = guard(_file, root, rq.get("bild"), f"Szene {sid}/bild", IMG_EXT)
+            f = guard(_file, root, rq.get("bild"), f"Scene {sid}/bild", IMG_EXT)
             e["bild"] = str(f) if f else ""
         ents.append(e)
     ids = [e["id"] for e in ents]
     if len(ids) != len(set(ids)):
-        errs.append(f"Szene {sid}: Requisiten-ids und Figurennamen muessen eindeutig sein")
+        errs.append(f"Scene {sid}: prop ids and figure names must be unique")
     s["entities"] = ents
 
     s["aktionen"] = []
@@ -323,23 +323,23 @@ def _norm_scene(root, sc, sid, plan, errs, guard):
             continue
         who, what = str(a.get("figur") or a.get("id") or ""), str(a.get("tun") or "").lower()
         if who not in ids:
-            errs.append(f"Szene {sid}: Aktion fuer '{who}', aber das gibt es in dieser Szene nicht ({', '.join(ids) or 'leer'})")
+            errs.append(f"Scene {sid}: action for '{who}', but that does not exist in this scene ({', '.join(ids) or 'empty'})")
             continue
         if what not in AKTIONEN:
-            errs.append(f"Szene {sid}: tun '{what}' unbekannt. Erlaubt: {', '.join(AKTIONEN)}")
+            errs.append(f"Scene {sid}: tun '{what}' unknown. Allowed: {', '.join(AKTIONEN)}")
             continue
-        act = {"wer": who, "tun": what, "zeit": guard(_f, a.get("zeit"), 0.0, 0, MAX_DAUER, f"Szene {sid}: zeit") or 0.0}
+        act = {"wer": who, "tun": what, "zeit": guard(_f, a.get("zeit"), 0.0, 0, MAX_DAUER, f"Scene {sid}: zeit") or 0.0}
         if a.get("dauer") not in (None, ""):
-            act["dauer"] = guard(_f, a.get("dauer"), 1.0, 0.1, 60, f"Szene {sid}: dauer") or 1.0
+            act["dauer"] = guard(_f, a.get("dauer"), 1.0, 0.1, 60, f"Scene {sid}: dauer") or 1.0
         if what == "gehen":
             if a.get("nach") is None:
-                errs.append(f"Szene {sid}: gehen braucht \"nach\": [x, tiefe]")
+                errs.append(f"Scene {sid}: gehen (walk) needs \"nach\": [x, tiefe]")
                 continue
-            act["nach"] = guard(_pos, a.get("nach"), [0, 0], f"Szene {sid}: nach") or [0, 0]
+            act["nach"] = guard(_pos, a.get("nach"), [0, 0], f"Scene {sid}: nach") or [0, 0]
         if what == "drehen":
             act["richtung"] = RICHTUNG.get(str(a.get("richtung") or "vorne").lower(), 0.0)
         if what == "springen":
-            act["hoehe"] = guard(_f, a.get("hoehe"), 0.8, 0.1, 5, f"Szene {sid}: hoehe") or 0.8
+            act["hoehe"] = guard(_f, a.get("hoehe"), 0.8, 0.1, 5, f"Scene {sid}: hoehe") or 0.8
         s["aktionen"].append(act)
 
     s["dialog"] = []
@@ -348,26 +348,26 @@ def _norm_scene(root, sc, sid, plan, errs, guard):
             continue
         who = str(d.get("figur") or "")
         if who and who not in plan["figuren"]:
-            errs.append(f"Szene {sid}: Dialog von '{who}', die Figur ist nicht definiert (leer lassen = Erzaehler)")
+            errs.append(f"Scene {sid}: dialogue by '{who}', the figure is not defined (leave empty = narrator)")
             continue
         s["dialog"].append({"figur": who, "text": str(d.get("text")).strip()[:600],
-                            "pause": guard(_f, d.get("pause"), 0.35, 0, 10, f"Szene {sid}: pause") or 0.35,
-                            "zeit": None if d.get("zeit") in (None, "") else guard(_f, d.get("zeit"), 0, 0, MAX_DAUER, f"Szene {sid}: zeit")})
+                            "pause": guard(_f, d.get("pause"), 0.35, 0, 10, f"Scene {sid}: pause") or 0.35,
+                            "zeit": None if d.get("zeit") in (None, "") else guard(_f, d.get("zeit"), 0, 0, MAX_DAUER, f"Scene {sid}: zeit")})
     erz = sc.get("erzaehler_stimme") if isinstance(sc.get("erzaehler_stimme"), dict) else {}
     s["erzaehler"] = {"lang": str(erz.get("lang") or "de")[:5], "voice": str(erz.get("voice") or "")[:60],
-                      "pitch": erz.get("pitch"), "rate": erz.get("rate"), "engine": _engine(erz, f"Szene {sid}: erzaehler_stimme", errs)}
+                      "pitch": erz.get("pitch"), "rate": erz.get("rate"), "engine": _engine(erz, f"Scene {sid}: erzaehler_stimme", errs)}
 
     k = sc.get("kamera") if isinstance(sc.get("kamera"), dict) else {}
     ein, bew = str(k.get("einstellung") or "total").lower(), str(k.get("bewegung") or "keine").lower()
     if ein not in EINSTELLUNGEN:
-        errs.append(f"Szene {sid}: kamera.einstellung '{ein}' unbekannt ({', '.join(EINSTELLUNGEN)})")
+        errs.append(f"Scene {sid}: kamera.einstellung '{ein}' unknown ({', '.join(EINSTELLUNGEN)})")
         ein = "total"
     if bew not in BEWEGUNGEN:
-        errs.append(f"Szene {sid}: kamera.bewegung '{bew}' unbekannt ({', '.join(BEWEGUNGEN)})")
+        errs.append(f"Scene {sid}: kamera.bewegung '{bew}' unknown ({', '.join(BEWEGUNGEN)})")
         bew = "keine"
     ziel = str(k.get("ziel") or "")
     if ziel and ziel not in ids:
-        errs.append(f"Szene {sid}: kamera.ziel '{ziel}' ist nicht in der Szene")
+        errs.append(f"Scene {sid}: kamera.ziel '{ziel}' is not in the scene")
         ziel = ""
     s["kamera"] = {"einstellung": ein, "bewegung": bew, "ziel": ziel}
     return s
@@ -416,8 +416,8 @@ def voices(root, plan, scene_ids=None):
             if not (f.is_file() and idx.get(key, {}).get("hash") == h):
                 res = T.speak(root, d["text"], v["lang"], "", v["voice"], v["pitch"], v["rate"], target=f, engine=eng)
                 idx[key] = {"hash": h, "dauer": round(T._probe(f)["duration"], 3)}
-                if res.startswith("HINWEIS"):  # Ersatzstimme: Hash ungueltig, damit sie beim naechsten Mal nachvertont wird
-                    idx[key].update(hash="ersatz", ersatz=res.split(" stattdessen")[0][9:])
+                if res.startswith("NOTE"):  # Ersatzstimme: Hash ungueltig, damit sie beim naechsten Mal nachvertont wird
+                    idx[key].update(hash="ersatz", ersatz=res.split(", local voice instead")[0][6:])
                 made += 1
             lines.append(dict(d, datei=str(f), dauer=idx[key]["dauer"], ersatz=idx[key].get("ersatz", "")))
         out[sc["id"]] = lines
@@ -702,12 +702,12 @@ def run_blender(root, job, timeout=None):
                 r = subprocess.run(cmd, cwd=str(root), capture_output=True, text=True, encoding="utf-8", errors="replace",
                                    timeout=timeout, env=env)
             except subprocess.TimeoutExpired:
-                raise ToolError(f"Blender-Zeitlimit ({timeout} s). Fertige Bilder bleiben erhalten: render erneut aufrufen setzt fort. "
-                                "Schneller: kleinere aufloesung, fps 12, renderer workbench.")
+                raise ToolError(f"Blender time limit ({timeout} s). Finished frames are kept: calling render again continues. "
+                                "Faster: smaller aufloesung, fps 12, renderer workbench.")
         log = (r.stdout or "") + (r.stderr or "")
         if r.returncode != 0 or "PCL_FERTIG" not in log:
             errs = [ln for ln in log.splitlines() if "PCL_FEHLER" in ln or "Error" in ln or "Traceback" in ln]
-            raise ToolError("Blender-Fehler: " + ("\n".join(errs[-6:]) or log[-600:]))
+            raise ToolError("Blender error: " + ("\n".join(errs[-6:]) or log[-600:]))
         return log
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -722,7 +722,7 @@ def _scene_ids(plan, call):
     want = [want] if isinstance(want, str) else list(want)
     bad = [w for w in want if w not in all_ids]
     if bad:
-        raise ToolError(f"Szene(n) {', '.join(map(str, bad))} gibt es nicht. Vorhanden: {', '.join(all_ids)}")
+        raise ToolError(f"Scene(s) {', '.join(map(str, bad))} do not exist. Available: {', '.join(all_ids)}")
     return want
 
 
@@ -734,27 +734,27 @@ def _prep(root, plan, sc, lines):
 
 def op_check(root, plan):
     lines, _ = {}, None
-    out = [f"Drehbuch ok: '{plan['titel']}', {len(plan['figuren'])} Figuren, {len(plan['szenen'])} Szenen, "
+    out = [f"Script ok: '{plan['titel']}', {len(plan['figuren'])} figures, {len(plan['szenen'])} scenes, "
            f"{plan['breite']}x{plan['hoehe']} @ {plan['fps']} fps, renderer {plan['renderer']}."]
     total = 0.0
     for sc in plan["szenen"]:
         est = sum(len(d["text"]) / 14.0 + d["pause"] for d in sc["dialog"])
         dur = max(sc["dauer_min"], est + 0.8)
         total += dur
-        out.append(f"- {sc['id']}: {len(sc['entities'])} Objekte, {len(sc['aktionen'])} Aktionen, {len(sc['dialog'])} Dialogzeilen, ca. {dur:.0f} s")
+        out.append(f"- {sc['id']}: {len(sc['entities'])} objects, {len(sc['aktionen'])} actions, {len(sc['dialog'])} dialogue lines, approx. {dur:.0f} s")
     exe = blender_exe()
-    out.append(f"Geschaetzte Laenge: {total:.0f} s. Blender: {exe or 'NICHT gefunden (' + blender_hint() + ')'}")
+    out.append(f"Estimated length: {total:.0f} s. Blender: {exe or 'NOT found (' + blender_hint() + ')'}")
     return "\n".join(out)
 
 
 def op_voices(root, plan, call):
     ids = _scene_ids(plan, call)
     got, made = voices(root, plan, ids)
-    rows = [f"- {sid}: {len(ls)} Zeilen, {sum(x['dauer'] for x in ls):.1f} s Sprache" for sid, ls in got.items()]
+    rows = [f"- {sid}: {len(ls)} lines, {sum(x['dauer'] for x in ls):.1f} s speech" for sid, ls in got.items()]
     ersatz = [x["ersatz"] for ls in got.values() for x in ls if x.get("ersatz")]
-    hint = (f"\nHINWEIS: {len(ersatz)} Zeilen mit lokaler Ersatzstimme, weil: " + "; ".join(sorted(set(ersatz)))
-            + ". Beim naechsten op=voices wird es erneut versucht.") if ersatz else ""
-    return f"Stimmen fertig ({made} neu vertont, Rest aus dem Zwischenspeicher) in film/ton/:\n" + "\n".join(rows) + hint
+    hint = (f"\nNOTE: {len(ersatz)} lines with a local substitute voice, because: " + "; ".join(sorted(set(ersatz)))
+            + ". The next op=voices tries again.") if ersatz else ""
+    return f"Voices done ({made} newly voiced, rest from the cache) in film/ton/:\n" + "\n".join(rows) + hint
 
 
 def op_preview(root, plan, call):
@@ -770,12 +770,12 @@ def op_preview(root, plan, call):
         run_blender(root, build_job(root, plan, sc, timed, dur, envs, tmp, still=at), timeout=int(_env("PCL_BLENDER_PREVIEW_TIMEOUT", "900")))
         pngs = sorted(tmp.glob("*.png"))
         if not pngs:
-            raise ToolError("Blender hat kein Bild geschrieben")
+            raise ToolError("Blender wrote no image")
         dst = outdir / f"{sid}.png"
         shutil.move(str(pngs[0]), dst)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    return f"Vorschau: film/vorschau/{sid}.png (Szene {sid} bei {at:.1f} s von {dur:.1f} s). Mit view_image ansehen und pruefen."
+    return f"Preview: film/vorschau/{sid}.png (scene {sid} at {at:.1f} s of {dur:.1f} s). Look at it and check it with view_image."
 
 
 def _clip_index(root):
@@ -827,7 +827,7 @@ def render_scene(root, plan, sc, lines, force=False):
                                                           for t in timed], "rendersekunden": round(secs)}
     (clips / "index.json").write_text(json.dumps(idx, indent=1, ensure_ascii=False), encoding="utf-8")
     n = int(round(dur * plan["fps"]))
-    return f"{sc['id']}: gerendert -> film/clips/{sc['id']}.mp4 ({dur:.1f} s, {n} Bilder in {secs:.0f} s)", True
+    return f"{sc['id']}: rendered -> film/clips/{sc['id']}.mp4 ({dur:.1f} s, {n} frames in {secs:.0f} s)", True
 
 
 def op_render(root, plan, call):
@@ -843,9 +843,9 @@ def op_render(root, plan, call):
         msg, _ = render_scene(root, plan, sc, got[sid], force=bool(call.get("neu")))
         out.append(msg)
     if left:
-        out.append(f"Zeitbudget ({budget} s) erreicht. Noch offen: {', '.join(left)}. render erneut aufrufen, fertige Szenen werden uebersprungen.")
+        out.append(f"Time budget ({budget} s) reached. Still open: {', '.join(left)}. Call render again, finished scenes are skipped.")
     else:
-        out.append("Alle gewuenschten Szenen fertig. Naechster Schritt: op=assemble.")
+        out.append("All requested scenes done. Next step: op=assemble.")
     return "\n".join(out)
 
 
@@ -859,7 +859,7 @@ def op_assemble(root, plan, call):
     clips_dir = root / "film" / "clips"
     missing = [s["id"] for s in plan["szenen"] if not (clips_dir / f"{s['id']}.mp4").is_file()]
     if missing:
-        raise ToolError(f"Clips fehlen fuer: {', '.join(missing)}. Erst op=render.")
+        raise ToolError(f"Clips missing for: {', '.join(missing)}. Run op=render first.")
     tmp = Path(tempfile.mkdtemp(prefix=".tmp-", dir=root))
     try:
         segs, srt, t, n = [], [], 0.0, 1
@@ -910,8 +910,8 @@ def op_assemble(root, plan, call):
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     p = T._probe(out)
-    return (f"Film fertig: {_rel(root, out)} ({T._describe_probe(p)})" + (f", Untertitel {_rel(root, out.with_suffix('.srt'))}" if srt else "")
-            + ". Pruefen: video_edit op=frame fuer Standbilder, media_info fuer Dauer.")
+    return (f"Film done: {_rel(root, out)} ({T._describe_probe(p)})" + (f", subtitles {_rel(root, out.with_suffix('.srt'))}" if srt else "")
+            + ". Check: video_edit op=frame for stills, media_info for duration.")
 
 
 def op_save(root, call):
@@ -920,14 +920,14 @@ def op_save(root, call):
         try:
             data = json.loads(data)
         except ValueError as e:
-            raise ToolError(f"film ist kein gueltiges JSON: {e}")
+            raise ToolError(f"film is not valid JSON: {e}")
     if not isinstance(data, dict):
-        raise ToolError("film fehlt: das komplette Drehbuch als JSON-Objekt mitgeben")
+        raise ToolError("film missing: pass the complete script as a JSON object")
     plan = normalize(root, data)  # erst pruefen, dann speichern
     p = plan_path(root, call)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
-    return f"Gespeichert: {_rel(root, p)}. " + op_check(root, plan)
+    return f"Saved: {_rel(root, p)}. " + op_check(root, plan)
 
 
 def film(root, call):
@@ -946,4 +946,4 @@ def film(root, call):
         return op_render(root, plan, call)
     if op == "assemble":
         return op_assemble(root, plan, call)
-    raise ToolError("op unbekannt. Erlaubt: save, check, voices, preview, render, assemble")
+    raise ToolError("op unknown. Allowed: save, check, voices, preview, render, assemble")

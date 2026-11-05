@@ -1,7 +1,20 @@
 # Hyperstead – Projektnotizen für die Weiterarbeit
 
 Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipLite), läuft auf einem Raspberry Pi 4
-(Hostname `dexter`). Oberfläche (index.html, Server-Fehlermeldungen, Login, Stufennamen in growth.py, Vorlagen-label/desc) seit 2026-11-04 auf internationalem Englisch (Wunsch ABI, andere Sprachen per Browser-Übersetzer); Doku, Code-Kommentare, Agenten-Prompts, Vorlageninhalte und Telegram bleiben Deutsch.
+(Hostname `dexter`).
+
+## Sprache (Wunsch ABI 2026-11-05)
+- ALLES, was Hyperstead selbst schreibt, ist Englisch: Oberflaeche (auch title/aria/Platzhalter/confirm), Server- und Werkzeugmeldungen (`ERROR:`/`NOTE:`/`WARNING:`),
+  Agenten-Prompts, Firmenvorlagen, Telegram-Texte, Selbsttest, Druck-/Rust-Dateinamen (`print-*.txt`, `README.txt`, `TEST_REPORT.txt`, `source/`, `program/`).
+  Was der Besitzer eintraegt, bleibt in seiner Sprache. Deutsch bleiben nur Code-Kommentare, `docs/`, Bezeichner, die Agenten/Daten schon nutzen
+  (Werkstatt-Werkzeuge `befehl`/`nachruesten` mit `wozu`/`groesse`, film.json-Schluessel, `wissen/`, Audit-Ereignisse, interne Werte wie `antrag`/`besitzer`).
+- Kommunikationssprache: `note_owner_text` (Chat, Auftrag, Rework, neue Post, Telegram) merkt `settings owner_text` und leert `owner_lang`;
+  `language_line()` in `build_system` verlangt Antworten/Berichte/Dateien in der Sprache des Besitzers (mit seinen letzten Worten).
+- `tr(text)`: feste Meldungen (Telegram `tg_send_now`/`tg_notify` mit `translate=True`, Buttons, Kopf/Fuss in `tg_notify_post`, Systemnotizen im Postkorb)
+  uebersetzt die KI von `translator_agent()` (CEO des aktiven Projekts, sonst erster Agent mit echtem Anbieter). `owner_lang()` erkennt die Sprache per KI,
+  Cache `_tr_cache`. Ohne KI, bei Englisch oder `PCL_TRANSLATE=0` unveraendert. Tests setzen `PCL_TRANSLATE=0` (conftest), Test `tests/test_sprache.py`.
+- Alte deutsche Marker werden weiter erkannt (`REPORT_HEADS`, CEO-JSON `weiterleiten`/`empfehlung`, Telegram /neu /projekt /datei /hilfe, `OK_WORDS`).
+- Grafik-Menue „Classic“ ohne Symbole (Wunsch ABI): „Org chart: Tree/Outline/Circle“, „Blueprint“.
 
 ## Aufbau
 - `app.py`: komplettes Backend (Flask + SQLite, `PCL_WORKERS` Worker-Threads). Abschnitte: Konfiguration/.env, Datenbank,
@@ -44,7 +57,7 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   (Netz, fuehrt nichts aus, CARGO_HOME `.rust/cargo-home`), dann build/test/run `--release --offline` in bubblewrap (`T._sandbox_cmd` + Toolchain-sysroot ro,
   `/cargo` rw, `CARGO_TARGET_DIR=/arbeit/target`, rlimits `PCL_CARGO_MEM_MB`). Toolchain-Programme direkt aus `rustc --print sysroot` (nicht rustup-Huelle).
   Ohne bwrap (Windows) nur mit `PCL_CARGO_UNSAFE=1` direkt mit Minimal-Umgebung (ABI hat das am 2026-11-02 so gewaehlt). `op=package` nur bei gruenen
-  Tests -> `output/<name>.zip` (LIESMICH, TESTBERICHT, quelle/, programm/). `_lock` = ein Bau gleichzeitig. Projekt-ZIP (`_projekt.zip`) laesst Dotordner aus.
+  Tests -> `output/<name>.zip` (README.txt, TEST_REPORT.txt, source/, program/). `_lock` = ein Bau gleichzeitig. Projekt-ZIP (`_projekt.zip`) laesst Dotordner aus.
   `/api/info` liefert `rust` = Modus, `allow_run` = run_code ODER rust. Tests `tests/test_rust.py` (echtes cargo), `selftest.py rust`. Auf Pi/Windows ungetestet.
 - Echter Browser: `browse_page` (Recht `web`, nur wenn Playwright importierbar und `PCL_BROWSER`≠0): Chromium je Aufruf, `_browser_lock` (1 Instanz),
   `ctx.route` + `route_web_socket` prüfen JEDE Anfrage mit `check_public` (Restrisiko DNS-Rebinding), WebRTC/Downloads/Service Worker aus.
