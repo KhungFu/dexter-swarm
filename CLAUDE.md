@@ -107,6 +107,12 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   CLI-Agenten erzeugen Dateien genauso über die Server-Werkzeuge (der Hinweis hatte Chefs zum Blockieren gebracht).
 - `make_document` mit `html` (Pfad oder HTML-Text → `work/<name>.html`): WeasyPrint (optional, `install.sh` installiert es, braucht libpango),
   eigener URL-Fetcher erlaubt nur `data:` und Dateien im Projektordner ohne Dotpfade (kein Netz, kein SSRF). Chromium-Rückfall bewusst nicht.
+- Eigene Verbindungen der Herkunfts-KI (`ai_links.py`, Doku `docs/ki-verbindungen.md`): `tokens/claude-mcp.json` (`PCL_CLAUDE_MCP`) -> `--mcp-config`
+  + `--allowedTools mcp__<name>`; `PCL_CLAUDE_CONNECTORS=Canva` (claude.ai-Abo) entfernt `--strict-mcp-config` und erlaubt `mcp__claude_ai_<Name>`
+  (abweichender Name aus der init-Zeile -> `LEARNED`). Mit Verbindungen laeuft claude immer per stream-json (`_run_claude_stream`), Status aus der
+  init-Zeile (`parse_init`/`record`, `STATE`), Fehler -> `_links_report` (Audit `ai_link_failed`, Telegram je Verbindung alle 6 h). `prompt_block` in
+  `build_system`/`chat_system`. Codex: nur Namen aus `~/.codex/config.toml`. API `/api/ai_links`(+`/check`), `selftest.py links`. Chat: `auto_image`
+  haengt das neueste Bild aus `input/` an, wenn `IMG_WORDS` passt und kein Bild dabei ist. Tests `tests/test_ki_verbindungen.py`.
 - `claude_cli`: läuft mit `--strict-mcp-config` (keine Konnektoren wie Gmail/Drive aus dem Abo) und bekommt die System-Nachricht als
   `--system-prompt` statt des Claude-Code-Prompts. Ohne beides hielt sich das Modell für werkzeuglos und ignorierte die JSON-Werkzeuge.
   Kann ein Modell keine Bilder, sagt `call_llm_img` ihm das (Bericht nennt Agent/Modell). Angeworbene Mitarbeiter haben immer `read_files`.

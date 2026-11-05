@@ -186,6 +186,7 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | `data.db` | Wird leer neu angelegt. Firmen, Aufträge und Post sind weg. | Vorher sichern (siehe Betrieb). Nur aus einer Sicherung zurückkopieren. |
 | API-Key in `.env` | Der Anbieter wird im Selbsttest als MISSING gemeldet und von den Agenten nicht benutzt. Ist er gesetzt, aber ungültig: ERROR mit HTTP 401. | Key eintragen oder die Zeile mit `#` abschalten. |
 | Ollama nicht erreichbar oder Modell zu groß | Die Aufgabe scheitert mit „Ollama not reachable“ bzw. „Not enough RAM for this model“; ein fehlendes Modell meldet „`ollama pull …`“. Liefert Ollama `OLLAMA_TIMEOUT` Sekunden lang nichts, bricht die Anfrage mit diesem Hinweis ab, ohne Wiederholung. | `systemctl status ollama`, kleineres Modell ziehen (`ollama pull qwen2.5:1.5b`) und im Agenten wählen, oder `OLLAMA_TIMEOUT` erhöhen. |
+| Eigene Verbindung der KI (z. B. Canva aus dem Claude-Abo, eigener MCP-Server) | Hyperstead liest den Status bei jedem Claude-Aufruf mit. Geht eine Verbindung nicht („FAILED“, „NEEDS SIGN-IN“, „NOT AVAILABLE“) oder ist `tokens/claude-mcp.json` fehlerhaft, steht das im Protokoll (`ai_link_failed`), Telegram meldet es höchstens alle 6 Stunden, und der CEO sagt es dir ehrlich, statt so zu tun, als hätte er sie benutzt. Ohne Einrichtung läuft alles wie bisher, nur ohne Verbindungen. | [docs/ki-verbindungen.md](docs/ki-verbindungen.md): `PCL_CLAUDE_CONNECTORS=Canva` in `.env` oder Server in `tokens/claude-mcp.json`, danach `python selftest.py links`. |
 | `SDCPP_URL` (bei `IMAGE_PROVIDER=sdcpp`) | Bildanfragen schlagen mit „SDCPP_URL is missing“ fehl. Mit `IMAGE_FALLBACK=pollinations` kommt ein kostenloses Ersatzbild ohne Referenzen, mit Hinweis im Ergebnis. | Zeile in `.env` ergänzen, Hyperstead neu starten. |
 | Bildrechner nicht erreichbar (Laptop aus, Firewall, falsche IP) | Wie oben: Fehler „ConnectionError“, mit Fallback ein Ersatzbild. | Laptop einschalten, `bildrechner-start.bat` starten, IP und Firewall prüfen. |
 | `sd-server.exe` (Windows, Bildrechner) | `bildrechner-start.bat` zeigt „sd-server.exe fehlt“ und startet nichts. | `deploy\windows\bildrechner-einrichten.ps1` ausführen. |
@@ -480,7 +481,7 @@ mit **▶ Test** prüfst du Key und Modell sofort. So setzt du das passende Mode
 | Mistral, NVIDIA NIM, Together, Perplexity | `MISTRAL_API_KEY`, `NVIDIA_API_KEY`, `TOGETHER_API_KEY`, `PERPLEXITY_API_KEY` | Perplexity-Modelle (`sonar`) suchen selbst im Netz |
 | Hugging Face, Cloudflare Workers AI | `HF_TOKEN` bzw. `CF_ACCOUNT_ID` + `CF_API_TOKEN` | kleine Gratis-Kontingente |
 | Ollama | – | lokale Modelle auf dem Pi |
-| Claude (CLI, dein Abo) / ChatGPT (Codex-CLI, dein Abo) | – | fest eingebaut: `claude -p --tools "" --strict-mcp-config --no-session-persistence` (Claude ohne eigene Werkzeuge und ohne Konnektoren, nur Text; die Arbeitsanweisung ersetzt den Claude-Code-Systemprompt) bzw. `codex exec --skip-git-repo-check --ephemeral -` (Codex läuft von sich aus im Nur-Lesen-Sandkasten), Modell im Dropdown (Claude: sonnet/opus/haiku); braucht `PCL_ALLOW_CLI=1` und das angemeldete Programm auf dem Pi |
+| Claude (CLI, dein Abo) / ChatGPT (Codex-CLI, dein Abo) | – | fest eingebaut: `claude -p --tools "" --strict-mcp-config --no-session-persistence` (Claude ohne eigene Werkzeuge, Konnektoren nur auf Wunsch über [docs/ki-verbindungen.md](docs/ki-verbindungen.md); die Arbeitsanweisung ersetzt den Claude-Code-Systemprompt) bzw. `codex exec --skip-git-repo-check --ephemeral -` (Codex läuft von sich aus im Nur-Lesen-Sandkasten), Modell im Dropdown (Claude: sonnet/opus/haiku); braucht `PCL_ALLOW_CLI=1` und das angemeldete Programm auf dem Pi |
 | CLI-Agent | – | Befehl, der den Prompt von stdin liest, z. B. `claude -p --model sonnet`; braucht `PCL_ALLOW_CLI=1` |
 
 **Wichtig:** Ein Web-Login (OAuth, „Abo“) von ChatGPT oder Claude lässt sich nicht sauber als API nutzen, das Abgreifen von
@@ -666,6 +667,13 @@ in allen Anbieter-Listen. Der Server ruft sie ohne Shell auf, in einem leeren Or
 aktualisiert und holt bei Bedarf ein Langzeit-Token (ein Jahr) nach `tokens/claude-oauth-token.txt`. Hyperstead gibt es nur an
 `claude` weiter, warnt per Telegram, wenn die Anmeldung fehlschlägt, und 30 Tage vor Ablauf. Das Anmelden im Browser machst du
 selbst. Details: [docs/claude-anmeldung.md](docs/claude-anmeldung.md).
+
+**Werkzeuge der eigenen KI (Canva, Drive, eigene MCP-Server):** Normalerweise laufen Claude und Codex ohne ihre Konnektoren.
+Trägst du in `.env` `PCL_CLAUDE_CONNECTORS=Canva` ein (Konnektoren aus deinem claude.ai-Abo) oder legst eigene MCP-Server in
+`tokens/claude-mcp.json` an, bekommen alle Claude-CLI-Agenten genau diese Verbindungen. Codex nutzt die Server aus `~/.codex/config.toml`.
+Der CEO sieht im Prompt, welche Verbindung gerade geht, und meldet Fehler. Zugangsdaten stehen nur in diesen Dateien, nie im Chat.
+Bilder: Erwähnst du im Chat ein Bild („Referenzbild“, „Foto“, „resim“ …) ohne 📎, geht das neueste Bild aus `input/` automatisch mit.
+Details: [docs/ki-verbindungen.md](docs/ki-verbindungen.md).
 
 ## Modell weg? Agenten umstellen
 Hyperstead prüft alle 6 Stunden (`PCL_MODEL_CHECK_HOURS`), ob die Modelle der Agenten beim Anbieter noch existieren, und merkt es auch, wenn ein Aufruf „Modell nicht gefunden“ meldet. Dann kommt eine Telegram-Nachricht, die Aufgabe scheitert mit klarem Hinweis, und im Menü **⚠ Models** stellst du alle betroffenen Agenten mit einem Klick auf ein anderes Modell um.

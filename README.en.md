@@ -186,6 +186,7 @@ This list is extended with every change to the program. Each row says what the s
 | `data.db` | Is created new and empty. Companies, tasks and posts are gone. | Back it up first (see Operations). Only copy back from a backup. |
 | API key in `.env` | The provider is reported as MISSING in the self-test and the agents do not use it. If it is set but invalid: ERROR with HTTP 401. | Enter the key, or switch the line off with `#`. |
 | Ollama not reachable or model too big | The task fails with „Ollama not reachable“ or „Not enough RAM for this model“; a missing model reports „`ollama pull …`“. If Ollama delivers nothing for `OLLAMA_TIMEOUT` seconds, the request stops with this hint, without repetition. | `systemctl status ollama`, pull a smaller model (`ollama pull qwen2.5:1.5b`) and choose it in the agent, or raise `OLLAMA_TIMEOUT`. |
+| Own connection of the AI (e.g. Canva from the Claude subscription, own MCP server) | Hyperstead reads the status on every Claude call. If a connection does not work („FAILED“, „NEEDS SIGN-IN“, „NOT AVAILABLE“) or `tokens/claude-mcp.json` is broken, it is logged (`ai_link_failed`), Telegram reports it at most every 6 hours, and the CEO tells you honestly instead of pretending to have used it. Without setup everything runs as before, just without connections. | [docs/ki-verbindungen.md](docs/ki-verbindungen.md) (German): `PCL_CLAUDE_CONNECTORS=Canva` in `.env` or servers in `tokens/claude-mcp.json`, then `python selftest.py links`. |
 | `SDCPP_URL` (with `IMAGE_PROVIDER=sdcpp`) | Image requests fail with „SDCPP_URL is missing“ (SDCPP_URL missing). With `IMAGE_FALLBACK=pollinations` a free replacement image without references is made, with a note in the result. | Add the line to `.env`, restart Hyperstead. |
 | Image computer not reachable (laptop off, firewall, wrong IP) | As above: error „ConnectionError“ (not reachable), with the fallback a replacement image. | Switch on the laptop, start `bildrechner-start.bat`, check the IP and the firewall. |
 | `sd-server.exe` (Windows, image computer) | `bildrechner-start.bat` shows „sd-server.exe fehlt“ (missing) and starts nothing. | Run `deploy\windows\bildrechner-einrichten.ps1`. |
@@ -477,7 +478,7 @@ with **▶ Test** you check key and model immediately. This is how you set the r
 | Mistral, NVIDIA NIM, Together, Perplexity | `MISTRAL_API_KEY`, `NVIDIA_API_KEY`, `TOGETHER_API_KEY`, `PERPLEXITY_API_KEY` | Perplexity models (`sonar`) search the web themselves |
 | Hugging Face, Cloudflare Workers AI | `HF_TOKEN` or `CF_ACCOUNT_ID` + `CF_API_TOKEN` | small free quotas |
 | Ollama | – | local models on the Pi |
-| Claude (CLI, your subscription) / ChatGPT (Codex CLI, your subscription) | – | built in: `claude -p --tools "" --strict-mcp-config --no-session-persistence` (Claude without its own tools and without connectors, text only; the work instruction replaces the Claude Code system prompt) or `codex exec --skip-git-repo-check --ephemeral -` (Codex runs in a read-only sandbox by itself), model in the drop-down (Claude: sonnet/opus/haiku); needs `PCL_ALLOW_CLI=1` and the signed-in program on the Pi |
+| Claude (CLI, your subscription) / ChatGPT (Codex CLI, your subscription) | – | built in: `claude -p --tools "" --strict-mcp-config --no-session-persistence` (Claude without its own tools, connectors only on request via [docs/ki-verbindungen.md](docs/ki-verbindungen.md); the work instruction replaces the Claude Code system prompt) or `codex exec --skip-git-repo-check --ephemeral -` (Codex runs in a read-only sandbox by itself), model in the drop-down (Claude: sonnet/opus/haiku); needs `PCL_ALLOW_CLI=1` and the signed-in program on the Pi |
 | CLI agent | – | a command that reads the prompt from stdin, e.g. `claude -p --model sonnet`; needs `PCL_ALLOW_CLI=1` |
 
 **Important:** A web login (OAuth, „subscription“) of ChatGPT or Claude cannot be used cleanly as an API; taking over
@@ -658,6 +659,14 @@ Claude Code `claude`, OpenAI Codex `codex`; sign-in with your subscription). The
 appear in all provider lists. The server calls them without a shell, in an empty folder and **without our API keys in the environment**
 (otherwise `claude` would bill the API key instead of the subscription). Limits: slower than the API (program start per answer), subscription limits apply
 (many agents = quickly at the limit), and the CLI programs have their own tools – adjust the command if needed via `PCL_CLI_CLAUDE` / `PCL_CLI_CODEX`.
+
+
+**Tools of the AI itself (Canva, Drive, own MCP servers):** normally Claude and Codex run without their connectors.
+If you put `PCL_CLAUDE_CONNECTORS=Canva` into `.env` (connectors of your claude.ai subscription) or add own MCP servers to
+`tokens/claude-mcp.json`, all Claude CLI agents get exactly these connections. Codex uses the servers from `~/.codex/config.toml`.
+The CEO sees in its prompt which connection works and reports errors. Credentials live only in these files, never in the chat.
+Images: if you mention an image in the chat („reference image“, „photo“ …) without 📎, the newest image from `input/` is attached automatically.
+Details: [docs/ki-verbindungen.md](docs/ki-verbindungen.md) (German).
 
 ## Model gone? Switch agents
 

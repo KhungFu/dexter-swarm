@@ -2,7 +2,7 @@
 """Hyperstead Selbsttest: prueft auf dem echten Rechner (Pi), ob alles funktioniert, was die Agenten brauchen.
 
     ./venv/bin/python selftest.py            # alles pruefen
-    ./venv/bin/python selftest.py web        # nur Gruppe: web | browser | run | llm | telegram | media | ocr | code | film
+    ./venv/bin/python selftest.py web        # nur Gruppe: web | browser | run | llm | links | telegram | media | ocr | code | film
 
 Jede Zeile: OK / MISSING (optional) / ERROR, bei Problemen mit konkretem Hinweis. Es werden keine Keys ausgegeben.
 Die LLM-Tests senden je Anbieter eine winzige Anfrage (kostet praktisch nichts). Bilder werden nur im Temp-Ordner erzeugt.
@@ -376,7 +376,33 @@ def group_film():
               hint="ffmpeg and speech output needed (group media)")
 
 
-GROUPS = {"web": group_web, "browser": group_browser, "run": group_run, "llm": group_llm, "telegram": group_telegram, "media": group_media, "ocr": group_ocr, "code": group_code, "rust": group_rust, "film": group_film}
+def group_links():
+    print("\nOwn AI connections (MCP of Claude/Codex CLI, docs/ki-verbindungen.md)")
+    import ai_links as L
+    cfg = L.claude_config()
+    if cfg["error"]:
+        line("fail", "tokens/claude-mcp.json", cfg["error"])
+    if not L.active(cfg) and not L.codex_servers():
+        line("warn", "no connections set up", "optional: PCL_CLAUDE_CONNECTORS=Canva in .env or tokens/claude-mcp.json")
+        return
+    if L.active(cfg):
+        if not A.ALLOW_CLI or not shutil.which("claude"):
+            line("fail", "Claude CLI", "PCL_ALLOW_CLI=1 and an installed 'claude' are needed")
+        else:
+            try:
+                A.ai_links_check()
+            except Exception as e:  # noqa: BLE001
+                line("fail", "Claude CLI test call", str(e)[:200])
+        for r in L.overview("claude_cli")["links"]:
+            ok = r["status"] == "connected"
+            hint = "" if ok else ("  -> claude.ai connectors need 'claude /login' with your subscription (see docs)"
+                                  if "connector" in r["name"] else "  -> check command/url in tokens/claude-mcp.json")
+            line("ok" if ok else "fail", r["name"][:34], L.STATUS_TEXT.get(r["status"], r["status"]) + hint)
+    for n in L.codex_servers():
+        line("ok", f"Codex: {n}"[:34], "configured in ~/.codex/config.toml (status not checked)")
+
+
+GROUPS = {"web": group_web, "browser": group_browser, "run": group_run, "llm": group_llm, "links": group_links, "telegram": group_telegram, "media": group_media, "ocr": group_ocr, "code": group_code, "rust": group_rust, "film": group_film}
 
 if __name__ == "__main__":
     wanted = [a for a in sys.argv[1:] if a in GROUPS] or list(GROUPS)

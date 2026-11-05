@@ -32,6 +32,7 @@ import agent_tools as tools
 import cloud_upload as cloud
 import printing
 import werkstatt as W
+import ai_links as AL
 import company_templates
 import growth as G
 from flask import Flask, Response, abort, jsonify, redirect, request, send_file, send_from_directory
@@ -560,12 +561,16 @@ def _run_cli(argv, prompt, cwd=None, timeout=None, extra_env=None):
     return r.stdout.strip()
 
 
-def _run_claude_images(argv, prompt, images, **run_kw):
-    """Claude-CLI mit Bildern: Nachricht als stream-json (Text + Bild-Bloecke), ohne Werkzeuge."""
+def _run_claude_stream(argv, prompt, images=None, links=None, **run_kw):
+    """Claude-CLI per stream-json: Text + Bild-Bloecke rein, Antwort und Status der eigenen Verbindungen (init-Zeile) raus."""
     msg = {"type": "user", "message": {"role": "user", "content": [{"type": "text", "text": prompt}] + [
-        {"type": "image", "source": {"type": "base64", "media_type": mt, "data": b64}} for mt, b64 in images]}}
+        {"type": "image", "source": {"type": "base64", "media_type": mt, "data": b64}} for mt, b64 in images or []]}}
     raw = _run_cli(argv + ["--input-format", "stream-json", "--output-format", "stream-json", "--verbose"],
                    json.dumps(msg) + "\n", **run_kw)
+    if links and AL.active(links):
+        seen = AL.parse_init(raw)
+        if seen is not None:
+            _links_report("claude_cli", AL.record("claude_cli", seen, links))
     for line in reversed(raw.splitlines()):
         try:
             d = json.loads(line)
@@ -576,6 +581,27 @@ def _run_claude_images(argv, prompt, images, **run_kw):
                 raise RuntimeError(f"CLI error: {str(d.get('result'))[:300]}")
             return str(d.get("result") or "").strip()
     raise RuntimeError("CLI error: no answer in stream-json")
+
+
+_links_alarm = {}  # Verbindung -> Zeit der letzten Meldung
+
+
+def _links_report(provider, broken):
+    """Kaputte eigene Verbindungen nicht still verschlucken: Audit + Telegram (je Verbindung hoechstens alle 6 Stunden)."""
+    for name, status in broken:
+        key = f"{provider}:{name}:{status}"
+        if time.time() - _links_alarm.get(key, 0) < 6 * 3600:
+            continue
+        _links_alarm[key] = time.time()
+        txt = AL.STATUS_TEXT.get(status, status)
+        log("ai_link_failed", f"{provider}: {name} -> {status}")
+        tg_notify(f"⚠ AI connection '{name}' of {PROVIDERS.get(provider, {}).get('label', provider)}: {txt}. "
+                  "See docs/ki-verbindungen.md.")
+
+
+def _links_config_alarm(cfg):
+    if cfg.get("error"):
+        _links_report("claude_cli", [(cfg["error"], "config")])
 
 
 class _image_files:
@@ -733,14 +759,19 @@ def _call_llm(agent, messages, images=None):
         if ws:
             argv, run_kw = ws[0], {"cwd": ws[1], "timeout": ws[2]}
         is_claude = bool(argv) and Path(argv[0]).name.lower().startswith("claude")
+        links = None
+        if is_claude and pid == "claude_cli":  # eigene Verbindungen (MCP) der Claude-CLI, siehe ai_links.py
+            links = AL.claude_config()
+            _links_config_alarm(links)
+            argv = AL.claude_args(argv, links)
         if is_claude:
             tok = claude_oauth_token()
             if tok:  # nur 'claude' bekommt das Token, alle anderen CLIs/Befehle nicht
                 run_kw["extra_env"] = {"CLAUDE_CODE_OAUTH_TOKEN": tok}
             _claude_age_warning()
         try:
-            if images and pid == "claude_cli":
-                out = _run_claude_images(argv, prompt, images, **run_kw)
+            if pid == "claude_cli" and (images or (links and AL.active(links))):
+                out = _run_claude_stream(argv, prompt, images, links, **run_kw)
             elif images and pid == "codex_cli":
                 with _image_files(images) as paths:
                     pos = len(argv) - 1 if argv[-1] == "-" else len(argv)
@@ -1726,7 +1757,8 @@ def build_system(agent, project, mode, final_only=False, team_change_ok=False):
                  "(the owner ticks it in the agent panel), and until then deliver the content yourself in result.")
     if agent["system_prompt"].strip():
         s.append("\nWork instructions:\n" + agent["system_prompt"].strip())
-    for b in (knowledge_block(project["id"]), memory_block(agent), goals_block(project["id"]) if kids or not parent else ""):
+    for b in (knowledge_block(project["id"]), memory_block(agent), goals_block(project["id"]) if kids or not parent else "",
+              AL.prompt_block(agent.get("provider") or "", top=not parent)):
         if b:
             s.append(b)
 
@@ -5091,6 +5123,16 @@ def save_input(pid, filename, write, folder="input"):
     return f"{folder}/{target.name}", target.name != f"{base}.{ext}"
 
 
+IMG_WORDS = re.compile(r"(\bbild|bild\b|bilder\b|\bfoto|\bphoto|\bpicture|\bimage|screenshot|referenz|reference|\bresim|görsel|\bslika|\bimazh)", re.I)
+
+
+def auto_image(pid, low, files):
+    """Neuestes Bild aus input/, wenn die Nachricht ein Bild erwaehnt und kein Bild angehaengt ist (sonst None)."""
+    if any(f.lower().endswith(tuple(tools.IMG_TYPES)) for f in files) or not IMG_WORDS.search(low or ""):
+        return None
+    return next((p for p, _ in input_listing(pid, 300) if p.lower().endswith(tuple(tools.IMG_TYPES))), None)
+
+
 def files_note(paths):
     """Hinweis fuer Chat/Auftrag, welche Dateien der Besitzer mitgeschickt hat."""
     return ("📎 Files sent along by the owner (they are in the project folder, readable with the file tools): "
@@ -5391,12 +5433,15 @@ def chat_system(agent, project):
         s.append("Your team: " + ", ".join(f"{k['name']} ({k['role']})" for k in kids))
     if agent["system_prompt"].strip():
         s.append("\nWork instructions:\n" + agent["system_prompt"].strip())
-    for b in (knowledge_block(project["id"]), memory_block(agent), cloud_setup_block(agent, project["id"])):
+    links = AL.prompt_block(agent.get("provider") or "", top=not agent.get("parent_id"))
+    for b in (knowledge_block(project["id"]), memory_block(agent), cloud_setup_block(agent, project["id"]), links):
         if b:
             s.append(b)
     s.append("\nYou are now having a free CONVERSATION with the owner of the company. Answer in normal text (Markdown allowed), no JSON, "
              "ALWAYS in the language the owner writes in (whatever language that is). Think along, ask targeted questions, name counter-arguments and alternatives, stay honest instead of flattering. "
-             "You cannot use tools or run anything in this conversation. If the owner wants the team to implement something, tell them "
+             + ("Apart from the own connections of your AI listed above, you cannot use tools or run anything in this conversation. "
+                if "OWN CONNECTIONS OF YOUR AI (MCP" in links else "You cannot use tools or run anything in this conversation. ")
+             + "If the owner wants the team to implement something, tell them "
              "they can hand the conversation directly to you and your team with the button 'Give as assignment'.\n"
              "FILES: If the owner attaches files (line with 📎) or names a file from input/, the server inserts their CONTENT "
              "directly into their message (section 'ATTACHED FILES': text, PDF, Word as text; images as images if your model can "
@@ -5448,8 +5493,13 @@ def api_chat_post(aid):
         if path not in files and len(name) > 4 and re.search(r"(?<![\w.-])" + re.escape(name) + r"(?![\w-])", low):
             files.append(path)
     files = list(dict.fromkeys(files))[:12]
+    auto = auto_image(pid, low, files)
     if files:
         msg = (files_note(files) + "\n\n" + msg).strip()[:8000]
+    if auto:  # Besitzer spricht von einem Bild, ohne es anzuhaengen: das neueste Bild aus input/ geht mit
+        files.append(auto)
+        msg = (f"📎 {auto} (newest image in input/, attached automatically because the owner mentions an image; "
+               "if it is the wrong one, say which file you see)\n\n" + msg).strip()[:8000]
     if not msg:
         abort(400, "Message missing")
     proj = q1("SELECT * FROM projects WHERE id=?", (pid,))
@@ -5552,6 +5602,29 @@ def api_chat_order(aid):
              (a["project_id"], aid, title, desc, "queued", time.time(), time.time()))
     log("task_created", f"from chat: {title}", a["project_id"], aid, tid)
     return jsonify({"id": tid})
+
+
+def ai_links_check():
+    """Kurzer Probelauf der Claude-CLI, damit der Status der eigenen Verbindungen frisch ist."""
+    cfg = AL.claude_config()
+    if AL.active(cfg) and ALLOW_CLI and shutil.which(PROVIDERS["claude_cli"]["bin"]):
+        _call_llm({"provider": "claude_cli", "model": os.environ.get("PCL_LINKS_CHECK_MODEL", "haiku"), "name": "Connection check",
+                   "id": 0, "perms": "{}"}, [{"role": "user", "content": "Answer only with the word: ready"}])
+    return [AL.overview("claude_cli"), AL.overview("codex_cli")]
+
+
+@app.get("/api/ai_links")
+def api_ai_links():
+    """Eigene Verbindungen (MCP) der Claude-/Codex-CLI und ihr letzter bekannter Status."""
+    return jsonify([AL.overview("claude_cli"), AL.overview("codex_cli")])
+
+
+@app.post("/api/ai_links/check")
+def api_ai_links_check():
+    try:
+        return jsonify(ai_links_check())
+    except Exception as e:
+        return jsonify({"error": str(e)[:400], "links": [AL.overview("claude_cli"), AL.overview("codex_cli")]}), 502
 
 
 @app.get("/api/audit")
