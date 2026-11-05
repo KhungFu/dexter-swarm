@@ -284,3 +284,9 @@ Tests: `python -m pytest -q tests` (mock-Anbieter, ohne Internet). UI-Prüfung w
 - Jeden Text (README, Anleitungen, Antworten im Thread) vor dem Merge oder Senden auf Rechtschreibfehler prüfen. Der Besitzer verlangt das ausdrücklich.
 - Die README gibt es in sechs Sprachen, je eine Datei: `README.md` (Deutsch, Hauptdatei), `README.en.md`, `README.tr.md`, `README.sr.md`, `README.bs.md`, `README.hr.md`. Jede Änderung an der README wird in allen sechs Dateien gleich umgesetzt (gleiche Abschnitte, gleiche Tabellen, gleiche Zeilen für „Was passiert, wenn etwas fehlt“). Alle Sprachdateien verlinken oben die anderen. Nach der Übersetzung auf Rechtschreibung prüfen und Anker-Links kontrollieren.
 - Nur die README wird übersetzt. Dashboard, Oberfläche und Anleitungen in `docs/` bleiben Deutsch bzw. unübersetzt.
+
+## Claude-CLI-Anmeldung
+- `claude_oauth_token()` liest `tokens/claude-oauth-token.txt` (`PCL_TOKENS_DIR`), sonst `CLAUDE_CODE_OAUTH_TOKEN`; `_call_llm` gibt es per
+  `_run_cli(extra_env=...)` NUR an Programme `claude*` weiter (`_run_cli` filtert sonst alle `*_TOKEN`). Anmeldefehler (`_CLAUDE_AUTH_RE`) ->
+  `CLAUDE_LOGIN_HINT` + Telegram max. alle 6 h; Token-Datei aelter als 335 Tage -> Telegram taeglich. Skripte `deploy/claude-erneuern.sh`,
+  `deploy/windows/claude-erneuern.ps1` (claude setup-token, Token unsichtbar einlesen). Doku `docs/claude-anmeldung.md`, Test `tests/test_claude_anmeldung.py`.

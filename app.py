@@ -483,7 +483,58 @@ def provider_configured(pid):
     return bool(provider_keys(pid))
 
 
-def _run_cli(argv, prompt, cwd=None, timeout=None):
+CLAUDE_TOKEN_DAYS = 365  # 'claude setup-token' gilt ein Jahr
+CLAUDE_LOGIN_HINT = ("Claude CLI is not signed in or its sign-in has expired. On the computer running Hyperstead run "
+                     "./deploy/claude-erneuern.sh (Pi/Linux) or "
+                     "powershell -ExecutionPolicy Bypass -File deploy\\windows\\claude-erneuern.ps1 (Windows).")
+_CLAUDE_AUTH_RE = re.compile(r"(/login|not logged in|log in|invalid api key|oauth|authenticat|\b401\b|token.{0,20}expired|expired.{0,20}token)", re.I)
+_claude_alarm = {"auth": 0.0, "age": 0.0}
+
+
+def claude_token_file():
+    """Langzeit-Token aus 'claude setup-token' (ein Jahr gueltig), geschrieben von deploy/claude-erneuern.*"""
+    return Path(os.environ.get("PCL_TOKENS_DIR") or str(BASE / "tokens")) / "claude-oauth-token.txt"
+
+
+def claude_oauth_token():
+    """Token-Datei zuerst, sonst CLAUDE_CODE_OAUTH_TOKEN aus der Umgebung/.env. Leer = claude nutzt seine eigene Anmeldung."""
+    try:
+        t = claude_token_file().read_text(encoding="utf-8").strip()
+        if t:
+            return t
+    except OSError:
+        pass
+    return os.environ.get("CLAUDE_CODE_OAUTH_TOKEN", "").strip()
+
+
+def claude_token_days_left():
+    """Resttage des Token aus der Datei (nach Dateidatum), None ohne Datei."""
+    try:
+        age = (time.time() - claude_token_file().stat().st_mtime) / 86400
+    except OSError:
+        return None
+    return int(CLAUDE_TOKEN_DAYS - age)
+
+
+def _claude_age_warning():
+    """Einmal am Tag per Telegram warnen, wenn das Langzeit-Token in weniger als 30 Tagen ablaeuft."""
+    left = claude_token_days_left()
+    if left is None or left > 30 or time.time() - _claude_alarm["age"] < 86400:
+        return
+    _claude_alarm["age"] = time.time()
+    when = "has expired" if left <= 0 else f"expires in about {left} days"
+    tg_notify(f"⚠ The Claude CLI sign-in token {when}. {CLAUDE_LOGIN_HINT}")
+
+
+def _claude_auth_failed(err):
+    """Anmeldefehler der Claude-CLI: klare Meldung, Telegram hoechstens alle 6 Stunden."""
+    if time.time() - _claude_alarm["auth"] > 6 * 3600:
+        _claude_alarm["auth"] = time.time()
+        tg_notify(f"⚠ {CLAUDE_LOGIN_HINT}")
+    return RuntimeError(f"{CLAUDE_LOGIN_HINT} ({str(err)[-300:]})")
+
+
+def _run_cli(argv, prompt, cwd=None, timeout=None, extra_env=None):
     """CLI-Anbieter: Prompt per stdin, Antwort von stdout. Laeuft in einem leeren Ordner und ohne unsere Keys/Tokens in der Umgebung
     (sonst wuerde z.B. 'claude' den API-Key statt deines Abos benutzen, und das CLI-Programm bekaeme Zugriff auf alle Zugangsdaten)."""
     env = {k: v for k, v in os.environ.items()
@@ -493,6 +544,8 @@ def _run_cli(argv, prompt, cwd=None, timeout=None):
     tmo = timeout or int(os.environ.get("PCL_CLI_TIMEOUT", "600"))
     if cwd:  # Werkstatt: auch Passwoerter/Zugangsdaten anderer Art nicht weitergeben
         env = {k: v for k, v in env.items() if not re.search(r"(PASSWORD|PASSWD|CREDENTIAL)", k, re.I)}
+    if extra_env:  # gezielt fuer ein Programm, z. B. das Claude-Langzeit-Token nur fuer 'claude'
+        env.update(extra_env)
     exe = shutil.which(argv[0]) if argv else None  # Windows: findet auch claude.cmd/codex.cmd aus npm
     if exe:
         argv = [exe] + list(argv[1:])
@@ -679,15 +732,26 @@ def _call_llm(agent, messages, images=None):
         run_kw = {}
         if ws:
             argv, run_kw = ws[0], {"cwd": ws[1], "timeout": ws[2]}
-        if images and pid == "claude_cli":
-            out = _run_claude_images(argv, prompt, images, **run_kw)
-        elif images and pid == "codex_cli":
-            with _image_files(images) as paths:
-                pos = len(argv) - 1 if argv[-1] == "-" else len(argv)
-                argv[pos:pos] = [x for f in paths for x in ("-i", f)]
+        is_claude = bool(argv) and Path(argv[0]).name.lower().startswith("claude")
+        if is_claude:
+            tok = claude_oauth_token()
+            if tok:  # nur 'claude' bekommt das Token, alle anderen CLIs/Befehle nicht
+                run_kw["extra_env"] = {"CLAUDE_CODE_OAUTH_TOKEN": tok}
+            _claude_age_warning()
+        try:
+            if images and pid == "claude_cli":
+                out = _run_claude_images(argv, prompt, images, **run_kw)
+            elif images and pid == "codex_cli":
+                with _image_files(images) as paths:
+                    pos = len(argv) - 1 if argv[-1] == "-" else len(argv)
+                    argv[pos:pos] = [x for f in paths for x in ("-i", f)]
+                    out = _run_cli(argv, prompt, **run_kw)
+            else:
                 out = _run_cli(argv, prompt, **run_kw)
-        else:
-            out = _run_cli(argv, prompt, **run_kw)
+        except RuntimeError as e:
+            if is_claude and _CLAUDE_AUTH_RE.search(str(e)) and "time limit" not in str(e):
+                raise _claude_auth_failed(e) from None
+            raise
         return out, max(1, (len(prompt) + len(out)) // 4)
 
     cfg = PROVIDERS[pid]

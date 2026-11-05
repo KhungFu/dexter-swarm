@@ -193,6 +193,7 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | Windows-Laufzeit `VCOMP140.DLL` | `sd-server.exe` meldet „VCOMP140.DLL nicht gefunden“ und bricht ab. | Einrichtungsskript erneut starten (Schritt 3 installiert die Laufzeit), dann Startdatei öffnen. |
 | Firewall-Regel Port 1234 (Windows) | Nur der Pi erreicht den Bildrechner nicht. Der Laptop selbst funktioniert weiter. | Befehl aus [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md), Abschnitt 4, als Administrator ausführen. |
 | Makro in `macros/` oder Anmeldung `macros/<seite>.json` (mit `PCL_MACROS=1`) | Ohne Makro gibt es das Werkzeug `site_macro` nicht. Ohne gespeicherte Anmeldung bricht das Makro mit einem Hinweis ab. Ändert MagicLight oder Flow die Seite, meldet `site_macro` ERROR und legt `<seite>-fehler.png` in `output/`. Der Selbsttest (`browser`) zeigt MISSING. | Makro nach [macros/README.md](macros/README.md) aufnehmen bzw. neu aufnehmen. |
+| Claude-CLI-Anmeldung (Anbieter „Claude (CLI, your subscription)“) | Die Aufgabe scheitert mit „Claude CLI is not signed in or its sign-in has expired“ und dem Befehl zum Erneuern. Telegram meldet das höchstens alle 6 Stunden, und 30 Tage bevor `tokens/claude-oauth-token.txt` ein Jahr alt ist, täglich. Fehlt die Token-Datei, nutzt `claude` seine normale Anmeldung. | `./deploy/claude-erneuern.sh` (Pi) bzw. `deploy\windows\claude-erneuern.ps1` (Windows) ausführen und im Browser anmelden, siehe [docs/claude-anmeldung.md](docs/claude-anmeldung.md). |
 | `ffmpeg`, `tesseract`, `pdftoppm`, Sprachausgabe | Die Funktion fehlt. Agenten, die sie brauchen, melden den Fehler im Ergebnis. Der Selbsttest zeigt ERROR (Pi) bzw. MISSING (Windows). | Programm nachinstallieren (Befehle im Selbsttest und in [docs/windows.md](docs/windows.md)). |
 | Blender (Werkzeug `film`) | `save`, `check`, `voices` und `assemble` gehen trotzdem. `preview` und `render` melden „Blender was not found“ mit dem Hinweis auf `BLENDER_PATH`. Der Selbsttest zeigt MISSING. | Blender installieren (`winget install BlenderFoundation.Blender`) oder `BLENDER_PATH` in `.env` setzen, neu starten. |
 | `film/film.json` (Drehbuch) | `film` meldet „film/film.json is missing“ und bittet, zuerst mit `op=save` ein Drehbuch zu speichern. Ein fehlerhaftes Drehbuch wird nicht gespeichert, die Antwort listet alle Fehler auf. | Nichts, die Agenten legen es selbst an. Du kannst es auch von Hand schreiben ([docs/filmstudio.md](docs/filmstudio.md)). |
@@ -659,6 +660,11 @@ Claude Code `claude`, OpenAI Codex `codex`; Anmeldung mit deinem Abo). Danach er
 in allen Anbieter-Listen. Der Server ruft sie ohne Shell auf, in einem leeren Ordner und **ohne unsere API-Keys in der Umgebung**
 (sonst würde `claude` den API-Key statt des Abos abrechnen). Grenzen: langsamer als die API (Programmstart je Antwort), Abo-Limits gelten
 (viele Agenten = schnell am Limit), und die CLI-Programme haben eigene Werkzeuge – Befehl bei Bedarf über `PCL_CLI_CLAUDE` / `PCL_CLI_CODEX` anpassen.
+
+**Claude-Anmeldung abgelaufen?** `./deploy/claude-erneuern.sh` (Pi) bzw. `deploy\windows\claude-erneuern.ps1` (Windows) prüft,
+aktualisiert und holt bei Bedarf ein Langzeit-Token (ein Jahr) nach `tokens/claude-oauth-token.txt`. Hyperstead gibt es nur an
+`claude` weiter, warnt per Telegram, wenn die Anmeldung fehlschlägt, und 30 Tage vor Ablauf. Das Anmelden im Browser machst du
+selbst. Details: [docs/claude-anmeldung.md](docs/claude-anmeldung.md).
 
 ## Modell weg? Agenten umstellen
 Hyperstead prüft alle 6 Stunden (`PCL_MODEL_CHECK_HOURS`), ob die Modelle der Agenten beim Anbieter noch existieren, und merkt es auch, wenn ein Aufruf „Modell nicht gefunden“ meldet. Dann kommt eine Telegram-Nachricht, die Aufgabe scheitert mit klarem Hinweis, und im Menü **⚠ Models** stellst du alle betroffenen Agenten mit einem Klick auf ein anderes Modell um.

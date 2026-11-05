@@ -47,7 +47,8 @@ einem echten Windows-Rechner.
    auf die IP des Laptops umstellen.
 
 Agenten mit Claude/Codex über CLI brauchen auf dem Laptop eigene Installationen von `claude` bzw. `codex`
-mit Anmeldung, sonst die Agenten auf einen API-Anbieter umstellen.
+mit Anmeldung, sonst die Agenten auf einen API-Anbieter umstellen. Für Claude erledigt das
+`deploy\windows\claude-erneuern.ps1` (installieren, aktualisieren, Langzeit-Token), siehe [claude-anmeldung.md](claude-anmeldung.md).
 
 ## 1. Herunterladen
 
@@ -123,5 +124,5 @@ dem Laptop passt nicht mehr.
 | Video (`video_edit`) | nur mit Zusatz | `winget install Gyan.FFmpeg` |
 | Sprache (`speak`) | nur mit Zusatz | `venv\Scripts\pip install edge-tts` (braucht Internet); Piper/espeak optional |
 | Echter Browser (`browse_page`) | optional | `venv\Scripts\pip install playwright` und `venv\Scripts\python -m playwright install chromium` |
-| Claude/Codex über CLI | wenn installiert | `claude` bzw. `codex` unter Windows installieren und anmelden, `PCL_ALLOW_CLI=1` |
+| Claude/Codex über CLI | wenn installiert | `claude` bzw. `codex` unter Windows installieren und anmelden (Claude: `deploy\windows\claude-erneuern.ps1`), `PCL_ALLOW_CLI=1` |
 | Ollama | geht | Ollama für Windows installieren; auf 8 GB RAM nur kleine Modelle |
