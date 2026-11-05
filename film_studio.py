@@ -89,7 +89,7 @@ def _f(v, default, lo, hi, what):
     except (TypeError, ValueError):
         raise ToolError(f"{what}: '{v}' is not a number")
     if not math.isfinite(x):
-        raise ToolError(f"{what}: ungueltige Zahl")
+        raise ToolError(f"{what}: invalid number")
     return max(lo, min(hi, x))
 
 
@@ -802,7 +802,7 @@ def render_scene(root, plan, sc, lines, force=False):
     h = _scene_hash(plan, sc, timed)
     clip = clips / f"{sc['id']}.mp4"
     if not force and clip.is_file() and idx.get(sc["id"], {}).get("hash") == h:
-        return f"{sc['id']}: unveraendert, Clip film/clips/{sc['id']}.mp4 bleibt", False
+        return f"{sc['id']}: unchanged, clip film/clips/{sc['id']}.mp4 kept", False
     frames_dir = root / "film" / ".frames" / sc["id"]
     stamp = frames_dir / "hash.txt"
     if frames_dir.exists() and (not stamp.is_file() or stamp.read_text() != h):

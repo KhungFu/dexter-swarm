@@ -55,7 +55,7 @@ Mit Git (PowerShell):
 
 ```powershell
 cd $HOME
-git clone https://github.com/KhungFu/hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead
 cd hyperstead
 ```
 

@@ -15,7 +15,7 @@ können parallel laufen, jede hat ihre eigenen Firmen und Daten.
 | --- | --- | --- |
 | Raspberry Pi / Linux (Debian, Ubuntu) | Hauptsystem, voller Funktionsumfang | unten |
 | Windows 10/11 | läuft, ohne `run_code`, Rust bauen nur ohne Abschottung per Schalter, manches braucht Zusatzprogramme | [docs/windows.md](docs/windows.md) |
-| macOS | ungetestet, Grundfunktionen sollten laufen | unten (von Hand) |
+| macOS | getestet (läuft) | unten (von Hand) |
 | Eigener Bildrechner (z. B. alter Laptop ohne Grafikkarte) | gratis Bilder mit Referenzbildern für Hyperstead | [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md) |
 
 Umzug von einem Rechner auf einen anderen: Hyperstead beenden und `data.db`, den Ordner `workspace/` und `.env`
@@ -24,7 +24,7 @@ kopieren ([Beispiel Pi → Windows](docs/windows.md)).
 ### Raspberry Pi / Linux
 
 ```bash
-git clone https://github.com/KhungFu/hyperstead && cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
 ./install.sh --service     # venv, Abhängigkeiten, .env mit Zufallspasswort, systemd-Dienst
 nano .env                  # API-Keys eintragen, danach: sudo systemctl restart hyperstead
 ```
@@ -38,7 +38,7 @@ Mehr Funktionen (Video, OCR, Compiler, Browser): `./install.sh --all`.
 PowerShell im Hyperstead-Ordner:
 
 ```powershell
-git clone https://github.com/KhungFu/hyperstead; cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead; cd hyperstead
 powershell -ExecutionPolicy Bypass -File install.ps1
 notepad .env
 deploy\windows\hyperstead-start.bat
@@ -47,10 +47,10 @@ deploy\windows\hyperstead-start.bat
 Was unter Windows fehlt, Autostart und Parallelbetrieb mit dem Pi: [docs/windows.md](docs/windows.md).
 Update, Neustart, Autostart: [Betrieb](#betrieb-wer-macht-was-wo-wann-wie).
 
-### macOS (ungetestet)
+### macOS (getestet)
 
 ```bash
-git clone https://github.com/KhungFu/hyperstead && cd hyperstead
+git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
 python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
 cp .env.example .env       # APP_TOKEN=<langes Passwort> eintragen, API-Keys ergänzen
 ./venv/bin/python app.py   # http://127.0.0.1:8787
@@ -148,9 +148,9 @@ sind davon nie betroffen, Git kennt sie nicht.
 ### Selbsttest lesen
 
 - **OK:** funktioniert.
-- **FEHLT:** optional, die Zeile nennt den Befehl zum Nachinstallieren (unter Windows den Windows-Befehl).
+- **MISSING:** optional, die Zeile nennt den Befehl zum Nachinstallieren (unter Windows den Windows-Befehl).
   Nur nötig, wenn deine Agenten das brauchen (z. B. Video, Vorlesen, gescannte PDFs).
-- **FEHLER:** etwas Eingetragenes geht nicht, meistens ein ungültiger oder abgelaufener Key oder ein Dienst, der
+- **ERROR:** etwas Eingetragenes geht nicht, meistens ein ungültiger oder abgelaufener Key oder ein Dienst, der
   nicht läuft (z. B. der Bildrechner). Die Zeile nennt den Grund.
 - Ein einzelner Zeitüberschreitungs-Fehler (Timeout) bei einem Webdienst ist oft nur vorübergehend: später wiederholen.
 
@@ -184,59 +184,59 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | --- | --- | --- |
 | `.env` | Hyperstead startet ohne Keys und ohne Passwort, nur für diesen Rechner erreichbar. Mit `HOST=0.0.0.0` bricht der Start ab, solange `APP_TOKEN` leer ist. | `./install.sh` (Pi) bzw. `install.ps1` (Windows) erzeugt sie mit Zufallspasswort. |
 | `data.db` | Wird leer neu angelegt. Firmen, Aufträge und Post sind weg. | Vorher sichern (siehe Betrieb). Nur aus einer Sicherung zurückkopieren. |
-| API-Key in `.env` | Der Anbieter wird im Selbsttest als FEHLT gemeldet und von den Agenten nicht benutzt. Ist er gesetzt, aber ungültig: FEHLER mit HTTP 401. | Key eintragen oder die Zeile mit `#` abschalten. |
-| Ollama nicht erreichbar oder Modell zu groß | Die Aufgabe scheitert mit „Ollama nicht erreichbar“ bzw. „Zu wenig RAM für dieses Modell“; ein fehlendes Modell meldet „`ollama pull …`“. Liefert Ollama `OLLAMA_TIMEOUT` Sekunden lang nichts, bricht die Anfrage mit diesem Hinweis ab, ohne Wiederholung. | `systemctl status ollama`, kleineres Modell ziehen (`ollama pull qwen2.5:1.5b`) und im Agenten wählen, oder `OLLAMA_TIMEOUT` erhöhen. |
-| `SDCPP_URL` (bei `IMAGE_PROVIDER=sdcpp`) | Bildanfragen schlagen mit „SDCPP_URL fehlt“ fehl. Mit `IMAGE_FALLBACK=pollinations` kommt ein kostenloses Ersatzbild ohne Referenzen, mit Hinweis im Ergebnis. | Zeile in `.env` ergänzen, Hyperstead neu starten. |
-| Bildrechner nicht erreichbar (Laptop aus, Firewall, falsche IP) | Wie oben: Fehler „Bildrechner … nicht erreichbar“, mit Fallback ein Ersatzbild. | Laptop einschalten, `bildrechner-start.bat` starten, IP und Firewall prüfen. |
+| API-Key in `.env` | Der Anbieter wird im Selbsttest als MISSING gemeldet und von den Agenten nicht benutzt. Ist er gesetzt, aber ungültig: ERROR mit HTTP 401. | Key eintragen oder die Zeile mit `#` abschalten. |
+| Ollama nicht erreichbar oder Modell zu groß | Die Aufgabe scheitert mit „Ollama not reachable“ bzw. „Not enough RAM for this model“; ein fehlendes Modell meldet „`ollama pull …`“. Liefert Ollama `OLLAMA_TIMEOUT` Sekunden lang nichts, bricht die Anfrage mit diesem Hinweis ab, ohne Wiederholung. | `systemctl status ollama`, kleineres Modell ziehen (`ollama pull qwen2.5:1.5b`) und im Agenten wählen, oder `OLLAMA_TIMEOUT` erhöhen. |
+| `SDCPP_URL` (bei `IMAGE_PROVIDER=sdcpp`) | Bildanfragen schlagen mit „SDCPP_URL is missing“ fehl. Mit `IMAGE_FALLBACK=pollinations` kommt ein kostenloses Ersatzbild ohne Referenzen, mit Hinweis im Ergebnis. | Zeile in `.env` ergänzen, Hyperstead neu starten. |
+| Bildrechner nicht erreichbar (Laptop aus, Firewall, falsche IP) | Wie oben: Fehler „ConnectionError“, mit Fallback ein Ersatzbild. | Laptop einschalten, `bildrechner-start.bat` starten, IP und Firewall prüfen. |
 | `sd-server.exe` (Windows, Bildrechner) | `bildrechner-start.bat` zeigt „sd-server.exe fehlt“ und startet nichts. | `deploy\windows\bildrechner-einrichten.ps1` ausführen. |
 | Modelldatei (Windows, Bildrechner) | Die Startdatei nennt die fehlende Datei und startet nicht. Fehlt nur das große Sprachmodell (`Qwen3-4B-Q4_K_M.gguf`), nimmt sie das kleinere, falls vorhanden. | Einrichtungsskript erneut starten, es lädt nur die fehlende Datei. |
 | Windows-Laufzeit `VCOMP140.DLL` | `sd-server.exe` meldet „VCOMP140.DLL nicht gefunden“ und bricht ab. | Einrichtungsskript erneut starten (Schritt 3 installiert die Laufzeit), dann Startdatei öffnen. |
 | Firewall-Regel Port 1234 (Windows) | Nur der Pi erreicht den Bildrechner nicht. Der Laptop selbst funktioniert weiter. | Befehl aus [docs/laptop-bildrechner.md](docs/laptop-bildrechner.md), Abschnitt 4, als Administrator ausführen. |
-| Makro in `macros/` oder Anmeldung `macros/<seite>.json` (mit `PCL_MACROS=1`) | Ohne Makro gibt es das Werkzeug `site_macro` nicht. Ohne gespeicherte Anmeldung bricht das Makro mit einem Hinweis ab. Ändert MagicLight oder Flow die Seite, meldet `site_macro` FEHLER und legt `<seite>-fehler.png` in `output/`. Der Selbsttest (`browser`) zeigt FEHLT. | Makro nach [macros/README.md](macros/README.md) aufnehmen bzw. neu aufnehmen. |
-| `ffmpeg`, `tesseract`, `pdftoppm`, Sprachausgabe | Die Funktion fehlt. Agenten, die sie brauchen, melden den Fehler im Ergebnis. Der Selbsttest zeigt FEHLER (Pi) bzw. FEHLT (Windows). | Programm nachinstallieren (Befehle im Selbsttest und in [docs/windows.md](docs/windows.md)). |
-| Blender (Werkzeug `film`) | `save`, `check`, `voices` und `assemble` gehen trotzdem. `preview` und `render` melden „Blender wurde nicht gefunden“ mit dem Hinweis auf `BLENDER_PATH`. Der Selbsttest zeigt FEHLT. | Blender installieren (`winget install BlenderFoundation.Blender`) oder `BLENDER_PATH` in `.env` setzen, neu starten. |
-| `film/film.json` (Drehbuch) | `film` meldet „film/film.json fehlt“ und bittet, zuerst mit `op=save` ein Drehbuch zu speichern. Ein fehlerhaftes Drehbuch wird nicht gespeichert, die Antwort listet alle Fehler auf. | Nichts, die Agenten legen es selbst an. Du kannst es auch von Hand schreiben ([docs/filmstudio.md](docs/filmstudio.md)). |
+| Makro in `macros/` oder Anmeldung `macros/<seite>.json` (mit `PCL_MACROS=1`) | Ohne Makro gibt es das Werkzeug `site_macro` nicht. Ohne gespeicherte Anmeldung bricht das Makro mit einem Hinweis ab. Ändert MagicLight oder Flow die Seite, meldet `site_macro` ERROR und legt `<seite>-fehler.png` in `output/`. Der Selbsttest (`browser`) zeigt MISSING. | Makro nach [macros/README.md](macros/README.md) aufnehmen bzw. neu aufnehmen. |
+| `ffmpeg`, `tesseract`, `pdftoppm`, Sprachausgabe | Die Funktion fehlt. Agenten, die sie brauchen, melden den Fehler im Ergebnis. Der Selbsttest zeigt ERROR (Pi) bzw. MISSING (Windows). | Programm nachinstallieren (Befehle im Selbsttest und in [docs/windows.md](docs/windows.md)). |
+| Blender (Werkzeug `film`) | `save`, `check`, `voices` und `assemble` gehen trotzdem. `preview` und `render` melden „Blender was not found“ mit dem Hinweis auf `BLENDER_PATH`. Der Selbsttest zeigt MISSING. | Blender installieren (`winget install BlenderFoundation.Blender`) oder `BLENDER_PATH` in `.env` setzen, neu starten. |
+| `film/film.json` (Drehbuch) | `film` meldet „film/film.json is missing“ und bittet, zuerst mit `op=save` ein Drehbuch zu speichern. Ein fehlerhaftes Drehbuch wird nicht gespeichert, die Antwort listet alle Fehler auf. | Nichts, die Agenten legen es selbst an. Du kannst es auch von Hand schreiben ([docs/filmstudio.md](docs/filmstudio.md)). |
 | Bild-, Musik- oder `.blend`-Datei, die im Drehbuch steht | Die Prüfung nennt Szene, Figur und Pfad, es wird nichts gerendert. | Datei nach `assets/` oder `input/` legen oder den Pfad im Drehbuch korrigieren. |
 | Clip einer Szene (`film/clips/`) | `assemble` nennt die fehlenden Szenen und schneidet nichts. Bricht `render` ab (Zeitlimit), bleiben die fertigen Bilder erhalten und der nächste Aufruf macht dort weiter. | Nichts, die Agenten rufen `render` erneut auf. |
-| Sprachausgabe beim Film | `voices`/`render` brechen mit „Keine Sprachausgabe verfügbar“ ab. Szenen ganz ohne Dialog gehen trotzdem. | Wie bei „Sprachausgabe“ oben (unter Windows `edge-tts` + `TTS_ENGINE=edge`). |
-| `cargo` (Rust, Werkzeug `rust_project`) | Das Werkzeug wird den Agenten nicht angezeigt, `check_code` prüft `.rs`-Dateien weiter, wenn `rustc` da ist. Der Selbsttest (`selftest.py rust`) zeigt FEHLT mit dem Installationsbefehl. | Rust installieren: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Danach Hyperstead neu starten. |
+| Sprachausgabe beim Film | `voices`/`render` brechen mit „No speech output available“ ab. Szenen ganz ohne Dialog gehen trotzdem. | Wie bei „Sprachausgabe“ oben (unter Windows `edge-tts` + `TTS_ENGINE=edge`). |
+| `cargo` (Rust, Werkzeug `rust_project`) | Das Werkzeug wird den Agenten nicht angezeigt, `check_code` prüft `.rs`-Dateien weiter, wenn `rustc` da ist. Der Selbsttest (`selftest.py rust`) zeigt MISSING mit dem Installationsbefehl. | Rust installieren: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Danach Hyperstead neu starten. |
 | bubblewrap beim Rust-Bauen (Pi/Linux) | `rust_project` bleibt ausgeblendet, genau wie `run_code`. | `./install.sh --run` |
 | `PCL_CARGO_UNSAFE=1` (Windows) | Unter Windows gibt es keine Abschottung, deshalb bleibt `rust_project` ohne den Schalter ausgeblendet. Mit Schalter baut der Laptop ohne Abschottung. | Nur setzen, wenn du das Risiko kennst ([Rust-Programme](#-rust-programme-komplett-bauen)), dann neu starten. |
-| `Cargo.toml` im Rust-Ordner | `rust_project` meldet „In … fehlt Cargo.toml“ und nennt die Dateien, die der Agent zuerst anlegen muss. | Nichts, der Agent legt sie mit `write_code` an. |
+| `Cargo.toml` im Rust-Ordner | `rust_project` meldet „Cargo.toml is missing in …“ und nennt die Dateien, die der Agent zuerst anlegen muss. | Nichts, der Agent legt sie mit `write_code` an. |
 | Internet für Rust-Abhängigkeiten (crates.io) | `cargo fetch` schlägt fehl, es wird nichts gebaut, der Agent bekommt die Fehlermeldung. Schon geladene Abhängigkeiten liegen in `.rust/cargo-home` und gehen weiter. | Internet prüfen und den Auftrag erneut starten. |
-| Bestandene Tests beim Rust-Paket | Es entsteht **kein** Paket („KEIN PAKET“), der Agent bekommt die Fehler mit Zeile und muss sie beheben. Ohne Tests entsteht das Paket mit einer WARNUNG im Ergebnis. | Nichts, der Agent korrigiert und baut erneut. Beim Chef „zurückgeben“, falls er aufgibt. |
+| Bestandene Tests beim Rust-Paket | Es entsteht **kein** Paket („NO PACKAGE“), der Agent bekommt die Fehler mit Zeile und muss sie beheben. Ohne Tests entsteht das Paket mit einer WARNING im Ergebnis. | Nichts, der Agent korrigiert und baut erneut. Beim Chef „zurückgeben“, falls er aufgibt. |
 | Ordner `.rust/` im Projekt (Bauordner) | Wird beim nächsten Bau neu angelegt, das dauert dann länger (alles wird neu geladen und kompiliert). Er ist versteckt und nicht im ZIP-Download. | Nichts. Löschen ist erlaubt, wenn Platz fehlt. |
-| Telegram-Token oder Chat-ID | Telegram bleibt aus, alles andere läuft. Der Selbsttest zeigt FEHLT. | Nur nötig, wenn du Nachrichten aufs Handy willst. |
+| Telegram-Token oder Chat-ID | Telegram bleibt aus, alles andere läuft. Der Selbsttest zeigt MISSING. | Nur nötig, wenn du Nachrichten aufs Handy willst. |
 | Ein Ordner oder eine Datei im Projekt (`wissen/`, `input/`) | Nicht vorhandene Ordner gelten als leer. Die Agenten arbeiten ohne Firmenwissen weiter. | Datei oder Ordner im Projekt anlegen oder hochladen. |
-| Key eines Videoanbieters (z. B. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` meldet „VIDEO_PROVIDER=…, aber … fehlt“ und erzeugt nichts, die anderen Anbieter aus der Liste gehen weiter. Der Selbsttest zeigt den Anbieter als FEHLT. | Key eintragen ([docs/videodienste.md](docs/videodienste.md)) oder den Anbieter aus `VIDEO_PROVIDER` streichen, neu starten. |
+| Key eines Videoanbieters (z. B. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` meldet „VIDEO_PROVIDER=…, but … is missing in .env“ und erzeugt nichts, die anderen Anbieter aus der Liste gehen weiter. Der Selbsttest zeigt den Anbieter als MISSING. | Key eintragen ([docs/videodienste.md](docs/videodienste.md)) oder den Anbieter aus `VIDEO_PROVIDER` streichen, neu starten. |
 | Guthaben beim Videoanbieter | Der Anbieter antwortet mit einem Fehler (oft HTTP 402/429 oder „insufficient balance“), der Agent bekommt den Text ins Ergebnis. Es springt kein anderer Anbieter ein. | Guthaben aufladen oder mit `provider` bzw. in `VIDEO_PROVIDER` einen anderen Anbieter wählen. |
-| `FAL_KEY` (bei `VIDEO_PROVIDER=fal`, `VIDEO_AI=fal` oder `AUDIO_PROVIDER=fal`) | `video_generate`, `video_ai` bzw. `sound_generate` meldet „FAL_KEY fehlt“ und erzeugt nichts. | Key von fal.ai eintragen oder die Zeile `VIDEO_AI`/`AUDIO_PROVIDER` entfernen. |
-| `ELEVENLABS_API_KEY` (bessere Stimmen bei Bedarf) | Alles läuft wie bisher mit den lokalen Stimmen, die Agenten sehen keinen ElevenLabs-Hinweis. Wählt trotzdem jemand `engine: elevenlabs` oder steht `TTS_ENGINE=elevenlabs` in der `.env`, spricht die lokale Stimme und das Ergebnis beginnt mit „HINWEIS: ElevenLabs nicht genutzt (… fehlt)“. | Key von elevenlabs.io in `.env` eintragen und neu starten. Anleitung: 📖 → „🎙 Stimmen und ElevenLabs“. |
-| Guthaben oder Internet bei ElevenLabs bzw. `OPENAI_API_KEY` (`TTS_ENGINE=openai`) | Die lokale Stimme springt ein, im Ergebnis steht ein HINWEIS mit HTTP-Code. Im Film wird die Zeile beim nächsten `voices` erneut mit der Cloud-Stimme versucht. Mit `TTS_FALLBACK=0` bricht die Aufgabe stattdessen ab. Gibt es auch keine lokale Stimme, meldet `speak` „Keine Sprachausgabe verfügbar“. | Guthaben aufladen bzw. Key prüfen. Für die Ersatzstimme espeak-ng oder Piper installieren. |
-| KI eines vom CEO neu eingestellten Mitarbeiters | Der Neue wird angelegt, bekommt aber keine Aufgaben. Plant der CEO danach wieder, bricht der Auftrag mit „Diesen Mitarbeitern ist noch keine KI zugewiesen: …“ ab. Im Menü **⚠ Modelle** steht er als „Noch keine KI“. | KI im Menü ⚠ Modelle zuweisen und in der Post „Weiter“ antworten. |
+| `FAL_KEY` (bei `VIDEO_PROVIDER=fal`, `VIDEO_AI=fal` oder `AUDIO_PROVIDER=fal`) | `video_generate`, `video_ai` bzw. `sound_generate` meldet „FAL_KEY is missing“ und erzeugt nichts. | Key von fal.ai eintragen oder die Zeile `VIDEO_AI`/`AUDIO_PROVIDER` entfernen. |
+| `ELEVENLABS_API_KEY` (bessere Stimmen bei Bedarf) | Alles läuft wie bisher mit den lokalen Stimmen, die Agenten sehen keinen ElevenLabs-Hinweis. Wählt trotzdem jemand `engine: elevenlabs` oder steht `TTS_ENGINE=elevenlabs` in der `.env`, spricht die lokale Stimme und das Ergebnis beginnt mit „NOTE: ElevenLabs not used (…)“. | Key von elevenlabs.io in `.env` eintragen und neu starten. Anleitung: 📖 → „🎙 Voices and ElevenLabs“. |
+| Guthaben oder Internet bei ElevenLabs bzw. `OPENAI_API_KEY` (`TTS_ENGINE=openai`) | Die lokale Stimme springt ein, im Ergebnis steht ein NOTE mit HTTP-Code. Im Film wird die Zeile beim nächsten `voices` erneut mit der Cloud-Stimme versucht. Mit `TTS_FALLBACK=0` bricht die Aufgabe stattdessen ab. Gibt es auch keine lokale Stimme, meldet `speak` „No speech output available“. | Guthaben aufladen bzw. Key prüfen. Für die Ersatzstimme espeak-ng oder Piper installieren. |
+| KI eines vom CEO neu eingestellten Mitarbeiters | Der Neue wird angelegt, bekommt aber keine Aufgaben. Plant der CEO danach wieder, bricht der Auftrag mit „These employees have no AI assigned yet: …“ ab. Im Menü **⚠ Models** steht er als „No AI yet“. | KI im Menü ⚠ Models zuweisen und in der Post „Weiter“ antworten. |
 | Rechte bei einem vom CEO eingestellten Mitarbeiter | Das System ergänzt fehlende Rechte anhand der Rolle (Tabelle oben). Passt kein Stichwort, bekommt er nur *Dateien lesen* und kann nur mit Text antworten. | Im Agenten-Panel die Häkchen setzen oder dem CEO die Rolle genauer vorgeben. |
 | Mitarbeiter, den der CEO entlassen oder ändern will | Gibt es den Namen in seinem Team nicht (Tippfehler, anderes Team, schon entlassen), wird die Anweisung übersprungen und im Ergebnis vermerkt. Hat der Mitarbeiter noch eine offene Aufgabe, bleibt er. | Nichts, oder später erneut beauftragen. |
 | `video_providers.py` (Programmdatei) | Die Video-, Ton- und Cloud-Stimmen-Werkzeuge verschwinden für die Agenten, alles andere läuft weiter. | `git pull` erneut ausführen, die Datei gehört zum Programm. |
-| `GITHUB_UPLOAD_TOKEN` oder `GITHUB_UPLOAD_REPO` | GitHub erscheint unter ☁️ Cloud als „nicht eingerichtet“, Agenten bekommen es nicht als Ziel angeboten. Alles andere läuft. | Token und Repo eintragen ([docs/cloud.md](docs/cloud.md)), neu starten. |
-| CUPS (`lp`) auf dem Pi, Drucker oder Druckrecht des CEO | Unter 🖨 Drucker steht „CUPS fehlt“ bzw. nur der Testdrucker. 🖨 Drucken meldet „kein Drucker gewählt“ oder „Drucken ist gesperrt“ und sendet nichts. | `./install.sh --print`, Drucker einrichten ([docs/drucken.md](docs/drucken.md)), unter 🖨 Drucker wählen und erlauben. |
-| `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` oder `ONEDRIVE_CLIENT_ID` | Der Dienst bleibt „nicht eingerichtet“, der Knopf „Anmelden“ fehlt. | App registrieren und die Zeilen eintragen ([docs/cloud.md](docs/cloud.md)), neu starten. |
-| Anmeldung bei Google/Microsoft (Ordner `tokens/`) | Der Dienst steht auf „nicht angemeldet“. Ein Upload meldet „noch nicht angemeldet“ bzw. „Anmeldung abgelaufen“ und lädt nichts hoch. | ☁️ Cloud → Anmelden. Beim Umzug Pi → Laptop einfach auf dem Laptop neu anmelden. |
+| `GITHUB_UPLOAD_TOKEN` oder `GITHUB_UPLOAD_REPO` | GitHub erscheint unter ☁️ Cloud als „not set up“, Agenten bekommen es nicht als Ziel angeboten. Alles andere läuft. | Token und Repo eintragen ([docs/cloud.md](docs/cloud.md)), neu starten. |
+| CUPS (`lp`) auf dem Pi, Drucker oder Druckrecht des CEO | Unter 🖨 Printer steht „CUPS missing“ bzw. nur der Testdrucker. 🖨 Print meldet „No printer chosen yet“ oder „Printing is blocked“ und sendet nichts. | `./install.sh --print`, Drucker einrichten ([docs/drucken.md](docs/drucken.md)), unter 🖨 Printer wählen und erlauben. |
+| `GDRIVE_CLIENT_ID`/`GDRIVE_CLIENT_SECRET` oder `ONEDRIVE_CLIENT_ID` | Der Dienst bleibt „not set up“, der Knopf „Anmelden“ fehlt. | App registrieren und die Zeilen eintragen ([docs/cloud.md](docs/cloud.md)), neu starten. |
+| Anmeldung bei Google/Microsoft (Ordner `tokens/`) | Der Dienst steht auf „not signed in“. Ein Upload meldet „not signed in yet“ bzw. „sign-in expired“ und lädt nichts hoch. | ☁️ Cloud → Anmelden. Beim Umzug Pi → Laptop einfach auf dem Laptop neu anmelden. |
 | Datei über 50 MB für Telegram | Telegram nimmt sie nicht. `/datei` markiert sie mit ⚠️ und schickt sie nicht, der Agent bekommt den Hinweis. | Google Drive, OneDrive oder GitHub als Ziel nehmen. |
 | `cloud_upload.py` (Programmdatei) | Hyperstead startet nicht (Fehler beim Import). | `git pull` erneut ausführen, die Datei gehört zum Programm. |
 | `PCL_ALLOW_WERKSTATT=1` | Das Häkchen „Werkstatt“ ist grau, kein Agent bekommt `befehl` oder `nachruesten`. Alles andere läuft wie bisher. | Zeile in `.env` eintragen, neu starten, beim Agenten das Häkchen setzen ([docs/werkstatt.md](docs/werkstatt.md)). |
-| Ein Programm, das ein Agent braucht (z. B. Node.js, Remotion, ein Python-Paket) | Mit Werkstatt stellt der Agent einen Nachrüst-Antrag: CEO prüft, du bekommst ✅/❌ per Telegram und unter ✋ Freigaben. Nach deinem Ja installiert der Server, die Aufgabe geht weiter. Ohne Werkstatt nennt der Agent nur, was fehlt. | Antrag lesen und entscheiden. Ohne Telegram nur im Web. |
-| KI des CEO (bei einem Nachrüst-Antrag) | Der Antrag kommt mit dem Hinweis „Kein CEO mit KI“ bzw. „CEO nicht erreichbar“ direkt zu dir. | Selbst entscheiden oder dem CEO eine KI zuweisen. |
+| Ein Programm, das ein Agent braucht (z. B. Node.js, Remotion, ein Python-Paket) | Mit Werkstatt stellt der Agent einen Nachrüst-Antrag: CEO prüft, du bekommst ✅/❌ per Telegram und unter ✋ Approvals. Nach deinem Ja installiert der Server, die Aufgabe geht weiter. Ohne Werkstatt nennt der Agent nur, was fehlt. | Antrag lesen und entscheiden. Ohne Telegram nur im Web. |
+| KI des CEO (bei einem Nachrüst-Antrag) | Der Antrag kommt mit dem Hinweis „No CEO with AI“ bzw. „CEO not reachable“ direkt zu dir. | Selbst entscheiden oder dem CEO eine KI zuweisen. |
 | `werkstatt.py` (Programmdatei) | Hyperstead startet nicht (Fehler beim Import). | `git pull` erneut ausführen, die Datei gehört zum Programm. |
 | `growth.py` (Programmdatei) | Hyperstead startet nicht (Fehler beim Import). | `git pull` erneut ausführen, die Datei gehört zum Programm. |
-| Welt eines Projekts nie gewählt | Das Projekt zeigt die Welt Weltall mit ihren Stufen und Begriffen. | Nichts zu tun. ⚛️ Atom in der Grafik-Auswahl stellt auf die Welt Atom um, 🌌 Weltall zurück. |
+| Welt eines Projekts nie gewählt | Das Projekt zeigt die Welt Weltall mit ihren Stufen und Begriffen. | Nichts zu tun. Die Welten Weltall und Atom werden im Grafik-Menü nicht mehr angeboten. |
 | Logo-Dateien in `static/logo/` | Seitenleiste und Anmeldeseite zeigen ein leeres Bildfeld, der Browser-Tab zeigt kein Symbol. Alles andere läuft normal. | `git pull` erneut ausführen. Neu erzeugen lässt sich das Logo mit `docs/logo/logo_blender.py` ([Anleitung](docs/logo-prompt.md)). |
 | Frühere Welt (Gilde, Tycoon, Gizmo-Stadt) in einem Projekt gespeichert | Das Projekt zeigt automatisch das Weltall. Punkte, Stufe und Ränge bleiben gleich, nur Namen und Symbole ändern sich. | Nichts zu tun. |
-| Keine KI-Aufrufe heute (Betriebszentrale, 💶 in der Leiste) | Zeigt 0 $ bzw. „keine Aufrufe“. | Nichts zu tun. Kosten sind Schätzungen, eigene Preise per `PCL_PRICES` in `.env`. |
+| Keine KI-Aufrufe heute (Betriebszentrale, 💶 in der Leiste) | Zeigt 0 $ bzw. „no calls“. | Nichts zu tun. Kosten sind Schätzungen, eigene Preise per `PCL_PRICES` in `.env`. |
 | Tabelle `firm_links` (ältere `data.db`) | Wird beim Start automatisch angelegt, leer: in Stadt und Kosmos gibt es dann noch keine Zusammenarbeit. | Nichts. |
 | Firmenlogo `.logo.png` / `.logo.jpg` / `.logo.webp` im Projektordner | Die Firma zeigt in Stadt und Kosmos kein Logo, alles andere läuft normal. | Im Infofenster der Firma (🏙/🌌, Firma antippen) unter „Logo“ 🖼 Hochladen wählen: PNG, JPEG oder WebP, höchstens 2 MB. |
-| Noch kein Projekt | Stadt und Kosmos zeigen „Noch keine Firma“. | Links mit dem Knopf „＋ Neues Projekt“ eine Firma anlegen (leer oder aus Vorlage). |
+| Noch kein Projekt | Stadt und Kosmos zeigen „No company yet“. | Links mit dem Knopf „＋ New project“ eine Firma anlegen (leer oder aus Vorlage). |
 | Browser speichert nichts (privates Fenster) | Hell/Dunkel, gewählte Grafik (Weltall, Organigramm-Art, Atom, Bauplan, Stadt/Kosmos), verschobene Organigramm-Karten, Bewegung und Hilfe-Modus fallen bei jedem Laden auf den Standard zurück. | Normales Fenster verwenden; die Daten der Projekte sind davon nicht betroffen. |
-| Agenten im Bauplan liegen übereinander (z. B. alle auf derselben Stelle) | Die Verbindungslinien sind nicht zu sehen. Beim Öffnen des Bauplans ordnet Hyperstead sie einmal automatisch und meldet das. | Nichts, oder „🗂 Ordnen“ drücken. |
+| Agenten im Bauplan liegen übereinander (z. B. alle auf derselben Stelle) | Die Verbindungslinien sind nicht zu sehen. Beim Öffnen des Bauplans ordnet Hyperstead sie einmal automatisch und meldet das. | Nichts, oder „🗂 Arrange“ drücken. |
 | Verlauf für den Knopf ← (vorherige Grafik) | Der Verlauf liegt nur im geöffneten Tab. Nach dem Neuladen oder in einem neuen Tab ist ← grau, bis du wieder eine Grafik wechselst. | Nichts zu tun. |
 | Eine andere Sprache als Englisch im Dashboard | Dashboard, Agenten-Anweisungen, Vorlagen und Systemtexte sind auf Englisch. Was du selbst in Felder schreibst, bleibt in deiner Sprache, und die Agenten antworten und berichten in der Sprache, in der du schreibst. | Im Browser übersetzen lassen (Chrome/Edge: Rechtsklick → „Übersetzen“). |
 | Keine echte KI im Projekt (nur `mock` oder ohne Anbieter) | Feste Meldungen in Telegram und im Postkorb (z. B. „✅ Done“, Freigabe-Hinweise) bleiben auf Englisch, weil niemand übersetzen kann. Berichte der Agenten kommen trotzdem in deiner Sprache, sobald sie eine KI haben. | Dem CEO (oder einem anderen Agenten) eine echte KI geben; ab dann übersetzt diese KI die Meldungen automatisch. |
@@ -293,7 +293,7 @@ Mit `TRUST_PROXY=1` startet die App nur, wenn `APP_TOKEN` mindestens 12 Zeichen 
 Ein Chef bekommt eine Aufgabe und **plant** (verteilt Teilaufgaben) oder erledigt sie selbst. Sobald alle
 Mitarbeiter fertig sind, wacht er wieder auf, **liest ihre Berichte**, gibt Mängel mit Feedback zurück oder
 fasst alles zusammen und berichtet an seinen Chef. So wandert das Ergebnis über beliebig viele Ebenen nach oben.
-Status „Wartet auf Team“ heißt: der Chef wartet auf seine Leute. Im Aufgaben-Tab siehst du den ganzen Baum.
+Status „Waiting for team“ heißt: der Chef wartet auf seine Leute. Im Aufgaben-Tab siehst du den ganzen Baum.
 
 ## Weltall und Wachstum
 
@@ -310,21 +310,21 @@ der Oberfläche. Die Agenten arbeiten immer mit klaren Begriffen (Auftrag, Beric
 
 Punkte heißen Sternenstaub, Aufträge heißen Missionen. Die früheren Welten Gilde, Tycoon und Gizmo-Stadt gibt es nicht mehr; bestehende Projekte zeigen automatisch das Weltall, Punkte und Stufen bleiben erhalten.
 
-**Welt Atom:** Neben dem Weltall gibt es eine zweite Welt. Wählst du in der Grafik-Auswahl ⚛️ Atom, gilt für das Projekt die Welt Atom, mit 🌌 Weltall wieder das Weltall (auch in der Wachstumsleiste, bei der Feier und in Telegram). Große Kugel = oberste Leitung, mittlere Kugeln = Teamleitungen, kleine Kugeln = Mitarbeiter:innen. Stufen: ✴️ Quark → ⚛️ Atom → 🧪 Molekül → 💎 Kristall → 🧬 Zelle; Ränge: · Neutrino → ⚡ Elektron → 🔴 Proton → 💠 Nukleon. Punkte heißen Energie, Aufträge Experimente. Punkte und Stufengrenzen sind in beiden Welten gleich. Organigramm und Bauplan behalten die zuletzt gewählte Welt.
+**Welt Atom:** Hinweis: Die Ansichten Weltall und Atom werden im Grafik-Menü nicht mehr angeboten (nur Classic und Modern); beschrieben ist die Zeichnung, die noch im Code steckt. Neben dem Weltall gibt es eine zweite Welt. Wählst du in der Grafik-Auswahl ⚛️ Atom, gilt für das Projekt die Welt Atom, mit 🌌 Weltall wieder das Weltall (auch in der Wachstumsleiste, bei der Feier und in Telegram). Große Kugel = oberste Leitung, mittlere Kugeln = Teamleitungen, kleine Kugeln = Mitarbeiter:innen. Stufen: ✴️ Quark → ⚛️ Atom → 🧪 Molekül → 💎 Kristall → 🧬 Zelle; Ränge: · Neutrino → ⚡ Elektron → 🔴 Proton → 💠 Nukleon. Punkte heißen Energie, Aufträge Experimente. Punkte und Stufengrenzen sind in beiden Welten gleich. Organigramm und Bauplan behalten die zuletzt gewählte Welt.
 
 **Bedienung:** Die Leiste über der Fläche zeigt Stufe, Fortschritt zur nächsten Stufe und die wichtigsten Zahlen. Rechts schaltest du zwischen Hell und Dunkel um (🌓) und öffnest mit ⓘ die Übersicht über Stufen, Punkte und Ränge. Der Rang jedes Agenten steht als Symbol auf seiner Karte.
 
-**Sonnensystem:** Der aufklappbare Knopf rechts in der Leiste (z. B. „🌌 Weltall ▾“) wählt die Grafik: 🌌 Weltall, drei Organigramme, ⚛️ Atom oder 📐 Bauplan (Knoten-Editor). Das Weltall ist detailreich gezeichnet: Sonne mit Strahlen und Flecken, Planeten mit Schattenseite, Wolken oder Bändern, Monde mit Kratern, ein Asteroidengürtel, ferne Galaxien und die Milchstraße. Planeten und Monde kreisen langsam, die Planeten und die Sonne drehen sich dabei auch um die eigene Achse (Wolken, Streifen und Sonnenflecken wandern über die Oberfläche, der Strahlenkranz der Sonne kreist), als Galaxie dreht sich auch die Spirale im Hintergrund; zeigst du mit der Maus auf einen, bleibt alles stehen, damit du ihn gut triffst. Ein blau pulsierender Ring heißt „arbeitet“, ein gelber Ring „wartet auf deine Freigabe“, ein roter Ring „Fehler“, ein lila gestrichelter Ring „wartet auf sein Team“. Ein Tipp auf Sonne oder Planet zeigt das Team und Aktionen, ein Tipp auf einen Mond öffnet den Agenten. Mit jeder Stufe wird der Himmel voller, ab Sternhaufen leuchten Nebel, als Galaxie erscheint eine Spirale. Das Weltall bleibt auch im hellen Aussehen dunkel. Auf dem Handy erscheint statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden. Bewegung wird abgeschaltet, wenn das Gerät „Bewegung reduzieren“ verlangt.
+**Sonnensystem:** Der aufklappbare Knopf rechts in der Leiste (z. B. „Org chart: Tree ▾“) wählt die Grafik: drei Organigramme, „Blueprint“ (Knoten-Editor) oder unter „Modern“ alle Firmen als Stadt, Kosmos oder Molekül. Das Weltall ist detailreich gezeichnet: Sonne mit Strahlen und Flecken, Planeten mit Schattenseite, Wolken oder Bändern, Monde mit Kratern, ein Asteroidengürtel, ferne Galaxien und die Milchstraße. Planeten und Monde kreisen langsam, die Planeten und die Sonne drehen sich dabei auch um die eigene Achse (Wolken, Streifen und Sonnenflecken wandern über die Oberfläche, der Strahlenkranz der Sonne kreist), als Galaxie dreht sich auch die Spirale im Hintergrund; zeigst du mit der Maus auf einen, bleibt alles stehen, damit du ihn gut triffst. Ein blau pulsierender Ring heißt „arbeitet“, ein gelber Ring „wartet auf deine Freigabe“, ein roter Ring „Fehler“, ein lila gestrichelter Ring „wartet auf sein Team“. Ein Tipp auf Sonne oder Planet zeigt das Team und Aktionen, ein Tipp auf einen Mond öffnet den Agenten. Mit jeder Stufe wird der Himmel voller, ab Sternhaufen leuchten Nebel, als Galaxie erscheint eine Spirale. Das Weltall bleibt auch im hellen Aussehen dunkel. Auf dem Handy erscheint statt der Karte eine Liste: Sonne, darunter jeder Planet mit seinen Monden. Bewegung wird abgeschaltet, wenn das Gerät „Bewegung reduzieren“ verlangt.
 
-**Organigramm:** zeigt das Team in drei Arten, jede als eigener Punkt in der Grafik-Auswahl: ⬇ Baum (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), ➡ Gliederung (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und ◎ Kreis (Leitung in der Mitte, jede Ebene ein Ring). Farbe zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Karten lassen sich verschieben, die Linien gehen mit; das Gerät merkt sich das je Projekt und Art, „↺ Anordnung zurücksetzen“ stellt die Ordnung wieder her. Ziehst du eine Karte auf eine andere (auch im Bauplan einen Agenten auf einen anderen), fragt Hyperstead nach und stellt ihn erst dann in dieses Team.
+**Organigramm:** zeigt das Team in drei Arten, jede als eigener Punkt in der Grafik-Auswahl: ⬇ Baum (von oben nach unten, Mitarbeiter ohne eigenes Team stehen untereinander), ➡ Gliederung (eine Zeile je Agent, eingerückt nach Ebene, am besten fürs Handy) und ◎ Kreis (Leitung in der Mitte, jede Ebene ein Ring). Farbe zeigt den Zustand: grün bereit, blau arbeitet, gelb wartet auf deine Freigabe, rot Fehler, lila wartet auf das Team, grau pausiert. Antippen öffnet den Agenten. Karten lassen sich verschieben, die Linien gehen mit; das Gerät merkt sich das je Projekt und Art, „↺ Reset layout“ stellt die Ordnung wieder her. Ziehst du eine Karte auf eine andere (auch im Bauplan einen Agenten auf einen anderen), fragt Hyperstead nach und stellt ihn erst dann in dieses Team.
 
 **Atom:** ⚛️ zeigt das Team als Molekül-Netzwerk: glänzende Kugeln, verbunden durch Stäbe. Die große blaue Kugel ist die oberste Leitung, mittlere bunte Kugeln sind die Teamleitungen, kleine Kugeln die Mitarbeiter. Jede Kugel hängt per Stab an ihrem Vorgesetzten, die Hierarchie erkennt man an Größe und Verbindungen; angeordnet ist alles locker und räumlich wie ein Molekülmodell, nicht in starren Reihen. Jede Firma hat ihr eigenes Molekül: Form und Farben ergeben sich aus der Firma, die große Kugel trägt die Farbe des Projekts. In der modernen Ansicht zeigt ⚛️ Molekül alle Firmen als Moleküle nebeneinander; Partner-Firmen sind über einen leuchtenden Stab zwischen ihren Leitungen verbunden, auf dem Funken wandern (mehr, wenn beide arbeiten). Antippen zoomt in das Molekül, jede Kugel öffnet Abteilung und Agent. Die Grafik steht still, damit man in Ruhe lesen kann. Als Welt wächst das Bild mit der Stufe: als Quark leuchten drei Quarks im Kern, ab Molekül hängen Nachbaratome mit Bindungen daran, ab Kristall liegt ein Atomgitter im Hintergrund, als Zelle kommen Zellwand und Erbgut-Doppelhelix dazu. Zustand und Antippen wie im Organigramm.
 
-**Projekte und Ansichten:** Links unter „Projekte“ öffnet der große Knopf „＋ Neues Projekt“ ein Fenster: leeres Projekt oder fertige Firma aus Vorlage. Die Grafik-Auswahl oben rechts hat zwei Gruppen: **Klassik** (die drei Organigramme Baum, Gliederung und Kreis sowie der Bauplan) und **Modern** (alle Firmen als Stadt, Kosmos oder Molekül). Weltall und Molekül für ein einzelnes Projekt gibt es nicht mehr; wer sie zuletzt offen hatte, landet im Organigramm. Die obere Leiste mit Projekt und Wachstum bleibt auch in Stadt, Kosmos und Molekül stehen, ebenso die Leiste „Agent hinzufügen“ darunter (neue Agenten kommen in das oben gewählte Projekt). Stadt, Kosmos und Molekül lassen sich drehen und neigen: Knöpfe ⟲ ⟳ ⤵ ⤴ ⌂ rechts unten, rechte Maustaste ziehen oder auf dem Handy zwei Finger. Wählst du links ein Projekt, leuchtet seine Firma in Stadt, Kosmos und Molekül auf, die anderen treten zurück.
+**Projekte und Ansichten:** Links unter „Projekte“ öffnet der große Knopf „＋ New project“ ein Fenster: leeres Projekt oder fertige Firma aus Vorlage. Die Grafik-Auswahl oben rechts hat zwei Gruppen: **Klassik** (die drei Organigramme Baum, Gliederung und Kreis sowie der Bauplan) und **Modern** (alle Firmen als Stadt, Kosmos oder Molekül). Weltall und Molekül für ein einzelnes Projekt gibt es nicht mehr; wer sie zuletzt offen hatte, landet im Organigramm. Die obere Leiste mit Projekt und Wachstum bleibt auch in Stadt, Kosmos und Molekül stehen, ebenso die Leiste „Add agent“ darunter (neue Agenten kommen in das oben gewählte Projekt). Stadt, Kosmos und Molekül lassen sich drehen und neigen: Knöpfe ⟲ ⟳ ⤵ ⤴ ⌂ rechts unten, rechte Maustaste ziehen oder auf dem Handy zwei Finger. Wählst du links ein Projekt, leuchtet seine Firma in Stadt, Kosmos und Molekül auf, die anderen treten zurück.
 
-**Alle Firmen (moderne Ebene):** 🏙 Stadt oder 🌌 Kosmos zeigt alle Projekte auf einmal. In der Grafik-Auswahl unter „Modern“ wählst du: 🏙 Stadt (jede Firma ein Gebäude, je größer die Firma, desto höher; die Lichter gehen an, sobald die Firma arbeitet, ruhige Firmen sind fast dunkel) und 🌌 Kosmos (jede Firma ein Sonnensystem, Planeten = Abteilungen, keine Linien zwischen Firmen). Antippen zoomt in die Firma hinein: in der Stadt das aufgeschnittene Gebäude (eine Etage je Hierarchie-Ebene, beliebig tief: ganz oben die Leitung in der Chefetage, darunter die Abteilungsleitungen, dann jede weitere Ebene; jede Person hat ihren eigenen Raum, eine Abteilung mit 4 Leuten auf einer Ebene hat dort 4 Räume nebeneinander in ihrer Farbe; jede Etage stellt ihre Räume mittig und in gleichen Abständen auf, Abteilungen bleiben beieinander, und das Gebäude ist so breit wie die vollste Etage; leuchtender Bildschirm = arbeitet; rechts das Organigramm). Mit Erfolg wächst das Gebäude: mehr Ebenen geben mehr Etagen, ab Stufe 2 kommen ein Anbau und ein Dachgarten dazu, ab Stufe 3 eine Antenne, ab Stufe 4 ein Hubschrauberlandeplatz, im Kosmos das große Sonnensystem (Sonne = Leitung, Planeten mit Symbol je Abteilung, Monde = Agenten). Jede Firma hat in der Stadt einen eigenen Baustil (Turm, Bürohaus, Zwillingstürme, Campus). Im Kosmos wächst die Sonne mit Stufe und Team. Die Planeten kreisen auch auf dem Handy und im geöffneten Sonnensystem (unter dem Finger oder der Maus halten sie an, damit man sie trifft); abschalten lässt sich das unter ⓘ „Bewegung“. Namen bleiben beim Herauszoomen lesbar. Links steht die Liste der Abteilungen, ein Tipp zeigt rechts das Team mit Zustand und laufenden Aufgaben; ein Name öffnet den Agenten klassisch. Oben sucht 🔍 nach Firmen und Agenten, „← Alle Firmen“ oder Esc führt hinaus. **🤝 Zusammenarbeit** (oben oder im Infofenster) verbindet zwei Firmen als Partner: nur dann gibt es in der Stadt eine Straße mit Lieferwagen und im Kosmos Raumschiffe zwischen den Sonnen. Ruhen beide, ist nur ein langsames Fahrzeug unterwegs; arbeiten sie, leuchtet die Straße und es wird mehr Verkehr. Firmen ohne Partnerschaft bleiben unverbunden, die Agenten merken davon nichts. Jede Firma kann im Infofenster unter „Logo“ ein eigenes Logo bekommen (🖼 Hochladen, PNG/JPEG/WebP bis 2 MB): in der Stadt steht es als leuchtendes Schild auf dem Dach, im Kosmos mitten in der Sonne. Beide Welten zeigen dieselben echten Daten. Plan: `docs/ebenen-plan.md`.
+**Alle Firmen (moderne Ebene):** 🏙 Stadt oder 🌌 Kosmos zeigt alle Projekte auf einmal. In der Grafik-Auswahl unter „Modern“ wählst du: 🏙 Stadt (jede Firma ein Gebäude, je größer die Firma, desto höher; die Lichter gehen an, sobald die Firma arbeitet, ruhige Firmen sind fast dunkel) und 🌌 Kosmos (jede Firma ein Sonnensystem, Planeten = Abteilungen, keine Linien zwischen Firmen). Antippen zoomt in die Firma hinein: in der Stadt das aufgeschnittene Gebäude (eine Etage je Hierarchie-Ebene, beliebig tief: ganz oben die Leitung in der Chefetage, darunter die Abteilungsleitungen, dann jede weitere Ebene; jede Person hat ihren eigenen Raum, eine Abteilung mit 4 Leuten auf einer Ebene hat dort 4 Räume nebeneinander in ihrer Farbe; jede Etage stellt ihre Räume mittig und in gleichen Abständen auf, Abteilungen bleiben beieinander, und das Gebäude ist so breit wie die vollste Etage; leuchtender Bildschirm = arbeitet; rechts das Organigramm). Mit Erfolg wächst das Gebäude: mehr Ebenen geben mehr Etagen, ab Stufe 2 kommen ein Anbau und ein Dachgarten dazu, ab Stufe 3 eine Antenne, ab Stufe 4 ein Hubschrauberlandeplatz, im Kosmos das große Sonnensystem (Sonne = Leitung, Planeten mit Symbol je Abteilung, Monde = Agenten). Jede Firma hat in der Stadt einen eigenen Baustil (Turm, Bürohaus, Zwillingstürme, Campus). Im Kosmos wächst die Sonne mit Stufe und Team. Die Planeten kreisen auch auf dem Handy und im geöffneten Sonnensystem (unter dem Finger oder der Maus halten sie an, damit man sie trifft); abschalten lässt sich das unter ⓘ „Bewegung“. Namen bleiben beim Herauszoomen lesbar. Links steht die Liste der Abteilungen, ein Tipp zeigt rechts das Team mit Zustand und laufenden Aufgaben; ein Name öffnet den Agenten klassisch. Oben sucht 🔍 nach Firmen und Agenten, „← All companies“ oder Esc führt hinaus. **🤝 Collaboration** (oben oder im Infofenster) verbindet zwei Firmen als Partner: nur dann gibt es in der Stadt eine Straße mit Lieferwagen und im Kosmos Raumschiffe zwischen den Sonnen. Ruhen beide, ist nur ein langsames Fahrzeug unterwegs; arbeiten sie, leuchtet die Straße und es wird mehr Verkehr. Firmen ohne Partnerschaft bleiben unverbunden, die Agenten merken davon nichts. Jede Firma kann im Infofenster unter „Logo“ ein eigenes Logo bekommen (🖼 Hochladen, PNG/JPEG/WebP bis 2 MB): in der Stadt steht es als leuchtendes Schild auf dem Dach, im Kosmos mitten in der Sonne. Beide Welten zeigen dieselben echten Daten. Plan: `docs/ebenen-plan.md`.
 
-**Englische Oberfläche, Zurück und Monde:** Das Dashboard ist auf internationalem Englisch; andere Sprachen liefert der Übersetzer des Browsers. Einige Knopfnamen in dieser Anleitung sind noch die alten deutschen (z. B. „🗂 Ordnen“ heißt jetzt „🗂 Arrange“). Der Knopf **←** links neben der Grafik-Auswahl führt zur vorherigen Grafik zurück, genau in dem Design, in dem du warst (auch zurück in eine geöffnete Firma oder Abteilung). Im Infofenster einer Firma gibt es den Knopf „📐 Firma öffnen“ nicht mehr; ein Tipp auf einen Namen öffnet den Agenten direkt, die Grafik bleibt dieselbe. Im 🌌 Kosmos sind die Mitarbeiter:innen Monde, die um ihren Planeten (Abteilung) kreisen; Planeten und Sonnen drehen sich zusätzlich um die eigene Achse, die Monde nur um ihren Planeten.
+**Englische Oberfläche, Zurück und Monde:** Das Dashboard ist auf internationalem Englisch; andere Sprachen liefert der Übersetzer des Browsers. Der Knopf **←** links neben der Grafik-Auswahl führt zur vorherigen Grafik zurück, genau in dem Design, in dem du warst (auch zurück in eine geöffnete Firma oder Abteilung). Im Infofenster einer Firma gibt es den Knopf „📐 Firma öffnen“ nicht mehr; ein Tipp auf einen Namen öffnet den Agenten direkt, die Grafik bleibt dieselbe. Im 🌌 Kosmos sind die Mitarbeiter:innen Monde, die um ihren Planeten (Abteilung) kreisen; Planeten und Sonnen drehen sich zusätzlich um die eigene Achse, die Monde nur um ihren Planeten.
 
 **Alles auf Englisch, Kommunikation in deiner Sprache:** Alles, was Hyperstead selbst schreibt, ist jetzt auf Englisch: Oberfläche, Hinweise beim Überfahren, Fehlermeldungen, Rückfragen, Anweisungen an die Agenten, Firmenvorlagen, Werkzeugmeldungen und der Selbsttest. Was du selbst einträgst (Aufträge, Chat, Ziele, Namen), bleibt in deiner Sprache. Die Agenten antworten, berichten und schreiben Dateien für dich in der Sprache, in der du schreibst, egal ob Deutsch, Türkisch, Albanisch, Suaheli, Russisch oder Chinesisch; auch geplante Aufgaben und der Kontrollgang folgen deiner letzten Sprache. Feste Meldungen in Telegram und im Postkorb übersetzt die KI deines CEO automatisch in deine Sprache (einmal je Text, danach aus dem Zwischenspeicher). Die Telegram-Befehle heißen jetzt /new, /project, /file und /help (die alten deutschen funktionieren weiter). Im Grafik-Menü stehen unter „Classic“ nur noch Texte ohne Symbole („Org chart: Tree“, „Org chart: Outline“, „Org chart: Circle“, „Blueprint“). Ordner und Schlüssel, die Agenten schon kennen (z. B. `wissen/`, `film/film.json` mit deutschen Schlüsseln), sind gleich geblieben. Das Rust-Paket enthält jetzt `README.txt`, `TEST_REPORT.txt`, `source/` und `program/`.
 
@@ -332,7 +332,7 @@ Punkte heißen Sternenstaub, Aufträge heißen Missionen. Die früheren Welten G
 
 **Aufstieg und Bedienung:** Erreicht ein Projekt eine neue Stufe, erscheint eine kurze Feier mit der neuen Stufe und dem nächsten Ziel (per Telegram kommt dieselbe Nachricht). Steigt ein Agent im Rang auf, meldet das eine kurze Einblendung. Unter ⓘ in der Leiste lassen sich Bewegung und Feier-Effekte für dieses Gerät abschalten; verlangt das Gerät „Bewegung reduzieren“, bleibt ohnehin alles ruhig. Alle Fenster schließen mit Esc, Sonne, Planeten und Monde im Weltall lassen sich mit Tab und Enter bedienen.
 
-**Anleitung und Hilfe:** 📖 Anleitung ganz oben in der Seitenleiste öffnet die Bedienungsanleitung direkt im Dashboard (Kapitel zum Aufklappen, mit Suche, ohne Download, auch offline). ⓘ oben in einem Fenster springt zum passenden Kapitel. Jeder Knopf zeigt beim Draufzeigen mit der Maus eine kurze Erklärung. Auf dem Handy schaltest du in der Anleitung den Hilfe-Modus ein: Das erste Tippen auf einen Knopf erklärt ihn, das zweite führt ihn aus.
+**Anleitung und Hilfe:** 📖 Guide ganz oben in der Seitenleiste öffnet die Bedienungsanleitung direkt im Dashboard (Kapitel zum Aufklappen, mit Suche, ohne Download, auch offline). ⓘ oben in einem Fenster springt zum passenden Kapitel. Jeder Knopf zeigt beim Draufzeigen mit der Maus eine kurze Erklärung. Auf dem Handy schaltest du in der Anleitung den Hilfe-Modus ein: Das erste Tippen auf einen Knopf erklärt ihn, das zweite führt ihn aus.
 
 **Punkte:** Lieferung beim ersten Mal abgenommen +10, nach Überarbeitung +5, Auftrag in der Post als erledigt markiert +20,
 fehlgeschlagen −3, Nacharbeit angefordert −5. Stufen ab 0 / 100 / 300 / 700 / 1500 Punkten. Bestehende Projekte bekommen
@@ -362,7 +362,7 @@ fertig sind (max. `PCL_MAX_TOOL_STEPS`). Rechte pro Agent: **Internet recherchie
 Alles Erzeugte liegt unter `workspace/<projekt-id>/`. In der Sidebar zeigt **📁 Dateien** die Dateien, öffnet `index.html`
 als Webseite (isolierte Sandbox) und lädt alles als ZIP. Der Link enthält einen geheimen Schlüssel.
 
-**Firmenvorlagen** (Knopf „＋ Neues Projekt“): *Webagentur*, *Buchhaltung/Steuerkanzlei*, *Import/Export-Handel* legen Projekt,
+**Firmenvorlagen** (Knopf „＋ New project“): *Webagentur*, *Buchhaltung/Steuerkanzlei*, *Import/Export-Handel* legen Projekt,
 Organigramm, Arbeitsanweisungen und Rechte komplett an. Eigene Firmen: Projektziel schreiben („ihr seid eine …“, Land,
 Branche), Agenten und Rechte setzen. Die Agenten bekommen Datum und Projektziel mit und sollen Veränderliches (Gesetze,
 Preise) erst recherchieren und Quellen nennen.
@@ -396,11 +396,11 @@ Mit dem Recht **Medien & Dokumente erstellen** (und `ffmpeg`/Schriften auf dem P
 **Selbstkontrolle:** Erzeugt ein Agent ein PDF, rendert der Server es danach als Bild (Übersicht aller Seiten + Seite 1 groß) und schickt es
 ihm mit der Pflicht, jede Anforderung des Auftrags zu prüfen und Fehler zu beheben, bevor er meldet (`PCL_SELF_CHECKS`, Standard 1, 0 = aus).
 
-**Eigene Dateien** (Videos zum Bearbeiten, PDFs, Bilder, Layouts, Texte) lädst du in „📁 Dateien dieses Projekts“ hoch oder schickst sie
+**Eigene Dateien** (Videos zum Bearbeiten, PDFs, Bilder, Layouts, Texte) lädst du in „📁 Files of this project“ hoch oder schickst sie
 direkt im **💬 Chat** mit einem Agenten mit (📎-Knopf, hineinziehen oder Bild einfügen, mehrere auf einmal). Sie landen in
 `input/` (Name bereinigt, vorhandene Dateien werden nie überschrieben, sondern `name-1.png` …, Grenze `PCL_MAX_UPLOAD_MB`); im Chat
 bekommt der Agent den **Inhalt** direkt mit der Nachricht (Texte, PDFs, Word als Text, Bilder als Bild, sofern das Modell Bilder versteht;
-sonst Texterkennung). Mit **📂 aus input/** hängst du Dateien an, die schon dort liegen, oder du schreibst einfach den Dateinamen in die Nachricht, und „Als Auftrag erteilen“ gibt ihn ans Team weiter; fertige Ergebnisse liegen in `output/`, Bilder in `assets/`. Ehrliche Grenzen: Ohne `video_generate` gibt es **keine KI-Videogenerierung**
+sonst Texterkennung). Mit **📂 aus input/** hängst du Dateien an, die schon dort liegen, oder du schreibst einfach den Dateinamen in die Nachricht, und „Give as task“ gibt ihn ans Team weiter; fertige Ergebnisse liegen in `output/`, Bilder in `assets/`. Ehrliche Grenzen: Ohne `video_generate` gibt es **keine KI-Videogenerierung**
 (Text-zu-Video), „Animation“ heißt dann: Szenenbilder per Bild-KI + Zoom/Schwenk + Sprecher + Schnitt, oder mit Blender echte Figurenanimation über `film`. Mit `video_generate` entstehen
 kurze Clips, längere Filme setzt `video_edit op=concat` zusammen. MagicLight und Flow haben keine API: Mit `site_macro` bedient ein Browser-Roboter sie mit deinem Konto, sonst lädst du dort erzeugte Videos nach `input/` hoch. Das Modell hinter Flow (Veo 3.1) geht auch über fal: `FAL_VIDEO_MODEL=fal-ai/veo3.1/fast`. Auf dem Raspberry Pi
 rechnet ffmpeg langsam (eine Minute 720p-Video kann mehrere Minuten dauern), Zeitlimit `PCL_FFMPEG_TIMEOUT` (Standard 1 Stunde je Schritt).
@@ -412,7 +412,7 @@ rechnet ffmpeg langsam (eine Minute 720p-Video kann mehrere Minuten dauern), Zei
 ## Chat und Vorlagen
 
 - **💬 Chat-Tab** (im Agenten-Panel): freies Gespräch mit jedem Agenten, z. B. mit der Leitung der *Gedankenwerkstatt*, zum Philosophieren,
-  Ideen entwickeln und Hinterfragen. „📋 Als Auftrag erteilen“ übergibt das Gespräch dem Agenten und seinem Team, das Ergebnis kommt als Post.
+  Ideen entwickeln und Hinterfragen. „📋 Give as task“ übergibt das Gespräch dem Agenten und seinem Team, das Ergebnis kommt als Post.
   Der Chat läuft ohne Werkzeuge.
 - **Firmenvorlagen** (🏢): Webagentur, Buchhaltung/Steuerkanzlei, Import/Export-Handel, **Animationsagentur**, **Buchverlag/Content-Agentur**,
   **Gedankenwerkstatt**, **Recherchebüro** (findet und liest PDFs). Beim Gründen wählst du Modell für Leitung und Mitarbeiter.
@@ -420,10 +420,10 @@ rechnet ffmpeg langsam (eine Minute 720p-Video kann mehrere Minuten dauern), Zei
 ## Post und Telegram
 
 Sobald ein **oberster Auftrag** (den du einem Agenten, meist dem CEO, gegeben hast) fertig, fehlgeschlagen oder
-blockiert ist, liegt Post für dich bereit: Sidebar „📬 Post“ und, wenn eingerichtet, eine Telegram-Nachricht mit
+blockiert ist, liegt Post für dich bereit: Sidebar „📬 Mail“ und, wenn eingerichtet, eine Telegram-Nachricht mit
 Art, Auftrag, Team-Kennzahlen und dem Ergebnis. Die Rechte-/Berichtskette darunter läuft wie gehabt.
-In der Post lassen sich Nachrichten anhaken (einzeln oder „Alle auswählen“) und mit „🗑 Ausgewählte löschen“ entfernen;
-„🧹 Postkorb leeren“ löscht nach einer Rückfrage alle. Gelöscht wird nur die Post, Aufgaben, Dateien und Verlauf bleiben.
+In der Post lassen sich Nachrichten anhaken (einzeln oder „Select all“) und mit „🗑 Delete selected“ entfernen;
+„🧹 Empty mailbox“ löscht nach einer Rückfrage alle. Gelöscht wird nur die Post, Aufgaben, Dateien und Verlauf bleiben.
 Die Seitenleiste ist in aufklappbare Kategorien geordnet (Tagesgeschäft, Team & KI, Dateien & Verbindungen, Auswertung).
 
 **Telegram einrichten (ca. 2 Minuten):**
@@ -466,7 +466,7 @@ Antwort, wird sie ignoriert und im Verlauf protokolliert.
 ## KI-Anbieter und Modellwahl
 
 Pro Agent wählst du **Anbieter und Modell** (Panel → Einstellungen). Die Modellliste holt die App live vom Anbieter,
-mit **▶ Testen** prüfst du Key und Modell sofort. So setzt du das passende Modell pro Rolle: stärkstes für Chefs
+mit **▶ Test** prüfst du Key und Modell sofort. So setzt du das passende Modell pro Rolle: stärkstes für Chefs
 (Planen, Prüfen, Denken), gute Text- oder Code-Modelle für Mitarbeiter, schnelle günstige für einfache Arbeit.
 
 | Anbieter | Key in `.env` | Hinweis |
@@ -498,22 +498,22 @@ bezahlten APIs und vielen Werkzeug-Runden können Kosten entstehen, die Tokens s
 
 ## Firmenwissen und Gedächtnis
 
-- **🧠 Firmenwissen** (Seitenleiste): Was alle Agenten eines Projekts immer wissen sollen (Firma, Kunden, Stil, Preise, Regeln). Steht in
+- **🧠 Company knowledge** (Seitenleiste): Was alle Agenten eines Projekts immer wissen sollen (Firma, Kunden, Stil, Preise, Regeln). Steht in
   `wissen/firmenwissen.md` im Projektordner. Alle `.md`/`.txt` in `wissen/` gehen bei jedem Auftrag und im Chat mit (zusammen bis
   `PCL_KNOWLEDGE_CHARS`, Standard 8000 Zeichen); andere Unterlagen (PDF, Word …) dort sehen die Agenten als Liste und lesen sie bei Bedarf.
 - **Gedächtnis je Agent**: Ein Agent kann sich am Ende eines Auftrags bis zu 5 dauerhafte Fakten merken (Vorlieben, Entscheidungen, Kunden,
-  was funktioniert hat). Sie stehen im Agenten-Panel unter „🧠 Gedächtnis“, du kannst sie ändern oder leeren. Grenze `PCL_MEMORY_CHARS`
+  was funktioniert hat). Sie stehen im Agenten-Panel unter „🧠 Memory“, du kannst sie ändern oder leeren. Grenze `PCL_MEMORY_CHARS`
   (4000), die ältesten Einträge fallen zuerst heraus. Jede neue Notiz steht im Audit-Log.
 
 ## Ziele, Freigaben, Nutzung
 
-- **🎯 Ziele**: Ziele und Unterziele je Projekt. Beim Zuweisen einer Aufgabe wählst du optional das Ziel, delegierte Aufgaben erben es.
+- **🎯 Goals**: Ziele und Unterziele je Projekt. Beim Zuweisen einer Aufgabe wählst du optional das Ziel, delegierte Aufgaben erben es.
   Chefs sehen die Ziele mit Fortschritt im Prompt, der CEO-Kontrollgang berichtet ihn. Abhaken = erreicht.
-- **Vorher fragen** (Fenster ✋ Freigaben, je Projekt, Standard aus): *Plan des obersten Chefs freigeben* hält einen neuen Auftrag an,
+- **Vorher fragen** (Fenster ✋ Approvals, je Projekt, Standard aus): *Plan des obersten Chefs freigeben* hält einen neuen Auftrag an,
   bis du den Verteilungsplan freigibst; *Teamänderungen freigeben* hält das Einstellen, Entlassen und Ändern von Mitarbeitern durch den CEO an. Freigeben/Ablehnen auch per
   Telegram-Knopf. Abgelehnt = der Auftrag landet als ❌ in der Post, deine Antwort darauf lässt den Chef neu planen.
   Shell-Freigaben gehen weiterhin nur im Web.
-- **📊 Nutzung & Kosten**: Aufrufe, Tokens und geschätzte Kosten je Projekt, Agent und Modell (heute, 7, 30 Tage). Kein Limit.
+- **📊 Usage & costs**: Aufrufe, Tokens und geschätzte Kosten je Projekt, Agent und Modell (heute, 7, 30 Tage). Kein Limit.
   Abo-CLIs und Ollama zählen als 0 $; ab `PCL_ABO_WARN_5H` Abo-Aufrufen in 5 Stunden (Standard 150, 0 = aus) kommt eine Telegram-Warnung.
   Preise sind grobe Schätzungen, eigene per `PCL_PRICES='{"sonnet": 5}'` (US-$ je 1 Mio. Tokens, Teil des Modellnamens).
 
@@ -524,16 +524,16 @@ bezahlten APIs und vielen Werkzeug-Runden können Kosten entstehen, die Tokens s
 ```
 Läuft ohne Internet und ohne Keys (Anbieter `mock`, eigene Datenbank).
 
-## 🔌 Verbindungen (Webhooks)
+## 🔌 Connections (Webhooks)
 
-- **Ausgang:** Im Fenster 🔌 Verbindungen trägst du Adressen ein (n8n, Zapier, Make, eigener Dienst; auch `http://127.0.0.1:…` auf dem Pi),
+- **Ausgang:** Im Fenster 🔌 Connections trägst du Adressen ein (n8n, Zapier, Make, eigener Dienst; auch `http://127.0.0.1:…` auf dem Pi),
   mit Beschreibung für die Agenten und optional Kopfzeilen. Geheimnisse gehören in `.env` und werden als `${NAME}` eingesetzt.
-  Agenten mit dem Recht **„Darf Verbindungen nutzen“** rufen sie per Werkzeug `call_connection` auf; Adresse und Kopfzeilen kann der Agent
-  nicht ändern, er schickt nur Daten. **„Nur nach meiner Freigabe“** (Standard an) legt jeden Aufruf erst unter ✋ Freigaben vor.
+  Agenten mit dem Recht **„May use connections“** rufen sie per Werkzeug `call_connection` auf; Adresse und Kopfzeilen kann der Agent
+  nicht ändern, er schickt nur Daten. **„Only call after my approval“** (Standard an) legt jeden Aufruf erst unter ✋ Approvals vor.
   **„Bei Post benachrichtigen“** schickt jedes fertige Ergebnis eines obersten Auftrags als JSON an die Adresse. Zeitlimit `PCL_CONN_TIMEOUT` (30 s).
 - **Eingang:** „Aufträge von außen“ einschalten, dann nimmt `POST /hook/<projekt>/<schlüssel>` mit `{"text": "…", "agent": "optional"}`
   einen Auftrag an den Chef an (z. B. aus n8n, iOS-Kurzbefehlen oder DEXTER). Ohne Login, geschützt nur durch den Schlüssel in der Adresse:
-  „Neuen Schlüssel“ macht die alte Adresse ungültig. Erreichbar ist sie nur so weit wie Hyperstead selbst (z. B. nur im Tailnet).
+  „New key“ macht die alte Adresse ungültig. Erreichbar ist sie nur so weit wie Hyperstead selbst (z. B. nur im Tailnet).
 
 ## ☁️ Cloud-Upload (GitHub, Google Drive, OneDrive, Telegram)
 
@@ -544,7 +544,7 @@ Läuft ohne Internet und ohne Keys (Anbieter `mock`, eigene Datenbank).
 - **Zielordner:** je Projekt und Dienst im Fenster ☁️ Cloud (Standard `Hyperstead/<Projektname>`). Agenten dürfen nur einen
   Unterordner darunter wählen, z. B. wenn du ihn im Auftrag nennst.
 - **Selbst hochladen:** 📁 Dateien → ☁️ neben der Datei → Ziel und Ordner wählen. Du bekommst den Link.
-- **Agenten:** Recht **„Darf in die Cloud hochladen“** (setzt nur du). Werkzeug `cloud_upload`; jeder Upload wartet unter ✋ Freigaben,
+- **Agenten:** Recht **„May upload to the cloud“** (setzt nur du). Werkzeug `cloud_upload`; jeder Upload wartet unter ✋ Approvals,
   dazu kommt eine Telegram-Nachricht. Nach dem Upload steht der Link im Auftrag.
 - **Einrichtung mit dem CEO:** Frag den obersten Chef im 💬 Chat, z. B. „Hilf mir, GitHub einzurichten“. Er kennt den aktuellen Stand jedes Dienstes und die Anleitung und führt dich Schritt für Schritt durch. Tokens schreibst du nie in den Chat, sondern selbst in `.env`.
 - **Telegram:** `/datei` schickt dir Dateien bis 50 MB aufs Handy, nur wenn du es anklickst oder freigibst.
@@ -553,9 +553,9 @@ Läuft ohne Internet und ohne Keys (Anbieter `mock`, eigene Datenbank).
 
 ## 🖨 Abendberichte drucken
 
-Der 👑 CEO-Kontrollgang schreibt bei Feierabend einen Abendbericht. In der 📬 Post und in den Aufgaben des CEO steht dabei **🖨 Drucken**: ein Klick, kurze Rückfrage, dann geht er an den Drucker. Drucker wählen unter **🖨 Drucker** in der Seitenleiste (Pi: Netzwerkdrucker über CUPS, `./install.sh --print`; Windows: freigegebener Drucker unter Drucker & Scanner). Im selben Fenster erlaubt oder sperrt der CEO das Drucken (Recht „Darf Abendberichte drucken“). Der **Testdrucker (Datei)** speichert den Ausdruck nur als Textdatei in `workspace/.druck/`. Anleitung: [docs/drucken.md](docs/drucken.md).
+Der 👑 Set up CEO inspection schreibt bei Feierabend einen Abendbericht. In der 📬 Mail und in den Aufgaben des CEO steht dabei **🖨 Print**: ein Klick, kurze Rückfrage, dann geht er an den Drucker. Drucker wählen unter **🖨 Printer** in der Seitenleiste (Pi: Netzwerkdrucker über CUPS, `./install.sh --print`; Windows: freigegebener Drucker unter Drucker & Scanner). Im selben Fenster erlaubt oder sperrt der CEO das Drucken (Recht „May print evening reports“). Der **Testdrucker (Datei)** speichert den Ausdruck nur als Textdatei in `workspace/.druck/`. Anleitung: [docs/drucken.md](docs/drucken.md).
 
-**Richtiger Drucker?** Im Fenster 🖨 Drucker einen Drucker auswählen und **🧾 Testseite drucken** klicken. Die Seite nennt Drucker, Rechner und Uhrzeit und enthält Umlaute. Liegt sie im richtigen Drucker, auf **Speichern** klicken. Die Testseite allein speichert nichts und braucht kein Druckrecht des CEO.
+**Richtiger Drucker?** Im Fenster 🖨 Printer einen Drucker auswählen und **🧾 Testseite drucken** klicken. Die Seite nennt Drucker, Rechner und Uhrzeit und enthält Umlaute. Liegt sie im richtigen Drucker, auf **Speichern** klicken. Die Testseite allein speichert nichts und braucht kein Druckrecht des CEO.
 
 ## 🌐 Echter Browser und ▶ Code ausführen
 
@@ -564,7 +564,7 @@ Der 👑 CEO-Kontrollgang schreibt bei Feierabend einen Abendbericht. In der �
   auf Wunsch einen Screenshot (sieht ihn wie bei `view_image`, `save` legt ihn in `assets/screenshots/` ab). Jede Anfrage der Seite
   (Skripte, Frames, XHR, WebSockets) muss an eine öffentliche Adresse gehen, LAN/localhost wird blockiert, WebRTC und Downloads sind aus.
   Immer nur ein Browser gleichzeitig (RAM), Zeitlimit `PCL_BROWSER_TIMEOUT` (30 s). Eigenes Chromium: `PCL_BROWSER_PATH`, aus: `PCL_BROWSER=0`.
-- **Code ausführen** (`./install.sh --run`, installiert bubblewrap): Recht „Darf Code ausführen“ (Standard aus) gibt `run_code`.
+- **Code ausführen** (`./install.sh --run`, installiert bubblewrap): Recht „May run code“ (Standard aus) gibt `run_code`.
   Das Skript läuft abgeschottet: **kein Internet**, nur `/usr` und der Projektordner (schreibgeschützt unter `/projekt`) sichtbar,
   keine `.env`, keine Datenbank, kein Home. Was das Skript in sein Arbeitsverzeichnis schreibt, landet in `output/run/<zeit>/`
   (max. 50 Dateien/50 MB). Grenzen: `PCL_RUN_TIMEOUT` (60 s), `PCL_RUN_MEM_MB` (1024). Es läuft das Python/Node des Systems,
@@ -573,7 +573,7 @@ Der 👑 CEO-Kontrollgang schreibt bei Feierabend einen Abendbericht. In der �
 
 ## 🦀 Rust-Programme komplett bauen
 
-Gib einem Agenten mit den Rechten **„Darf programmieren“**, **„Darf Dateien schreiben“** und **„Darf Code ausführen“** einen Auftrag
+Gib einem Agenten mit den Rechten **„May program“**, **„May write files“** und **„May run code“** einen Auftrag
 wie „Schreib mir ein Rust-Programm, das …, mit Tests, und liefere das fertige Paket“. Der Agent arbeitet dann von A bis Z:
 
 1. Er legt mit `write_code` ein Cargo-Projekt an, z. B. `rust/rechner/Cargo.toml` und `rust/rechner/src/main.rs` mit Tests (`#[test]`).
@@ -602,7 +602,7 @@ Du bekommst das Paket in der Post bzw. unter **📁 Dateien** (einzeln oder im P
 
 Mit dem Recht **„Werkstatt“** arbeitet ein Agent wie an einem echten Rechner, für jede KI und in jeder Firma. Claude (Abo-CLI) bekommt
 seine Claude-Code-Werkzeuge im Projektordner, Codex seine eigenen, alle API-KIs und Ollama das Werkzeug `befehl`. Fehlt ein Programm,
-stellt der Agent einen **Nachrüst-Antrag**: Der CEO prüft ihn, du bestätigst per Telegram-Knopf oder unter ✋ Freigaben, danach
+stellt der Agent einen **Nachrüst-Antrag**: Der CEO prüft ihn, du bestätigst per Telegram-Knopf oder unter ✋ Approvals, danach
 installiert der Server genau diesen Befehl und die Aufgabe geht weiter. Was installiert ist, steht in `wissen/werkzeuge.md`.
 
 - **Einschalten:** `PCL_ALLOW_WERKSTATT=1` in `.env`, neu starten, beim Agenten das Häkchen setzen und eine Stufe wählen.
@@ -632,12 +632,12 @@ verschiedener Projekte. Ein Agent bearbeitet nie zwei Aufgaben auf einmal, und e
 Nach Installation und Eintragen der Keys prüft `./venv/bin/python selftest.py` alles Echte, was sich ohne Internet nicht testen ließ:
 Websuche, Seiten lesen, Bildsuche und Bildgenerator, SSRF-Schutz, jeder KI-Anbieter mit Mini-Anfrage (inkl. Ollama), Telegram
 (Bot-Token und Testnachricht an deine Chat-ID), ffmpeg, Sprachausgabe, PDF mit Umlauten, OCR. Einzelne Gruppen:
-`selftest.py web | llm | telegram | media | ocr | rust | film`. Jede Zeile zeigt OK, FEHLT (optional) oder FEHLER mit konkretem Hinweis.
+`selftest.py web | llm | telegram | media | ocr | rust | film`. Jede Zeile zeigt OK, MISSING (optional) oder ERROR mit konkretem Hinweis.
 
 ## Ollama (lokale Modelle)
 
 Anbieter „Ollama (lokal)“: kein Key nötig, die Modellliste kommt direkt von Ollama (`ollama pull qwen2.5:1.5b`). Im Dialog „Firma aus Vorlage“
-gibt es die Knöpfe „Alles lokal“ und „Nur Mitarbeiter lokal“; sonst wählst du Ollama je Agent. Läuft Ollama auf einem anderen Rechner
+gibt es die Knöpfe „Everything local (Ollama)“ und „Only employees local (Ollama)“; sonst wählst du Ollama je Agent. Läuft Ollama auf einem anderen Rechner
 (z. B. dem Laptop), setze `OLLAMA_URL` auf dessen Adresse. Kleine Modelle (3B) sind auf dem Pi langsam und halten das Werkzeug-Protokoll
 oft schlecht ein; für Chefs ein starkes Modell, lokal eher für einfache Mitarbeiter oder den Chat.
 
@@ -655,19 +655,19 @@ Rechne auf einem Pi 4 mit wenigen Wörtern pro Sekunde und mehreren Minuten, bis
 ## Claude und ChatGPT über dein Abo (CLI statt API-Key)
 
 In `.env`: `PCL_ALLOW_CLI=1`. Die Programme installierst und meldest du einmal selbst auf dem Pi an (Anleitungen der Hersteller:
-Claude Code `claude`, OpenAI Codex `codex`; Anmeldung mit deinem Abo). Danach erscheinen „Claude (CLI, dein Abo)“ und „ChatGPT (Codex-CLI, dein Abo)“
+Claude Code `claude`, OpenAI Codex `codex`; Anmeldung mit deinem Abo). Danach erscheinen „Claude (CLI, your subscription)“ und „ChatGPT (Codex CLI, your subscription)“
 in allen Anbieter-Listen. Der Server ruft sie ohne Shell auf, in einem leeren Ordner und **ohne unsere API-Keys in der Umgebung**
 (sonst würde `claude` den API-Key statt des Abos abrechnen). Grenzen: langsamer als die API (Programmstart je Antwort), Abo-Limits gelten
 (viele Agenten = schnell am Limit), und die CLI-Programme haben eigene Werkzeuge – Befehl bei Bedarf über `PCL_CLI_CLAUDE` / `PCL_CLI_CODEX` anpassen.
 
 ## Modell weg? Agenten umstellen
-Hyperstead prüft alle 6 Stunden (`PCL_MODEL_CHECK_HOURS`), ob die Modelle der Agenten beim Anbieter noch existieren, und merkt es auch, wenn ein Aufruf „Modell nicht gefunden“ meldet. Dann kommt eine Telegram-Nachricht, die Aufgabe scheitert mit klarem Hinweis, und im Menü **⚠ Modelle** stellst du alle betroffenen Agenten mit einem Klick auf ein anderes Modell um.
+Hyperstead prüft alle 6 Stunden (`PCL_MODEL_CHECK_HOURS`), ob die Modelle der Agenten beim Anbieter noch existieren, und merkt es auch, wenn ein Aufruf „Modell nicht gefunden“ meldet. Dann kommt eine Telegram-Nachricht, die Aufgabe scheitert mit klarem Hinweis, und im Menü **⚠ Models** stellst du alle betroffenen Agenten mit einem Klick auf ein anderes Modell um.
 
 ## Große Teams
-Ein Vorgesetzter kann beliebig viele Mitarbeiter haben. Im Panel des Vorgesetzten (Einstellungen) wählst du unter **Unterstellte Mitarbeiter** per Häkchen alle aus und speicherst die Zuweisung. Alternativ: unteren Punkt des Vorgesetzten auf einen Mitarbeiter ziehen. Der Knopf **🗂 Ordnen** legt alles als Organigramm an (Gruppen ab 6 Mitarbeitern in Reihen zu je 5).
+Ein Vorgesetzter kann beliebig viele Mitarbeiter haben. Im Panel des Vorgesetzten (Einstellungen) wählst du unter **Direct reports** per Häkchen alle aus und speicherst die Zuweisung. Alternativ: unteren Punkt des Vorgesetzten auf einen Mitarbeiter ziehen. Der Knopf **🗂 Arrange** legt alles als Organigramm an (Gruppen ab 6 Mitarbeitern in Reihen zu je 5).
 
 ## CEO stellt sein Team selbst zusammen
-Der CEO aus der Palette hat das Recht **„Darf sein Team selbst zusammenstellen“** (`recruit`). Hat er noch keine Mitarbeiter und bekommt einen Auftrag, analysiert er ihn und legt Mitarbeiter mit Rolle, Arbeitsanweisung und Berichtslinien an (bis 20, auch Abteilungsleiter mit eigenem Team). Die Neuen haben **noch keine KI**: Du weist sie im Menü **⚠ Modelle** (alle auf einmal) oder je Agent in den Einstellungen zu und antwortest dann in der **Post** auf den Auftrag (z. B. „Weiter“). Danach verteilt der CEO die Arbeit wie gewohnt. Der CEO kann Neuen nur Web, Bilder, Dateien lesen/schreiben, Medien und Programmieren mitgeben, nie Shell.
+Der CEO aus der Palette hat das Recht **„May build its own team“** (`recruit`). Hat er noch keine Mitarbeiter und bekommt einen Auftrag, analysiert er ihn und legt Mitarbeiter mit Rolle, Arbeitsanweisung und Berichtslinien an (bis 20, auch Abteilungsleiter mit eigenem Team). Die Neuen haben **noch keine KI**: Du weist sie im Menü **⚠ Models** (alle auf einmal) oder je Agent in den Einstellungen zu und antwortest dann in der **Post** auf den Auftrag (z. B. „Weiter“). Danach verteilt der CEO die Arbeit wie gewohnt. Der CEO kann Neuen nur Web, Bilder, Dateien lesen/schreiben, Medien und Programmieren mitgeben, nie Shell.
 
 **Auch wenn das Team schon steht**, darf ein CEO mit diesem Recht sein Team bei jedem Auftrag an deine Aufgaben und Vorgaben anpassen:
 - **Einstellen**: weitere Mitarbeiter, wie oben ohne KI. Du bekommst eine Telegram-Nachricht und weist ihnen die KI zu. Arbeit bekommen sie erst ab dem nächsten Auftrag bzw. nach deinem „Weiter“.
@@ -679,14 +679,14 @@ Der CEO aus der Palette hat das Recht **„Darf sein Team selbst zusammenstellen
 Willst du jede Teamänderung vorher sehen, hake im Fenster **Freigaben** *Teamänderungen freigeben* an. Ohne das Häkchen beim CEO darf er nichts davon. Tägliche Aufgaben (Zeitplan, Kontrollgang) ändern das Team nie.
 
 ## Öffnungszeiten und tägliche Aufgaben
-Seitenleiste **🕘 Zeitplan**: Pro Projekt Arbeitsbeginn, Feierabend und Arbeitstage festlegen. Je Mitarbeiter lassen sich **tägliche Aufgaben** anlegen (feste Uhrzeit, bei Arbeitsbeginn oder bei Feierabend, an wählbaren Wochentagen), z. B. „jeden Tag um 15:00 die Website kontrollieren“. Das Ergebnis kommt wie jede Post in die Ansicht „Post“ (und per Telegram). Läuft die letzte Aufgabe eines Zeitplans noch, wird nicht doppelt gestartet; war der Pi zur Uhrzeit aus, wird bis zu 6 Stunden nachgeholt.
+Seitenleiste **🕘 Schedule**: Pro Projekt Arbeitsbeginn, Feierabend und Arbeitstage festlegen. Je Mitarbeiter lassen sich **tägliche Aufgaben** anlegen (feste Uhrzeit, bei Arbeitsbeginn oder bei Feierabend, an wählbaren Wochentagen), z. B. „jeden Tag um 15:00 die Website kontrollieren“. Das Ergebnis kommt wie jede Post in die Ansicht „Post“ (und per Telegram). Läuft die letzte Aufgabe eines Zeitplans noch, wird nicht doppelt gestartet; war der Pi zur Uhrzeit aus, wird bis zu 6 Stunden nachgeholt.
 Bei Arbeitsbeginn nimmt die Firma liegengebliebene Aufgaben wieder auf (nicht gestartete starten, gescheiterte oberste Aufgaben bis zu `PCL_MAX_RESUMES`=2 mal erneut). Optional ruht die Firma außerhalb der Öffnungszeiten ganz. Die Uhrzeit ist die des Pi; stimmt sie nicht, `PCL_TZ=Europe/Vienna` in `.env` setzen.
 
 ## CEO-Kontrollgang
-Im Fenster **🕘 Zeitplan** richtet **👑 CEO-Kontrollgang** einen täglichen Kontrollgang des obersten Chefs ein (Standard: bei Feierabend; weitere Zeiten über „Neue tägliche Aufgabe“ + Häkchen *Kontrollgang*). Das System legt ihm einen **Statusbericht** mit Fakten bei: je Mitarbeiter heute gestartet/fertig/fehlgeschlagen/offen, Arbeitsstarts außerhalb der Öffnungszeiten, offene Aufgaben ohne Arbeitsbeginn, Mitarbeiter ohne KI, liegengebliebene Aufträge und ob die täglichen Aufgaben gelaufen sind. Der CEO bewertet das, verteilt bei Bedarf Folgeaufgaben an sein Team und schreibt einen Kontrollbericht in die Post. „📋 Statusbericht ansehen“ zeigt die Fakten ohne CEO.
+Im Fenster **🕘 Schedule** richtet **👑 Set up CEO inspection** einen täglichen Kontrollgang des obersten Chefs ein (Standard: bei Feierabend; weitere Zeiten über „New daily task“ + Häkchen *Kontrollgang*). Das System legt ihm einen **Statusbericht** mit Fakten bei: je Mitarbeiter heute gestartet/fertig/fehlgeschlagen/offen, Arbeitsstarts außerhalb der Öffnungszeiten, offene Aufgaben ohne Arbeitsbeginn, Mitarbeiter ohne KI, liegengebliebene Aufträge und ob die täglichen Aufgaben gelaufen sind. Der CEO bewertet das, verteilt bei Bedarf Folgeaufgaben an sein Team und schreibt einen Kontrollbericht in die Post. „📋 View status report“ zeigt die Fakten ohne CEO.
 
 ## Projektordner
 Jedes Projekt hat einen **Ordner mit seinem Namen** unter `workspace/` (z. B. `workspace/Buchverlag-Content-Agentur/`, Umlaute werden umschrieben). Er bleibt beim Umbenennen des Projekts gleich und wird beim **Löschen eines Projekts nie gelöscht**. Legst du ein Projekt mit gleichem Namen neu an, übernimmt es den vorhandenen Ordner samt Dateien. Alte Nummernordner (`workspace/1`, `workspace/2` …) werden beim Start automatisch auf den Projektnamen umbenannt.
 
 ## Webseite veröffentlichen
-Im Fenster **📁 Dateien dieses Projekts** gibt es **🚀 Veröffentlichen**: Veröffentlicht wird **nur der Ordner `www/` im Projektordner** (`www/index.html`, dazu CSS, Bilder … mit relativen Pfaden); alles andere im Projekt (Notizen, `output/`, `input/`, Dotfiles, Symlinks nach außen) bleibt unsichtbar. Gibt es keinen `www/`-Ordner, wird wie bisher die `index.html` des Projektordners (ohne `input/` und versteckte Dateien) ausgeliefert. Die Seite läuft dauerhaft auf einem eigenen Port (ab 8800, `PCL_SITE_PORT_BASE`) ausgeliefert, standardmäßig nur auf dem Pi selbst: `http://127.0.0.1:8800/`. Für Zugriff im Netz `PCL_SITE_HOST=0.0.0.0` in `.env`. Agenten mit dem Recht „Darf die Webseite zur Veröffentlichung vorschlagen“ können auf „veröffentlichen“ eine Freigabe anfordern; erst dein Klick unter **Freigaben** schaltet die Seite online. Änderungen der Agenten sind sofort sichtbar, nach einem Neustart läuft die Seite automatisch wieder. Für das offene Internet gehört ein Reverse-Proxy mit HTTPS davor (z. B. Caddy), nicht der Mini-Server.
+Im Fenster **📁 Files of this project** gibt es **🚀 Publish website**: Veröffentlicht wird **nur der Ordner `www/` im Projektordner** (`www/index.html`, dazu CSS, Bilder … mit relativen Pfaden); alles andere im Projekt (Notizen, `output/`, `input/`, Dotfiles, Symlinks nach außen) bleibt unsichtbar. Gibt es keinen `www/`-Ordner, wird wie bisher die `index.html` des Projektordners (ohne `input/` und versteckte Dateien) ausgeliefert. Die Seite läuft dauerhaft auf einem eigenen Port (ab 8800, `PCL_SITE_PORT_BASE`) ausgeliefert, standardmäßig nur auf dem Pi selbst: `http://127.0.0.1:8800/`. Für Zugriff im Netz `PCL_SITE_HOST=0.0.0.0` in `.env`. Agenten mit dem Recht „May propose the website for publishing“ können auf „veröffentlichen“ eine Freigabe anfordern; erst dein Klick unter **Freigaben** schaltet die Seite online. Änderungen der Agenten sind sofort sichtbar, nach einem Neustart läuft die Seite automatisch wieder. Für das offene Internet gehört ein Reverse-Proxy mit HTTPS davor (z. B. Caddy), nicht der Mini-Server.

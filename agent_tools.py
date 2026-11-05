@@ -196,7 +196,7 @@ TTS_PREMIUM_HINT = ("     ELEVENLABS IS SET UP: if a voice really has to sound g
 def check_public(host):
     """Wirft ToolError, wenn der Host nicht auf eine oeffentliche Adresse zeigt."""
     if not host:
-        raise ToolError("Ungueltige Adresse")
+        raise ToolError("Invalid address")
     try:
         infos = socket.getaddrinfo(host, None)
     except OSError:
@@ -766,7 +766,7 @@ def _ref_images(root, refs):
         refs = [refs]
     refs = [str(r).strip() for r in (refs or []) if str(r or "").strip()]
     if len(refs) > MAX_REF_IMAGES:
-        raise ToolError(f"Hoechstens {MAX_REF_IMAGES} Referenzbilder")
+        raise ToolError(f"At most {MAX_REF_IMAGES} reference images")
     out = []
     for rel in refs:
         f = _img_path(root, rel)
@@ -929,7 +929,7 @@ def _gen_pollinations(prompt, refs, fmt, call):
     if r.status_code >= 400 or data.get("error"):
         err = data.get("error")
         msg = err.get("message") if isinstance(err, dict) else err
-        hint = {401: " (POLLINATIONS_API_KEY pruefen)", 402: " (Pollen-Guthaben aufgebraucht, enter.pollinations.ai)"}.get(r.status_code, "")
+        hint = {401: " (POLLINATIONS_API_KEY check the key)", 402: " (pollen credit used up, enter.pollinations.ai)"}.get(r.status_code, "")
         raise ToolError(f"Pollinations ({model}): HTTP {r.status_code}{hint} " + _clip(str(msg or r.text), 300))
     d = (data.get("data") or [{}])[0]
     if d.get("b64_json"):
@@ -974,7 +974,7 @@ def _gen_sdcpp(prompt, refs, fmt, call):
     except ValueError:
         data = {}
     if r.status_code >= 400:
-        raise ToolError(f"Bildrechner ({url}): HTTP {r.status_code} " + _clip(str(data.get("error") or r.text), 300))
+        raise ToolError(f"Image computer ({url}): HTTP {r.status_code} " + _clip(str(data.get("error") or r.text), 300))
     imgs = data.get("images") or []
     if not imgs:
         raise ToolError("Image computer returned no image: " + _clip(r.text, 300))
@@ -1050,7 +1050,7 @@ def _gen_nvidia(prompt, refs, fmt, call):
         body["width"], body["height"] = _scaled(fmt, 1024, 64)
     if refs:
         if len(refs) > 1:
-            raise ToolError("NVIDIA-Bildmodelle nehmen hoechstens 1 Referenzbild")
+            raise ToolError("NVIDIA image models take at most 1 reference image")
         _, d, mime = refs[0]
         body["image"] = f"data:{mime};base64,{base64.b64encode(d).decode()}"
     r = requests.post(f"https://ai.api.nvidia.com/v1/genai/{model}", timeout=300, json=body,
@@ -1868,7 +1868,7 @@ def _dims(call, default_w=1280, default_h=720):
         w, h = int(call.get("width") or default_w), int(call.get("height") or default_h)
         fps = int(call.get("fps") or 30)
     except (TypeError, ValueError):
-        raise ToolError("width/height/fps muessen Zahlen sein")
+        raise ToolError("width/height/fps must be numbers")
     w, h, fps = max(64, min(w, 3840)) // 2 * 2, max(64, min(h, 2160)) // 2 * 2, max(1, min(fps, 60))
     return w, h, fps
 
@@ -1972,7 +1972,7 @@ def _video_edit(root, call, op, tmp):
         size = max(12, min(int(call.get("size") or 48), 200))
         color = str(call.get("color") or "white")
         if not re.fullmatch(r"[A-Za-z0-9#]{3,20}", color):
-            raise ToolError("color ungueltig")
+            raise ToolError("color invalid")
         pos = {"top": "y=h*0.08", "center": "y=(h-text_h)/2"}.get(str(call.get("position") or "bottom"), "y=h*0.80")
         st, en = _secs(call.get("start"), 0.0), _secs(call.get("end"))
         en_part = f":enable='between(t,{st},{en})'" if en is not None else (f":enable='gte(t,{st})'" if st else "")

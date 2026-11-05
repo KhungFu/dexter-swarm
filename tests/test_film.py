@@ -198,7 +198,7 @@ def test_render_and_assemble_with_fake_blender(root, fake_blender):
     F.film(root, {"op": "save", "film": plan(titelkarte=1)})
     out = F.film(root, {"op": "render"})
     assert "film/clips/s01.mp4" in out
-    assert "unveraendert" in F.film(root, {"op": "render"})  # nichts geaendert -> nicht neu rendern
+    assert "unchanged" in F.film(root, {"op": "render"})  # nichts geaendert -> nicht neu rendern
     assert not (root / "film" / ".frames" / "s01").exists()
     clip = T._probe(root / "film" / "clips" / "s01.mp4")
     assert clip["video"] and clip["audio"] and clip["duration"] >= 2

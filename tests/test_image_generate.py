@@ -64,7 +64,7 @@ def test_openai_mit_referenzbildern_und_zielpfad(openai, tmp_path):
     ({"prompt": "x", "path": "karten.png"}, "path must be in"),
     ({"prompt": "x", "refs": ["input/fehlt.png"]}, "not found"),
     ({"prompt": "x", "refs": ["../../etc/passwd"]}, "not found"),
-    ({"prompt": "x", "refs": ["a.png"] * 5}, "Hoechstens"),
+    ({"prompt": "x", "refs": ["a.png"] * 5}, "At most"),
     ({"prompt": "x", "format": "rund"}, "format"),
     ({"prompt": "x", "quality": "ultra"}, "quality"),
     ({"prompt": ""}, "prompt missing"),
@@ -249,7 +249,7 @@ def test_pollinations_guthaben_leer(monkeypatch, tmp_path):
     monkeypatch.setenv("POLLINATIONS_API_KEY", "sk_test")
     monkeypatch.setenv("POLLINATIONS_MODEL", "google/gemini-2.5-flash-image")
     monkeypatch.setattr(T.requests, "post", lambda url, **kw: Resp({"error": {"message": "budget exhausted"}}, 402))
-    with pytest.raises(T.ToolError, match="gemini-2.5-flash-image.*HTTP 402.*Pollen-Guthaben"):
+    with pytest.raises(T.ToolError, match="gemini-2.5-flash-image.*HTTP 402.*pollen credit"):
         T.image_generate(tmp_path, {"prompt": "x"})
 
 
@@ -353,7 +353,7 @@ def test_nvidia_schnell_und_kontext(monkeypatch, tmp_path):
     assert "with 1 reference image" in out and seen["json"]["image"].startswith("data:image/png;base64,")
     assert (seen["json"]["width"], seen["json"]["height"]) == (1024, 1024)
     (tmp_path / "ref2.png").write_bytes(PNG)
-    with pytest.raises(T.ToolError, match="hoechstens 1 Referenzbild"):
+    with pytest.raises(T.ToolError, match="at most 1 reference image"):
         T.image_generate(tmp_path, {"prompt": "x", "refs": ["ref.png", "ref2.png"]})
 
 

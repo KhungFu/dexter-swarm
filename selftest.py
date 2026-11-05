@@ -46,7 +46,7 @@ if WIN:
     os.system("")  # schaltet Farbcodes in cmd.exe ein (sonst erscheint "←[32m")
 # Installationshinweis je System: (Linux/Pi, Windows)
 WIN_HINTS = {
-    "ffmpeg": "winget install Gyan.FFmpeg (danach neues Fenster)",
+    "ffmpeg": "winget install Gyan.FFmpeg (then open a new window)",
     "tesseract-ocr tesseract-ocr-deu": "winget install UB-Mannheim.TesseractOCR (tick German during installation), add the folder to PATH",
     "poppler-utils": "Poppler for Windows (github.com/oschwartz10612/poppler-windows), add the folder Library\\bin to PATH",
 }
