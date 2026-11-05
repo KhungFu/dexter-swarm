@@ -14,6 +14,11 @@ def report_task(pid, aid, result="Alles fertig. Morgen: Angebote."):
     return tid
 
 
+@pytest.fixture(autouse=True)
+def no_wait(monkeypatch):
+    monkeypatch.setattr(P, "WAIT_AFTER", 0)  # Nachpruefung nur in den Tests, die sie wollen
+
+
 @pytest.fixture
 def firm():
     pid = make_project("Druckerei")
@@ -174,3 +179,76 @@ def test_testseite_nur_drucker_aus_der_liste(client, monkeypatch):
 def test_testseite_testdrucker(client):
     r = client.post("/api/printers/test", json={"printer": P.TEST_PRINTER})
     assert r.status_code == 200 and "Test printer" in r.get_json()["message"]
+
+
+class Cups:
+    """Gespieltes CUPS je Befehl: lp nimmt an, lpstat/lpoptions liefern den eingestellten Zustand."""
+
+    def __init__(self, monkeypatch, state="printer Buero is idle.  enabled since Thu", model="IPP Everywhere", jobs=""):
+        monkeypatch.setattr(P, "is_windows", lambda: False)
+        monkeypatch.setattr(P.shutil, "which", lambda n: "/usr/bin/" + n)
+        monkeypatch.setattr(P.time, "sleep", lambda s: None)
+        self.state, self.model, self.jobs = state, model, jobs
+
+        def run(cmd, **kw):
+            c = " ".join(cmd)
+            if cmd[0] == "lp":
+                out = "request id is Buero-12 (1 file(s))"
+            elif c.startswith("lpstat -l -p"):
+                out = self.state
+            elif c.startswith("lpstat -v"):
+                out = "device for Buero: ipp://192.168.1.50/ipp/print"
+            elif cmd[0] == "lpoptions":
+                out = f"copies=1 printer-make-and-model='{self.model}' printer-state=3"
+            elif c.startswith("lpstat -o"):
+                out = self.jobs
+            else:
+                out = ""
+            return subprocess.CompletedProcess(cmd, 0, out, "")
+        monkeypatch.setattr(P.subprocess, "run", run)
+
+
+def test_gestoppter_drucker_wird_gemeldet(monkeypatch, tmp_path):
+    monkeypatch.setattr(P, "WAIT_AFTER", 1)
+    Cups(monkeypatch, state="printer Buero disabled since Thu -\n\tUnable to connect to printer; will retry in 30 seconds.")
+    ok, msg = P.print_text("Buero", "t", "x", tmp_path)
+    assert not ok and "STOPPED" in msg and "cupsenable" in msg
+
+
+def test_raw_ohne_treiber_wird_gemeldet(monkeypatch):
+    Cups(monkeypatch, model="Local Raw Printer")
+    st = P.status("Buero")
+    assert any("WITHOUT a driver" in p for p in st["problems"])
+    assert any("ipp://192.168.1.50" in x for x in st["lines"])
+
+
+def test_wartender_auftrag_ist_hinweis(monkeypatch, tmp_path):
+    monkeypatch.setattr(P, "WAIT_AFTER", 1)
+    Cups(monkeypatch, jobs="Buero-12   abi   1024   Thu")
+    ok, msg = P.print_text("Buero", "t", "x", tmp_path)
+    assert ok and "still waiting" in msg
+
+
+def test_alles_gut(monkeypatch, tmp_path):
+    monkeypatch.setattr(P, "WAIT_AFTER", 1)
+    Cups(monkeypatch)
+    ok, msg = P.print_text("Buero", "t", "x", tmp_path)
+    assert ok and "Note" not in msg
+
+
+def test_windows_offline(monkeypatch):
+    monkeypatch.setattr(P, "is_windows", lambda: True)
+    monkeypatch.setattr(P.shutil, "which", lambda n: "C:/ps.exe")
+    out = "STATUS=Offline\nTYPE=Connection\nCOMPUTER=SERVER\nJOB=3|Error, Printing|Testseite|05.11.2026\n"
+    monkeypatch.setattr(P.subprocess, "run", lambda cmd, **kw: subprocess.CompletedProcess(cmd, 0, out, ""))
+    st = P.status("\\\\SERVER\\HP")
+    assert any("Offline" in p for p in st["problems"]) and any("stuck" in p for p in st["problems"])
+    assert st["jobs"] and any("SERVER" in x for x in st["lines"])
+
+
+def test_status_api(client, monkeypatch):
+    Cups(monkeypatch, model="Local Raw Printer")
+    A.set_setting("printer", "Buero")
+    r = client.get("/api/printers/status").get_json()
+    assert r["printer"] == "Buero" and r["problems"]
+    assert client.get("/api/printers/status?printer=" + P.TEST_PRINTER).get_json()["problems"]
