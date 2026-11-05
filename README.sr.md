@@ -225,6 +225,10 @@ Ova lista se dopunjuje pri svakoj promeni programa. Svaki red kaže šta sistem 
 | Prijava kod Google-a/Microsoft-a (folder `tokens/`) | Servis stoji na „not signed in”. Otpremanje javlja „not signed in yet” odnosno „sign-in expired” i ništa ne otprema. | ☁️ Cloud → Prijava. Pri selidbi sa Pi-ja na laptop jednostavno se ponovo prijavite na laptopu. |
 | Fajl veći od 50 MB za Telegram | Telegram ga ne prima. `/datei` ga označava sa ⚠️ i ne šalje ga, agent dobija napomenu. | Kao cilj izaberite Google Drive, OneDrive ili GitHub. |
 | `cloud_upload.py` (programski fajl) | Hyperstead se ne pokreće (greška pri uvozu). | Ponovo pokrenite `git pull`, fajl je deo programa. |
+| `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` | Priprema i analiza i dalje rade. Otpremanje javlja „YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET are missing“, agenti saznaju da nijedan kanal nije prijavljen. | Napravite Google Cloud projekat i upišite redove ([docs/youtube.md](docs/youtube.md)), ponovo pokrenite. |
+| YouTube prijava (`tokens/youtube-<jezik>.json`) | Nema otpremanja za ovaj kanal („not signed in“). Dok je Google projekat u test režimu, prijava ističe posle 7 dana („sign-in expired“). | `python youtube_channel.py login de` (ili `en`, `tr`) na računaru na kom radi Hyperstead. |
+| `tzdata` (samo Windows) | Raspored javlja „Unknown time zone“, paketi ne dobijaju termin. | `venv\Scripts\pip install -r requirements.txt` |
+| `youtube_channel.py` (programski fajl) | Hyperstead se ne pokreće (greška pri uvozu). | Ponovo pokrenite `git pull`, fajl je deo programa. |
 | `PCL_ALLOW_WERKSTATT=1` | Polje „Radionica“ je sivo, nijedan agent ne dobija `befehl` ni `nachruesten`. Sve ostalo radi kao i ranije. | Dodajte red u `.env`, ponovo pokrenite, označite polje kod agenta ([docs/werkstatt.md](docs/werkstatt.md)). |
 | Program koji je agentu potreban (npr. Node.js, Remotion, Python paket) | Agent sa radionicom podnosi zahtev za dopunu: CEO ga proverava, vi dobijate ✅/❌ preko Telegrama i pod ✋ Odobrenja. Posle vašeg „da“ server instalira i zadatak se nastavlja. Bez radionice agent samo navodi šta nedostaje. | Pročitajte zahtev i odlučite. Bez Telegrama samo preko veba. |
 | AI CEO-a (kod zahteva za dopunu) | Zahtev stiže direktno vama uz napomenu „No CEO with AI“ ili „CEO not reachable“. | Odlučite sami ili dodelite CEO-u AI. |
@@ -456,6 +460,7 @@ Aplikacija Telegram samo pita spolja, ne otvara se nijedan port (radi i iza CGNA
 - **Pokretanje koda** (podrazumevano isključeno): `run_code` pokreće Python, JavaScript, Bash, Ruby, PHP ili Lua u sandbox-u, vidi dole.
   Tu spada i `rust_project`: gradi i testira Rust programe i isporučuje gotov paket ([Rust programi](#-kompletna-izrada-rust-programa)).
 - **Otpremanje u cloud** (podrazumevano isključeno): gotove fajlove na GitHub, Google Drive, OneDrive ili vama preko Telegrama, uvek tek posle vašeg odobrenja ([☁️ Otpremanje u cloud](#️-otpremanje-u-cloud-github-google-drive-onedrive-telegram)).
+- **Upravljanje YouTube-om** (podrazumevano isključeno): priprema naslove, opise, ključne reči, heštegove i raspored kao fajlove i analizira CSV izvoze iz YouTube Studija. Svaki video se otprema tek posle vašeg odobrenja ([docs/youtube.md](docs/youtube.md)).
 - **Predlaganje shell-a**: samo ako server ima `PCL_ALLOW_SHELL=1`, i tada uvek tek posle odobrenja.
 - **Radionica** (podrazumevano isključena, samo uz `PCL_ALLOW_WERKSTATT=1`): radi sa pravim komandama u folderu projekta i preko CEO-a traži od vas programe koji nedostaju ([docs/werkstatt.md](docs/werkstatt.md), na nemačkom). CEO ovo pravo ne može da prenese dalje.
 - **Pauza**: blokira sve nove zadatke agenta.
@@ -549,6 +554,14 @@ Radi bez interneta i bez ključeva (dobavljač `mock`, sopstvena baza).
 - **Telegram:** `/datei` vam šalje fajlove do 50 MB na telefon, samo kada kliknete ili odobrite.
 - GitHub: do 50 MB kao fajl u repou, veći kao prilog izdanju `paperclip-ablage` (do 2 GB). Google Drive: samo folderi i fajlovi koje je
   Hyperstead sam napravio (pravo `drive.file`). OneDrive: bilo koji folder. Testirano samo na simuliranim servisima.
+
+## ▶️ YouTube kanal
+
+- **Šta Hyperstead radi:** agent sa pravom **„May manage YouTube“** popunjava `youtube/kanal.json` (naslov, opis, ključne reči, heštegovi po epizodi i jeziku) i od toga pravi po jedan paket za svaki video u `youtube/packages/`, raspored `youtube/schedule.csv` i listu za proveru `youtube/REVIEW.md`. Na početku 2 do 3 epizode nedeljno.
+- **Otpremanje:** samo preko zvaničnog YouTube Data API-ja i samo posle vašeg odobrenja **za svaki video** (✋ Approvals). Uvek privatno, YouTube ga u zakazano vreme čini javnim. Bez skripte u pregledaču, bez automatske prijave.
+- **Šta vi radite:** pravite kanale, Google Cloud projekat sa `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` i jednom po kanalu `python youtube_channel.py login de|en|tr`. U test režimu prijava ističe posle 7 dana.
+- **Analiza:** otpremite CSV izvoz iz YouTube Studija, agent piše `youtube/reports/analysis-<datum>.md`. Hyperstead nikada sam ne preuzima brojke i ne preuzima tuđe videe.
+- Uputstvo sa izvorima i ograničenjima: [docs/youtube.md](docs/youtube.md) (na nemačkom). Testirano samo sa simuliranim odgovorima.
 
 ## 🖨 Štampanje večernjih izveštaja
 

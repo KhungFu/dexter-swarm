@@ -4,3 +4,4 @@ reportlab>=4.0      # PDF-Erzeugung (Buecher, Berichte)
 python-docx>=1.1   # Word-Dokumente
 pypdf>=4.0         # PDFs lesen
 pillow>=10.0       # Bilder in PDFs
+tzdata>=2024.1; sys_platform == "win32"   # Zeitzonen fuer den YouTube-Terminplan unter Windows

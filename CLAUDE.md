@@ -250,6 +250,19 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   (ABI-Wahl 2026-11-04 statt Repo-Anlegen per Werkzeug). Nie Tokens im Chat erfragen.
 - Tests `tests/test_cloud.py` nur gegen Mocks, Anleitung `docs/cloud.md`.
 
+## YouTube (`youtube_channel.py`, Recht `youtube`, Standard aus, nicht in `RECRUIT_PERMS`)
+- Wunsch ABI 2026-11-05: Kanal mitverwalten. Rahmen: nur offizielle YouTube Data API, KEIN Browser-Skript bei Google, Upload nur nach Freigabe
+  JE VIDEO, immer `private` (+ `publishAt` = YouTube veroeffentlicht zum Termin), keine fremden Videos herunterladen, Zahlen nur aus CSV-Export.
+- Kanal-Datei `youtube/kanal.json` (deutsche Schluessel: serie/sprachen/kanaele/rhythmus/folgen mit titel/beschreibung/keywords/hashtags/datei je Sprache).
+  `prepare` -> `youtube/packages/<epNN-lang>/package.json` (Feld `body` = videos.insert-Body, `uploaded` bleibt beim Neu-Vorbereiten), `title.txt`,
+  `description.txt`, `keywords.txt`, `youtube/schedule.csv` (`;`, BOM), `youtube/REVIEW.md`. Pruefungen: Titel 100, Beschreibung 5000 Bytes, `<>`,
+  Tags 500 (YouTube-Zaehlung `tags_length`), Hashtags, ffprobe 9:16 + 45-60 s, Rhythmus >3/Woche = Warnung. `analyze` liest Studio-CSV (Spalten per Stichwort EN/DE/TR, `_num` fuer 1.234/1,234/0:00:48).
+- app.py: `youtube_doc`, `youtube_tool` (op upload -> `approvals.kind='youtube'`, data `{"package"}`), Entscheidung startet `yt.upload(root, pkg, pkg)` im Thread
+  (`output='running …'` zaehlt wie upload in `approval_add_result`). UI: Haken `#p_youtube`, Freigabe-Text, HELP-Eintrag.
+- Anmeldung nur per CLI durch den Besitzer: `python youtube_channel.py login <lang>` (Loopback + PKCE, Scope `youtube.upload`) oder `--device`
+  (Google erlaubt dort nur Scope `youtube`). Tokens `tokens/youtube-<lang>.json`, je Sprache ein Kanal. Testmodus = 7 Tage. `.env`: `YOUTUBE_CLIENT_ID/SECRET`.
+- Tests `tests/test_youtube.py` (Mocks), Doku `docs/youtube.md` (mit Quellen). Echter Upload/Studio-Spalten DE/TR ungetestet.
+
 ## Werkstatt (`werkstatt.py`, Recht `werkstatt`, Standard aus, nicht in `RECRUIT_PERMS`, Schalter `PCL_ALLOW_WERKSTATT=1`)
 - ABI-Wunsch 2026-11-04: alle KIs sollen wie am Terminal arbeiten und Werkzeuge nachruesten; jeder Antrag Mitarbeiter -> CEO -> ABI (Web + Telegram) -> zurueck.
 - Stufe je Agent in `perms.werkstatt_stufe` (1 alles Antrag, 2 Std. = `W.classify` 'frei' laeuft sofort, 'antrag' = Installation/Loeschen/Pfad ausserhalb,

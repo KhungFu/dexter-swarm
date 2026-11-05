@@ -30,6 +30,7 @@ from urllib.parse import quote
 import requests
 import agent_tools as tools
 import cloud_upload as cloud
+import youtube_channel as yt
 import printing
 import werkstatt as W
 import ai_links as AL
@@ -218,10 +219,11 @@ PROVIDERS = {
 # recruit    = stellt anhand des Auftrags selbst ein Team zusammen (legt Mitarbeiter ohne KI an; der Besitzer weist KI/Modell zu)
 DEFAULT_PERMS = {"delegate": False, "judge": False, "auto_run": True, "write_files": False, "shell": False,
                  "web": True, "images": True, "read_files": True, "media": True, "recruit": False, "publish": False, "code": False, "connect": False, "run_code": False, "upload": False,
-                 "werkstatt": False, "print": False}
+                 "werkstatt": False, "print": False, "youtube": False}
 # print      = nur beim CEO (oberster Chef) wirksam: Abendberichte dieses Projekts duerfen gedruckt werden (sonst gesperrt)
 # werkstatt  = arbeitet mit echten Befehlen im Projektordner und beantragt fehlende Programme (Antrag -> CEO -> Besitzer); Stufe 1-3 je Agent
 # code       = Programmieren: Quellcode jeder Sprache schreiben und pruefen/kompilieren (ohne Ausfuehrung)
+# youtube    = YouTube-Pakete vorbereiten, Studio-CSV auswerten, Upload je Video nur nach Freigabe (youtube_channel.py)
 # upload     = darf Dateien in die Cloud des Besitzers / per Telegram schicken (immer mit Freigabe)
 # publish    = darf die Webseite (index.html im Projektordner) zur Veroeffentlichung vorschlagen; der Besitzer gibt frei
 RECRUIT_MAX = 20                                                    # Mitarbeiter je Einstellungsrunde
@@ -1315,6 +1317,37 @@ def cloud_doc(pid, perms):
             f"fixed target folder (e.g. when the owner names a folder in the assignment). Telegram only up to 50 MB. Targets: {where}")
 
 
+def youtube_doc(pid, perms):
+    """Werkzeugbeschreibung fuer Agenten mit Recht 'youtube'."""
+    return yt.doc(yt.logged_in()) if perms.get("youtube") else ""
+
+
+def youtube_tool(call, pid, aid, tid):
+    """Werkzeug youtube: Vorbereiten/Auswerten sofort (nur Dateien), 'upload' legt IMMER eine Freigabe je Video an."""
+    root = proj_dir(pid)
+    if str(call.get("op") or "").strip().lower() != "upload":
+        out, made = yt.run(root, call)
+        log("tool", f"youtube {call.get('op')}: {out.splitlines()[0][:150] if out else ''}", pid, aid, tid)
+        return out, made
+    try:
+        d, m, v = yt.upload_check(root, call.get("package"))
+    except (yt.YTError, ValueError, OSError) as e:
+        return f"ERROR: {e}", None
+    data = json.dumps({"package": m["id"]})
+    if q1("SELECT 1 FROM approvals WHERE kind='youtube' AND status='pending' AND project_id=? AND data=?", (pid, data)):
+        return f"{m['id']} is already waiting for approval. Do not request it again.", None
+    payload = (f"YouTube {m['lang']} · {m['channel']}\n{m['title']}\nVideo: {m['video']} ({v.stat().st_size / 1048576:.1f} MB)\n"
+               + (f"Public on {m['publish_local']} {m['timezone']} (private until then)" if m.get("publish_local") else "Stays private"))
+    apid = ex("INSERT INTO approvals(project_id,task_id,agent_id,kind,payload,created,data) VALUES(?,?,?,?,?,?,?)",
+              (pid, tid, aid, "youtube", payload, time.time(), data))
+    log("approval_requested", f"youtube {m['id']}", pid, aid, tid)
+    a = q1("SELECT name FROM agents WHERE id=?", (aid,)) or {"name": "?"}
+    tg_notify(f"▶️ Approval needed · {a['name']}\nYouTube upload (assignment #{tid})\n{payload}\n\n"
+              "Please check youtube/REVIEW.md and decide on the web under “Approvals”.")
+    return (f"Requested (approval #{apid}): the owner must approve the upload of {m['id']} first. "
+            "Do not request it again, carry on with the rest."), None
+
+
 def request_upload(call, pid, aid, tid):
     """Werkzeug cloud_upload: legt immer eine Freigabe an (Wunsch des Besitzers)."""
     svc = str(call.get("to") or "").strip().lower()
@@ -1822,7 +1855,8 @@ def build_system(agent, project, mode, final_only=False, team_change_ok=False):
                      "ONLY the project's www/ folder is published: put the finished site there (www/index.html, plus CSS, images and scripts "
                      "in www/ with relative paths). Only set it when the site is finished and www/index.html exists. If it is already online, changes update automatically.")
     tool_names = tools.available(perms)  # auch in der letzten Runde: dort darf der Chef das Produkt noch selbst bauen
-    conn_doc = "\n".join(x for x in (connections_doc(project["id"], perms), cloud_doc(project["id"], perms)) if x)
+    conn_doc = "\n".join(x for x in (connections_doc(project["id"], perms), cloud_doc(project["id"], perms),
+                                      youtube_doc(project["id"], perms)) if x)
     if tool_names or conn_doc:
         s.append(
             "\nTOOLS (you may use them):\n" + "\n".join(x for x in (tools.describe(tool_names), conn_doc) if x) + "\n"
@@ -2105,6 +2139,7 @@ def run_with_tools(a, perms, messages, final_only, root, ids, images=None, want=
     pid, aid, tid = ids
     allowed = (tools.available(perms) + (["call_connection"] if connections_doc(pid, perms) else [])
                + (["cloud_upload"] if cloud_doc(pid, perms) else [])
+               + (["youtube"] if perms.get("youtube") else [])
                + (["befehl", "nachruesten"] if werkstatt_level(a) else []))
     seen = list(images or [])[:RUN_MAX_IMAGES]  # Bilder dieses Laufs gehen in jeder Runde mit (Nr. = Position)
     text, total, hint = call_llm_img(a, messages, seen)
@@ -2153,6 +2188,8 @@ def run_with_tools(a, perms, messages, final_only, root, ids, images=None, want=
                 elif c.get("tool") == "cloud_upload":
                     out = request_upload(c, pid, aid, tid) if "cloud_upload" in allowed else "ERROR: uploading not allowed"
                     made_file = None
+                elif c.get("tool") == "youtube":
+                    out, made_file = youtube_tool(c, pid, aid, tid) if "youtube" in allowed else ("ERROR: YouTube not allowed (permission 'youtube')", None)
                 elif c.get("tool") in ("befehl", "nachruesten"):
                     out = (werkstatt_tool(c, a, pid, tid) if c.get("tool") in allowed
                            else "ERROR: no workshop (permission 'werkstatt' missing or PCL_ALLOW_WERKSTATT is off)")
@@ -2633,7 +2670,7 @@ def execute_task(tid):
             tg_notify(f"🌐 Approval needed · {a['name']} ({p['name']})\nPublish website (assignment #{tid}: {t['title']})\n\nPlease decide on the web under “Approvals”.")
 
     final = result + ("\n\n" + ("\n".join(notes) if t.get("parent_task_id") else tr("\n".join(notes))) if notes else "")
-    pending += q1("SELECT COUNT(*) c FROM approvals WHERE task_id=? AND status='pending' AND kind IN ('connect','upload','werkstatt')", (tid,))["c"]
+    pending += q1("SELECT COUNT(*) c FROM approvals WHERE task_id=? AND status='pending' AND kind IN ('connect','upload','werkstatt','youtube')", (tid,))["c"]
     wopen = werkstatt_open(tid)
     pending += wopen
     if pending or _werkstatt_notes.get(tid):  # Nachruest-Antraege offen oder schon beantwortet: Aufgabe geht danach weiter
@@ -4947,6 +4984,26 @@ def api_approval_decide(aid):
             approval_add_result(ap["task_id"], "\n\n" + msg)
         start_upload_job(pid, d.get("to"), d.get("path"), d.get("folder", ""), done)
         return jsonify({"ok": True, "message": "Upload running, the link appears in the assignment."})
+    elif decision == "approve" and ap["kind"] == "youtube":
+        try:
+            d = json.loads(ap.get("data") or "{}")
+        except ValueError:
+            d = {}
+        ex("UPDATE approvals SET status='approved', output=? WHERE id=?", ("running …", aid))
+        log("approval_granted", f"youtube {d.get('package')}", pid, ap["agent_id"], ap["task_id"])
+
+        def run_yt(aid=aid, ap=ap, pkg=d.get("package")):
+            try:  # die Freigabe des Besitzers ist die Bestaetigung genau dieses Pakets
+                ok, msg = True, yt.upload(proj_dir(pid), pkg, pkg)[2]
+                log("youtube_upload", msg[:300], pid)
+            except Exception as e:  # nie haengen bleiben
+                ok, msg = False, f"YouTube: {e}" if isinstance(e, yt.YTError) else f"YouTube: {type(e).__name__}: {_safe(str(e))[:200]}"
+                log("youtube_upload", f"{pkg}: error", pid)
+            ex("UPDATE approvals SET output=? WHERE id=?", (msg[:4000], aid))
+            tg_notify(("" if ok else "❌ YouTube upload failed\n") + msg)
+            approval_add_result(ap["task_id"], "\n\n" + msg)
+        threading.Thread(target=run_yt, daemon=True).start()
+        return jsonify({"ok": True, "message": "YouTube upload running, the link appears in the assignment."})
     elif decision == "approve" and ap["kind"] == "publish":
         ok, info = site_start(pid)
         out = info if ok else "Error: " + info
@@ -4986,7 +5043,7 @@ def approval_add_result(tid, add):
         if not t:
             return
         set_task(t["id"], result=((t["result"] or "") + add)[:20000])
-        left = q1("SELECT COUNT(*) c FROM approvals WHERE task_id=? AND (status='pending' OR (kind='upload' AND output='running …'))",
+        left = q1("SELECT COUNT(*) c FROM approvals WHERE task_id=? AND (status='pending' OR (kind IN ('upload','youtube') AND output='running …'))",
                   (t["id"],))["c"]
         if left == 0 and t["status"] == "waiting_approval":  # wartet der Chef aufs Team, bleibt er dabei
             finish(t["id"], "done")  # meldet das Ergebnis weiter: weckt den Chef, falls er wartet

@@ -224,6 +224,10 @@ Bu liste programda her değişiklikle genişletilir. Her satır sistemin ne yapt
 | Google/Microsoft oturumu (`tokens/` klasörü) | Hizmet "not signed in" görünür. Yükleme "not signed in yet" ya da "sign-in expired" der ve hiçbir şey yüklemez. | ☁️ Cloud → Oturum aç. Pi'den dizüstüne taşırken dizüstünde yeniden oturum açın. |
 | Telegram için 50 MB üstü dosya | Telegram kabul etmez. `/datei` dosyayı ⚠️ ile işaretler ve göndermez, ajan bir uyarı alır. | Hedef olarak Google Drive, OneDrive veya GitHub seçin. |
 | `cloud_upload.py` (program dosyası) | Hyperstead başlamaz (içe aktarma hatası). | `git pull` komutunu yeniden çalıştırın, dosya programın parçasıdır. |
+| `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` | Hazırlama ve değerlendirme çalışmaya devam eder. Yükleme “YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET are missing” bildirir, ajanlara hiçbir kanalın oturum açmadığı söylenir. | Bir Google Cloud projesi oluşturun ve satırları ekleyin ([docs/youtube.md](docs/youtube.md)), yeniden başlatın. |
+| YouTube oturumu (`tokens/youtube-<dil>.json`) | Bu kanal için yükleme yapılmaz (“not signed in”). Google projesi test modundayken oturum 7 gün sonra sona erer (“sign-in expired”). | Hyperstead'in çalıştığı bilgisayarda `python youtube_channel.py login de` (veya `en`, `tr`). |
+| `tzdata` (yalnızca Windows) | Yayın planı “Unknown time zone” bildirir, paketler tarih almaz. | `venv\Scripts\pip install -r requirements.txt` |
+| `youtube_channel.py` (program dosyası) | Hyperstead başlamaz (içe aktarma hatası). | `git pull` komutunu yeniden çalıştırın, dosya programın parçasıdır. |
 | `PCL_ALLOW_WERKSTATT=1` | “Atölye” onay kutusu gri olur, hiçbir ajan `befehl` veya `nachruesten` almaz. Diğer her şey eskisi gibi çalışır. | Satırı `.env` dosyasına ekleyin, yeniden başlatın, ajanda kutuyu işaretleyin ([docs/werkstatt.md](docs/werkstatt.md)). |
 | Bir ajanın ihtiyaç duyduğu program (ör. Node.js, Remotion, bir Python paketi) | Atölyesi olan ajan bir kurulum talebi oluşturur: CEO kontrol eder, siz Telegram’da ve ✋ Onaylar altında ✅/❌ alırsınız. Onayınızdan sonra sunucu kurar ve görev devam eder. Atölye yoksa ajan yalnızca neyin eksik olduğunu yazar. | Talebi okuyup karar verin. Telegram yoksa yalnızca web üzerinden. |
 | CEO’nun yapay zekâsı (kurulum talebinde) | Talep “No CEO with AI” veya “CEO not reachable” notuyla doğrudan size gelir. | Kendiniz karar verin veya CEO’ya bir yapay zekâ atayın. |
@@ -450,6 +454,7 @@ Telegram üzerinden **geçmez**; orada yalnızca bir uyarı gelir.
 - **Kod çalıştırma** (varsayılan kapalı): `run_code` bir sandbox'ta Python, JavaScript, Bash, Ruby, PHP ya da Lua başlatır, aşağıya bakın.
   Buna `rust_project` de dahildir: Rust programlarını derler, test eder ve bitmiş paket olarak teslim eder ([Rust programları](#-rust-programlarını-eksiksiz-derleme)).
 - **Buluta yükleme** (varsayılan kapalı): bitmiş dosyaları GitHub, Google Drive, OneDrive'a ya da Telegram ile size gönderir, her zaman ancak sizin onayınızdan sonra ([☁️ Bulut yükleme](#️-bulut-yükleme-github-google-drive-onedrive-telegram)).
+- **YouTube yönetimi** (varsayılan kapalı): başlıkları, açıklamaları, anahtar kelimeleri, hashtag'leri ve yayın planını dosya olarak hazırlar, YouTube Studio'dan alınan CSV dışa aktarımlarını değerlendirir. Her video ancak sizin onayınızdan sonra yüklenir ([docs/youtube.md](docs/youtube.md)).
 - **Kabuk önerme**: yalnızca sunucuda `PCL_ALLOW_SHELL=1` varsa ve ancak onaydan sonra.
 - **Atölye** (varsayılan olarak kapalı, yalnızca `PCL_ALLOW_WERKSTATT=1` ile): proje klasöründe gerçek komutlarla çalışır ve eksik programları CEO üzerinden sizden ister ([docs/werkstatt.md](docs/werkstatt.md), Almanca). CEO bu yetkiyi başkasına veremez.
 - **Duraklatma**: ajanın tüm yeni görevlerini engeller.
@@ -543,6 +548,14 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
 - **Telegram:** `/datei` 50 MB'a kadar dosyaları telefonunuza gönderir, yalnızca siz tıkladığınızda ya da onayladığınızda.
 - GitHub: 50 MB'a kadar repoda dosya olarak, daha büyükler `paperclip-ablage` sürümüne ek olarak (2 GB'a kadar). Google Drive: yalnızca
   Hyperstead'ın kendisinin oluşturduğu klasör ve dosyalar (`drive.file` yetkisi). OneDrive: her klasör. Yalnızca taklit hizmetlere karşı test edildi.
+
+## ▶️ YouTube kanalı
+
+- **Hyperstead ne yapar:** **“May manage YouTube”** yetkisine sahip ajan `youtube/kanal.json` dosyasını doldurur (her bölüm ve dil için başlık, açıklama, anahtar kelimeler, hashtag'ler) ve buradan `youtube/packages/` içinde her video için bir paket, `youtube/schedule.csv` yayın listesini ve `youtube/REVIEW.md` kontrol listesini oluşturur. Başlangıçta haftada 2 ila 3 bölüm.
+- **Yükleme:** yalnızca resmi YouTube Data API üzerinden ve yalnızca **her video için** sizin onayınızdan sonra (✋ Approvals). Her zaman gizli yüklenir, YouTube videoyu planlanan zamanda herkese açık yapar. Tarayıcı betiği yok, otomatik oturum açma yok.
+- **Sizin yaptıklarınız:** kanalları oluşturmak, `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` ile bir Google Cloud projesi, her kanal için bir kez `python youtube_channel.py login de|en|tr`. Test modunda oturum 7 gün sonra sona erer.
+- **Değerlendirme:** YouTube Studio'dan bir CSV dışa aktarımı yükleyin, ajan `youtube/reports/analysis-<tarih>.md` yazar. Hyperstead hiçbir zaman rakamları kendisi çekmez ve başkalarının videolarını indirmez.
+- Kaynaklar ve sınırlarla kılavuz: [docs/youtube.md](docs/youtube.md) (Almanca). Yalnızca simüle edilmiş yanıtlara karşı test edildi.
 
 ## 🖨 Akşam raporlarını yazdırma
 

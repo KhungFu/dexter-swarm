@@ -225,6 +225,10 @@ This list is extended with every change to the program. Each row says what the s
 | Sign-in at Google/Microsoft (folder `tokens/`) | The service shows "not signed in". An upload reports "not signed in yet" or "sign-in expired" and uploads nothing. | ☁️ Cloud → Sign in. When moving from Pi to laptop, simply sign in again on the laptop. |
 | File over 50 MB for Telegram | Telegram does not accept it. `/datei` marks it with ⚠️ and does not send it, the agent gets a notice. | Choose Google Drive, OneDrive or GitHub as the target. |
 | `cloud_upload.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
+| `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` | Preparing and analysing keep working. Uploading reports “YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET are missing”, agents are told that no channel is signed in. | Create a Google Cloud project and add the lines ([docs/youtube.md](docs/youtube.md)), restart. |
+| YouTube sign-in (`tokens/youtube-<lang>.json`) | No upload for this channel (“not signed in”). While the Google project is in testing mode the sign-in expires after 7 days (“sign-in expired”). | `python youtube_channel.py login de` (or `en`, `tr`) on the computer running Hyperstead. |
+| `tzdata` (Windows only) | The schedule reports “Unknown time zone”, packages get no date. | `venv\Scripts\pip install -r requirements.txt` |
+| `youtube_channel.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
 | `PCL_ALLOW_WERKSTATT=1` | The “Workshop” checkbox is grey, no agent gets `befehl` or `nachruesten`. Everything else works as before. | Add the line to `.env`, restart, tick the box for the agent ([docs/werkstatt.md](docs/werkstatt.md)). |
 | A program an agent needs (e.g. Node.js, Remotion, a Python package) | With the workshop the agent files an upgrade request: the CEO checks it, you get ✅/❌ via Telegram and under ✋ Approvals. After your yes the server installs it and the task continues. Without the workshop the agent only names what is missing. | Read the request and decide. Without Telegram only on the web. |
 | The CEO's AI (for an upgrade request) | The request comes straight to you with the note “No CEO with AI” or “CEO not reachable”. | Decide yourself or assign an AI to the CEO. |
@@ -456,6 +460,7 @@ The app only polls Telegram outwards, no port is opened (works behind CGNAT too)
 - **Run code** (default off): `run_code` starts Python, JavaScript, Bash, Ruby, PHP or Lua in a sandbox, see below.
   This includes `rust_project`: build and test Rust programs and deliver a finished package ([Rust programs](#-building-complete-rust-programs)).
 - **Upload to the cloud** (off by default): finished files to GitHub, Google Drive, OneDrive or to you via Telegram, always only after your approval ([☁️ Cloud upload](#️-cloud-upload-github-google-drive-onedrive-telegram)).
+- **Manage YouTube** (off by default): prepares titles, descriptions, keywords, hashtags and the schedule as files and evaluates CSV exports from YouTube Studio. Each video is only uploaded after your approval ([docs/youtube.md](docs/youtube.md)).
 - **Suggest shell**: only if the server has `PCL_ALLOW_SHELL=1`, and then always only after approval.
 - **Workshop** (off by default, only with `PCL_ALLOW_WERKSTATT=1`): works with real commands in the project folder and requests missing programs from you through the CEO ([docs/werkstatt.md](docs/werkstatt.md), German). A CEO cannot pass this right on.
 - **Pause**: blocks all new tasks of the agent.
@@ -550,6 +555,14 @@ Runs without internet and without keys (provider `mock`, own database).
 - **Telegram:** `/datei` sends you files up to 50 MB on your phone, only when you click or approve it.
 - GitHub: up to 50 MB as a file in the repo, larger ones as an attachment to the release `paperclip-ablage` (up to 2 GB). Google Drive: only
   folders and files that Hyperstead created itself (scope `drive.file`). OneDrive: any folder. Only tested against simulated services.
+
+## ▶️ YouTube channel
+
+- **What Hyperstead does:** the agent with the permission **“May manage YouTube”** fills `youtube/kanal.json` (title, description, keywords, hashtags per episode and language) and builds one package per video in `youtube/packages/`, the schedule `youtube/schedule.csv` and the review list `youtube/REVIEW.md`. 2 to 3 episodes per week at the start.
+- **Uploading:** only through the official YouTube Data API and only after your approval **per video** (✋ Approvals). Always private, YouTube makes it public at the planned time. No browser script, no automatic sign-in.
+- **What you do:** create the channels, a Google Cloud project with `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET`, and once per channel `python youtube_channel.py login de|en|tr`. In testing mode the sign-in expires after 7 days.
+- **Analysis:** upload a CSV export from YouTube Studio, the agent writes `youtube/reports/analysis-<date>.md`. Hyperstead never fetches numbers itself and never downloads other people's videos.
+- Guide with sources and limits: [docs/youtube.md](docs/youtube.md) (German). Only tested against simulated responses.
 
 ## 🖨 Printing evening reports
 

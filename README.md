@@ -226,6 +226,10 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | Anmeldung bei Google/Microsoft (Ordner `tokens/`) | Der Dienst steht auf „not signed in“. Ein Upload meldet „not signed in yet“ bzw. „sign-in expired“ und lädt nichts hoch. | ☁️ Cloud → Anmelden. Beim Umzug Pi → Laptop einfach auf dem Laptop neu anmelden. |
 | Datei über 50 MB für Telegram | Telegram nimmt sie nicht. `/datei` markiert sie mit ⚠️ und schickt sie nicht, der Agent bekommt den Hinweis. | Google Drive, OneDrive oder GitHub als Ziel nehmen. |
 | `cloud_upload.py` (Programmdatei) | Hyperstead startet nicht (Fehler beim Import). | `git pull` erneut ausführen, die Datei gehört zum Programm. |
+| `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` | Vorbereiten und Auswerten laufen weiter. Hochladen meldet „YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET are missing“, Agenten erfahren, dass kein Kanal angemeldet ist. | Google-Cloud-Projekt anlegen und die Zeilen eintragen ([docs/youtube.md](docs/youtube.md)), neu starten. |
+| YouTube-Anmeldung (`tokens/youtube-<sprache>.json`) | Kein Upload für diesen Kanal („not signed in“). Im Testmodus des Google-Projekts läuft die Anmeldung nach 7 Tagen ab („sign-in expired“). | `python youtube_channel.py login de` (bzw. `en`, `tr`) auf dem Rechner mit Hyperstead. |
+| `tzdata` (nur Windows) | Der Terminplan meldet „Unknown time zone“, Pakete bekommen keinen Termin. | `venv\Scripts\pip install -r requirements.txt` |
+| `youtube_channel.py` (Programmdatei) | Hyperstead startet nicht (Fehler beim Import). | `git pull` erneut ausführen, die Datei gehört zum Programm. |
 | `PCL_ALLOW_WERKSTATT=1` | Das Häkchen „Werkstatt“ ist grau, kein Agent bekommt `befehl` oder `nachruesten`. Alles andere läuft wie bisher. | Zeile in `.env` eintragen, neu starten, beim Agenten das Häkchen setzen ([docs/werkstatt.md](docs/werkstatt.md)). |
 | Ein Programm, das ein Agent braucht (z. B. Node.js, Remotion, ein Python-Paket) | Mit Werkstatt stellt der Agent einen Nachrüst-Antrag: CEO prüft, du bekommst ✅/❌ per Telegram und unter ✋ Approvals. Nach deinem Ja installiert der Server, die Aufgabe geht weiter. Ohne Werkstatt nennt der Agent nur, was fehlt. | Antrag lesen und entscheiden. Ohne Telegram nur im Web. |
 | KI des CEO (bei einem Nachrüst-Antrag) | Der Antrag kommt mit dem Hinweis „No CEO with AI“ bzw. „CEO not reachable“ direkt zu dir. | Selbst entscheiden oder dem CEO eine KI zuweisen. |
@@ -459,6 +463,7 @@ Die App fragt Telegram nur nach außen ab, es wird kein Port geöffnet (geht auc
 - **Code ausführen** (Standard aus): `run_code` startet Python, JavaScript, Bash, Ruby, PHP oder Lua in einer Sandbox, siehe unten.
   Dazu gehört `rust_project`: Rust-Programme bauen, testen und als fertiges Paket abliefern ([Rust-Programme](#-rust-programme-komplett-bauen)).
 - **In die Cloud hochladen** (Standard aus): fertige Dateien zu GitHub, Google Drive, OneDrive oder per Telegram an dich, immer erst nach deiner Freigabe ([☁️ Cloud-Upload](#️-cloud-upload-github-google-drive-onedrive-telegram)).
+- **YouTube verwalten** (Standard aus): Titel, Beschreibungen, Keywords, Hashtags und Terminplan als Dateien vorbereiten, CSV-Exporte aus YouTube Studio auswerten. Jedes Video wird erst nach deiner Freigabe hochgeladen ([docs/youtube.md](docs/youtube.md)).
 - **Shell vorschlagen**: nur wenn der Server `PCL_ALLOW_SHELL=1` hat, und dann immer erst nach Freigabe.
 - **Werkstatt** (Standard aus, nur mit `PCL_ALLOW_WERKSTATT=1`): arbeitet mit echten Befehlen im Projektordner und beantragt fehlende Programme über den CEO bei dir ([docs/werkstatt.md](docs/werkstatt.md)). Ein CEO kann dieses Recht nicht weitergeben.
 - **Pause**: blockiert alle neuen Aufgaben des Agenten.
@@ -553,6 +558,14 @@ Läuft ohne Internet und ohne Keys (Anbieter `mock`, eigene Datenbank).
 - **Telegram:** `/datei` schickt dir Dateien bis 50 MB aufs Handy, nur wenn du es anklickst oder freigibst.
 - GitHub: bis 50 MB als Datei im Repo, größere als Anhang an das Release `paperclip-ablage` (bis 2 GB). Google Drive: nur Ordner und
   Dateien, die Hyperstead selbst angelegt hat (Recht `drive.file`). OneDrive: jeder Ordner. Nur gegen simulierte Dienste getestet.
+
+## ▶️ YouTube-Kanal
+
+- **Was Hyperstead macht:** Der Agent mit dem Recht **„May manage YouTube“** füllt `youtube/kanal.json` (Titel, Beschreibung, Keywords, Hashtags je Folge und Sprache) und baut daraus je Video ein Paket in `youtube/packages/`, die Terminliste `youtube/schedule.csv` und die Prüfliste `youtube/REVIEW.md`. Anfangs 2 bis 3 Folgen pro Woche.
+- **Hochladen:** nur über die offizielle YouTube Data API und nur nach deiner Freigabe **je Video** (✋ Approvals). Immer privat, YouTube schaltet zum Termin öffentlich. Kein Browser-Skript, keine automatische Anmeldung.
+- **Was du machst:** Kanäle anlegen, Google-Cloud-Projekt mit `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET`, je Kanal einmal `python youtube_channel.py login de|en|tr`. Im Testmodus läuft die Anmeldung nach 7 Tagen ab.
+- **Auswertung:** CSV-Export aus YouTube Studio hochladen, der Agent schreibt `youtube/reports/analysis-<datum>.md`. Hyperstead holt nie selbst Zahlen ab und lädt keine fremden Videos herunter.
+- Anleitung mit Quellen und Grenzen: [docs/youtube.md](docs/youtube.md). Nur gegen simulierte Antworten getestet.
 
 ## 🖨 Abendberichte drucken
 
