@@ -249,6 +249,10 @@ This list is extended with every change to the program. Each row says what the s
 | No real AI in the project (only `mock` or no provider) | Fixed notices in Telegram and the mailbox (e.g. “✅ Done”, approval notes) stay in English because nobody can translate them. Agent reports still come in your language as soon as the agents have an AI. | Give the CEO (or another agent) a real AI; from then on that AI translates the notices automatically. |
 | `PCL_TRANSLATE` in `.env` (default `1`) | With `PCL_TRANSLATE=0` all fixed notices stay in English and there are no extra AI calls for translations. Without the entry, notices are translated. | Remove the line or set `PCL_TRANSLATE=1`, restart Hyperstead. |
 | Your language not detected yet (fresh install or only short messages like “ok”) | Until your first longer text (about 12 letters or more, not a command), fixed notices stay in English. | Write an assignment or a chat message in your language. |
+| `handover/assignment-<no>.md` in the project folder | Hyperstead creates the file at the first step of an assignment. If it was deleted, the assignment carries on, only the next model lacks the state so far. | Nothing to do. With `PCL_HANDOVER=0` in `.env` no file is written. |
+| `PCL_AUTO_RESUME`, `PCL_RETRY_MIN`, `PCL_RETRY_MAX` in `.env` | Default: on, first wait 5 minutes (doubles, at most 120), at most 6 attempts. After that the task counts as failed. With `PCL_AUTO_RESUME=0` tasks fail right away on errors and after a restart, as before. | Nothing to do, or change the values in `.env` and restart Hyperstead. |
+| Columns `retries` and `retry_at` (older `data.db`) | Added automatically at start. | Nothing. |
+| Rust build folder `.rust/<name>/target-<version>-<id>` | Every Rust version builds in its own folder, so old build leftovers no longer cause error E0514. The old `target/` folder stays and is no longer used. | Nothing. If you need space, delete old `.rust/*/target` folders yourself. |
 
 ## Access from the internet
 
@@ -702,6 +706,15 @@ The CEO from the palette has the right **„May build its own team“** (may ass
 **Rights to match the role**: The CEO should give everyone exactly the rights their work needs. If he forgets some, the system adds them from name, role and work instruction, e.g. research → *web*, images/illustration/graphics/design → *images* + *write files*, video/sound/voice/PDF/layout → *media* + *write files*, author/text/proofreading → *write files*, programming/website → *programming* + *write files*. If he changes an employee's role, the rights are set again to match. Shell, running code, connections and publishing he never gives; only you tick those.
 
 If you want to see every team change beforehand, tick *Teamänderungen freigeben* (approve team changes) in the **Freigaben** window. Without the tick at the CEO he may do none of this. Daily tasks (schedule, inspection round) never change the team.
+
+## Handover: continue after an abort or a model change
+Every assignment gets the file `handover/assignment-<no>.md` in the project folder. After every step Hyperstead writes into it who worked (agent, provider, model), which tools ran with which result, the result and the next step (`next_step`). At the top it says where the work happens: the project folder, Git repositories in it with their address, and existing `STAND.md` or `HANDOVER.md` files.
+
+- If a run stops with an error (quota used up, provider unreachable, crash), the task stays open and continues automatically: after 5, 10, 20 … minutes, at most 6 times. Telegram reports this once.
+- If you give the agent another model (agent → settings, "⚠ Models" or group change), it continues right away. Failed top-level assignments of the last 7 days are then picked up again too.
+- After a restart of Hyperstead, interrupted tasks continue right away.
+- The next model receives the state from the file with the instruction to continue there and not to do anything twice. The CEO inspection round lists waiting tasks under "STOPPED BY AN ERROR".
+- Tip: if a repository with its own `STAND.md` is in the project folder (e.g. `git clone https://github.com/KhungFu/swarm` in the company's folder), it is named at the top of the file and the agents read it first.
 
 ## Opening hours and daily tasks
 

@@ -251,6 +251,10 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | Keine echte KI im Projekt (nur `mock` oder ohne Anbieter) | Feste Meldungen in Telegram und im Postkorb (z. B. „✅ Done“, Freigabe-Hinweise) bleiben auf Englisch, weil niemand übersetzen kann. Berichte der Agenten kommen trotzdem in deiner Sprache, sobald sie eine KI haben. | Dem CEO (oder einem anderen Agenten) eine echte KI geben; ab dann übersetzt diese KI die Meldungen automatisch. |
 | `PCL_TRANSLATE` in `.env` (Standard `1`) | Mit `PCL_TRANSLATE=0` bleiben alle festen Meldungen auf Englisch, und es gibt keine zusätzlichen KI-Aufrufe für Übersetzungen. Ohne Eintrag wird übersetzt. | Zeile entfernen oder `PCL_TRANSLATE=1` setzen, Hyperstead neu starten. |
 | Deine Sprache noch nicht erkannt (frisch installiert oder nur kurze Nachrichten wie „ok“) | Bis zu deinem ersten längeren Text (etwa ab 12 Buchstaben, kein Befehl) bleiben feste Meldungen auf Englisch. | Einen Auftrag oder eine Chat-Nachricht in deiner Sprache schreiben. |
+| `handover/assignment-<Nr>.md` im Projektordner | Hyperstead legt die Datei beim ersten Schritt eines Auftrags neu an. Wurde sie gelöscht, läuft der Auftrag weiter, nur fehlt dem nächsten Modell der bisherige Stand. | Nichts zu tun. Mit `PCL_HANDOVER=0` in `.env` wird keine Datei geschrieben. |
+| `PCL_AUTO_RESUME`, `PCL_RETRY_MIN`, `PCL_RETRY_MAX` in `.env` | Standard: an, erste Wartezeit 5 Minuten (verdoppelt sich, höchstens 120), höchstens 6 Versuche. Danach gilt die Aufgabe als gescheitert. Mit `PCL_AUTO_RESUME=0` scheitern Aufgaben bei Fehlern und nach einem Neustart sofort, wie früher. | Nichts zu tun, oder Werte in `.env` ändern und Hyperstead neu starten. |
+| Spalten `retries` und `retry_at` (ältere `data.db`) | Werden beim Start automatisch ergänzt. | Nichts. |
+| Rust-Bauordner `.rust/<name>/target-<Version>-<Kennung>` | Jede Rust-Version baut in einem eigenen Ordner, damit alte Baureste keinen Fehler E0514 mehr auslösen. Der alte Ordner `target/` bleibt liegen und wird nicht mehr benutzt. | Nichts. Wer Platz braucht, löscht alte Ordner `.rust/*/target` selbst. |
 
 ## Zugriff aus dem Internet
 
@@ -707,6 +711,15 @@ Der CEO aus der Palette hat das Recht **„May build its own team“** (`recruit
 **Rechte passend zur Rolle**: Der CEO soll jedem genau die Rechte geben, die seine Arbeit braucht. Vergisst er welche, ergänzt das System sie anhand von Name, Rolle und Arbeitsanweisung, z. B. Recherche → *Web*, Bilder/Illustration/Grafik/Design → *Bilder* + *Dateien schreiben*, Video/Ton/Stimme/PDF/Layout → *Medien* + *Dateien schreiben*, Autor/Text/Lektorat → *Dateien schreiben*, Programmierung/Webseite → *Programmieren* + *Dateien schreiben*. Ändert er die Rolle eines Mitarbeiters, werden die Rechte neu passend gesetzt. Shell, Code ausführen, Verbindungen und Veröffentlichen gibt er nie, die hakst nur du an.
 
 Willst du jede Teamänderung vorher sehen, hake im Fenster **Freigaben** *Teamänderungen freigeben* an. Ohne das Häkchen beim CEO darf er nichts davon. Tägliche Aufgaben (Zeitplan, Kontrollgang) ändern das Team nie.
+
+## Übergabe: weitermachen nach Abbruch oder Modellwechsel
+Jeder Auftrag bekommt im Projektordner die Datei `handover/assignment-<Nr>.md`. Hyperstead schreibt nach jedem Schritt hinein, wer gearbeitet hat (Agent, Anbieter, Modell), welche Werkzeuge mit welchem Ergebnis liefen, das Ergebnis und den nächsten Schritt (`next_step`). Oben steht, wo gearbeitet wird: der Projektordner, Git-Repos darin mit ihrer Adresse und vorhandene Dateien `STAND.md` bzw. `HANDOVER.md`.
+
+- Bricht ein Lauf mit einem Fehler ab (Kontingent voll, Anbieter nicht erreichbar, Absturz), bleibt die Aufgabe offen und läuft automatisch weiter: nach 5, 10, 20 … Minuten, höchstens 6 Mal. Telegram meldet das einmal.
+- Stellst du dem Agenten ein anderes Modell ein (Agent → Einstellungen, „⚠ Models“ oder Gruppen-Umstellung), geht es sofort weiter. Gescheiterte oberste Aufträge der letzten 7 Tage werden dann ebenfalls wieder aufgenommen.
+- Nach einem Neustart von Hyperstead laufen unterbrochene Aufgaben sofort weiter.
+- Das nächste Modell bekommt den Stand aus der Datei mit der Anweisung, dort weiterzumachen und nichts doppelt zu machen. Der CEO-Kontrollgang zeigt wartende Aufgaben unter „STOPPED BY AN ERROR“.
+- Tipp: Liegt ein Repo mit eigener `STAND.md` im Projektordner (z. B. `git clone https://github.com/KhungFu/swarm` im Ordner der Firma), steht es oben in der Datei, und die Agenten lesen es zuerst.
 
 ## Öffnungszeiten und tägliche Aufgaben
 Seitenleiste **🕘 Schedule**: Pro Projekt Arbeitsbeginn, Feierabend und Arbeitstage festlegen. Je Mitarbeiter lassen sich **tägliche Aufgaben** anlegen (feste Uhrzeit, bei Arbeitsbeginn oder bei Feierabend, an wählbaren Wochentagen), z. B. „jeden Tag um 15:00 die Website kontrollieren“. Das Ergebnis kommt wie jede Post in die Ansicht „Post“ (und per Telegram). Läuft die letzte Aufgabe eines Zeitplans noch, wird nicht doppelt gestartet; war der Pi zur Uhrzeit aus, wird bis zu 6 Stunden nachgeholt.

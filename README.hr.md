@@ -249,6 +249,10 @@ Ovaj popis se dopunjuje pri svakoj promjeni programa. Svaki redak kaže što sus
 | Nema prave umjetne inteligencije u projektu (samo `mock` ili bez pružatelja) | Fiksne poruke u Telegramu i u poštanskom sandučiću (npr. „✅ Done“, napomene o odobrenju) ostaju na engleskom jer ih nema tko prevesti. Izvješća agenata ipak stižu na vašem jeziku čim agenti imaju umjetnu inteligenciju. | Dajte CEO-u (ili drugom agentu) pravu umjetnu inteligenciju; od tada ona automatski prevodi poruke. |
 | `PCL_TRANSLATE` u `.env` (zadano `1`) | Uz `PCL_TRANSLATE=0` sve fiksne poruke ostaju na engleskom i nema dodatnih poziva umjetnoj inteligenciji za prijevode. Bez unosa se prevodi. | Uklonite redak ili postavite `PCL_TRANSLATE=1`, ponovno pokrenite Hyperstead. |
 | Vaš jezik još nije prepoznat (svježa instalacija ili samo kratke poruke poput „ok“) | Do vašeg prvog duljeg teksta (otprilike od 12 slova, ne naredba) fiksne poruke ostaju na engleskom. | Napišite zadatak ili poruku u chatu na svom jeziku. |
+| `handover/assignment-<broj>.md` u mapi projekta | Hyperstead stvara datoteku pri prvom koraku zadatka. Ako je izbrisana, zadatak se nastavlja, samo sljedeći model ne vidi dosadašnje stanje. | Ništa. S `PCL_HANDOVER=0` u `.env` datoteka se ne piše. |
+| `PCL_AUTO_RESUME`, `PCL_RETRY_MIN`, `PCL_RETRY_MAX` u `.env` | Zadano: uključeno, prvo čekanje 5 minuta (udvostručuje se, najviše 120), najviše 6 pokušaja. Nakon toga zadatak se smatra neuspješnim. S `PCL_AUTO_RESUME=0` zadaci kod pogreške i nakon ponovnog pokretanja odmah propadaju, kao prije. | Ništa, ili promijenite vrijednosti u `.env` i ponovno pokrenite Hyperstead. |
+| Stupci `retries` i `retry_at` (starija `data.db`) | Dodaju se automatski pri pokretanju. | Ništa. |
+| Rust mapa za izgradnju `.rust/<ime>/target-<verzija>-<oznaka>` | Svaka verzija Rusta gradi u vlastitoj mapi, pa stari ostaci izgradnje više ne uzrokuju pogrešku E0514. Stara mapa `target/` ostaje i više se ne koristi. | Ništa. Ako vam treba prostor, sami izbrišite stare mape `.rust/*/target`. |
 
 ## Pristup s interneta
 
@@ -693,6 +697,15 @@ CEO iz palete ima pravo **„May build its own team“** (smije sam sastaviti sv
 **Prava prema ulozi**: CEO treba svakome dati točno ona prava koja mu posao traži. Ako neka zaboravi, sustav ih dodaje na temelju imena, uloge i radnih uputa, npr. istraživanje → *web*, slike/ilustracije/grafika/dizajn → *slike* + *pisanje datoteka*, video/zvuk/glas/PDF/prijelom → *mediji* + *pisanje datoteka*, autor/tekst/lektura → *pisanje datoteka*, programiranje/web-stranica → *programiranje* + *pisanje datoteka*. Ako promijeni ulogu suradnika, prava se ponovno postavljaju prema njoj. Shell, izvršavanje koda, veze i objavljivanje nikada ne daje; to označavate samo vi.
 
 Ako želite unaprijed vidjeti svaku izmjenu tima, označite u prozoru **Freigaben** *Teamänderungen freigeben* (odobri izmjene tima). Bez označene opcije kod CEO-a ne smije ništa od ovoga. Dnevni zadaci (raspored, kontrolni obilazak) nikada ne mijenjaju tim.
+
+## Predaja: nastavak nakon prekida ili promjene modela
+Svaki zadatak dobiva datoteku `handover/assignment-<broj>.md` u mapi projekta. Nakon svakog koraka Hyperstead u nju upisuje tko je radio (agent, pružatelj, model), koji su alati radili i s kojim rezultatom, rezultat i sljedeći korak (`next_step`). Na vrhu piše gdje se radi: mapa projekta, Git repozitoriji u njoj s adresom i postojeće datoteke `STAND.md` ili `HANDOVER.md`.
+
+- Ako se rad prekine pogreškom (kvota potrošena, pružatelj nedostupan, rušenje), zadatak ostaje otvoren i nastavlja se automatski: nakon 5, 10, 20 … minuta, najviše 6 puta. Telegram to javlja jednom.
+- Ako agentu postavite drugi model (agent → postavke, „⚠ Models“ ili promjena za grupu), rad se odmah nastavlja. Tada se ponovno preuzimaju i neuspješni glavni zadaci iz posljednjih 7 dana.
+- Nakon ponovnog pokretanja Hypersteada prekinuti zadaci odmah se nastavljaju.
+- Sljedeći model dobiva stanje iz datoteke s uputom da nastavi odande i ništa ne radi dvaput. CEO kontrolni obilazak prikazuje zadatke koji čekaju pod „STOPPED BY AN ERROR“.
+- Savjet: ako je u mapi projekta repozitorij s vlastitom `STAND.md` (npr. `git clone https://github.com/KhungFu/swarm` u mapi tvrtke), on se navodi na vrhu datoteke i agenti ga prvo čitaju.
 
 ## Radno vrijeme i dnevni zadaci
 

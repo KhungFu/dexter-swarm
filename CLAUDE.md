@@ -150,6 +150,20 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   max. eine Ollama-Aufgabe). Nur Worker 0 macht `schedule_tick`/Modellpruefung. `wake_parent` weckt per bedingtem UPDATE genau einmal.
   `run_claimed` setzt bei Ausnahme `failed` statt `running` haengen zu lassen.
 
+## Uebergabe und automatisches Weitermachen (Wunsch ABI 2026-11-06)
+- `handover.py`: je oberstem Auftrag `handover/assignment-<id>.md` im Projektordner (Kopf: Auftrag + Arbeitsort = Projektordner, Git-Repos bis Tiefe 2
+  mit origin-URL ohne Zugangsdaten, `STAND.md`/`HANDOVER.md` bis Tiefe 4; dann `## Log`). `handover_note` (app.py) schreibt: start, jede Werkzeugrunde
+  (`trail` in `run_with_tools`, sofort nach der Runde), Ergebnis + Dateien + `next_step` (neues optionales JSON-Feld), Fehler, Neustart, Modellwechsel.
+  Gekuerzt ab `PCL_HANDOVER_KB` (64), Kopf bleibt. `handover_block` haengt Arbeitsort + Log-Ende (`PCL_HANDOVER_PROMPT`) an work/review_prompt, wenn die
+  Aufgabe schon Eintraege hat oder `feedback` mit `RESUME_MARK` beginnt. Aus mit `PCL_HANDOVER=0`.
+- `retry_later`: Ausnahme in `execute_task` -> Aufgabe bleibt `queued` mit `retry_at` (RETRY_MIN 5 min, verdoppelt, max 120) und `retries` bis
+  `PCL_RETRY_MAX` (6), danach `failed` wie frueher; Eltern warten weiter (kein `finish`). `claim_next` ueberspringt `retry_at` in der Zukunft.
+  Neustart (`init_db`): `running` -> `queued` mit RESUME-Feedback (nur wenn feedback leer, Revisionswuensche bleiben). `model_changed(ids)` aus
+  `api_agent_put`/`models/replace`/`models/assign`: wartende sofort, gescheiterte oberste Auftraege (`Error:`, 7 Tage) wieder `queued`.
+  `PCL_AUTO_RESUME=0` = altes Verhalten. Kontrollgang zeigt wartende unter „STOPPED BY AN ERROR“. Tests `tests/test_handover.py`.
+- `rust_builder._target_name`: Bauordner je Toolchain `.rust/<name>/target-<release>-<sha1(rustc -vV)[:8]>` gegen E0514 durch alte Baureste
+  (NEXORA, 2026-11-06, Pi hatte rustc/rustdoc/cargo 1.98.0 einheitlich). Alter `target/` bleibt liegen, nie automatisch loeschen.
+
 ## Ziele, Freigabe-Schranken, Nutzung
 - `goals` (parent_id 0 = oberstes), `tasks.goal_id` (vererbt in `create_subtasks`). `goal_tree` (Tiefe + Fortschritt inkl. Unterziele),
   `goals_block` in `build_system` (nur Chefs/oberste) und `inspection_report`, `goal_line` in work/review_prompt. API `/api/projects/<id>/goals`, `/api/goals/<id>`.

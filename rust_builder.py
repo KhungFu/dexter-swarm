@@ -75,6 +75,21 @@ def _toolchain():
     return cargo, rustc, sysroot
 
 
+def _target_name(rustc):
+    """Eigener Bauordner je Toolchain (z. B. target-1.98.0-1a2b3c4d): Reste einer aelteren rustc-Version im alten target/
+    fuehrten bei Doc-Tests zu E0514 ("compiled by an incompatible version of rustc"). Alte Ordner bleiben unangetastet."""
+    try:
+        out = subprocess.run([rustc, "-vV"], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                             timeout=60, env=_base_env(), cwd=str(Path.home())).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        out = ""
+    m = re.search(r"^release:\s*(\S+)", out, re.M)
+    if not m:
+        return "target"
+    import hashlib
+    return f"target-{re.sub(r'[^0-9A-Za-z.-]', '', m.group(1))[:30]}-{hashlib.sha1(out.encode()).hexdigest()[:8]}"
+
+
 def _base_env():
     """Minimale Umgebung ohne API-Keys. Proxy-Variablen bleiben, damit cargo fetch hinter einem Proxy laedt."""
     keep = ["PATH", "HOME", "LANG", "RUSTUP_HOME", "RUSTUP_TOOLCHAIN", "HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY",
@@ -125,7 +140,7 @@ def _limits():
             pass
 
 
-def _sandbox(build, home, sysroot):
+def _sandbox(build, home, sysroot, target="target"):
     """bubblewrap: Bauordner beschreibbar unter /arbeit, Cargo-Cache unter /cargo, Toolchain nur lesbar, kein Netz."""
     cmd = T._sandbox_cmd(build / "crate", build)[:-1]  # ohne das abschliessende "--"
     i = cmd.index("--chdir")
@@ -134,7 +149,7 @@ def _sandbox(build, home, sysroot):
         cmd += ["--ro-bind", str(sysroot), str(sysroot)]
     path = ":".join(x for x in (f"{sysroot}/bin" if sysroot else "", "/usr/local/bin:/usr/bin:/bin") if x)
     cmd += ["--bind", str(home), "/cargo", "--chdir", "/arbeit/crate", "--setenv", "CARGO_HOME", "/cargo",
-            "--setenv", "CARGO_TARGET_DIR", "/arbeit/target", "--setenv", "PATH", path,
+            "--setenv", "CARGO_TARGET_DIR", f"/arbeit/{target}", "--setenv", "PATH", path,
             "--setenv", "CARGO_BUILD_JOBS", CARGO_JOBS, "--setenv", "CARGO_TERM_COLOR", "never", "--"]
     return cmd
 
@@ -214,6 +229,8 @@ def rust_project(root, call):
     build.mkdir(parents=True, exist_ok=True)
     home.mkdir(parents=True, exist_ok=True)
     cargo, rustc, sysroot = _toolchain()
+    tname = _target_name(rustc)
+    target = build / tname
     cargo_bin_dir = str(Path(cargo_path()).parent)
     args = [str(x)[:500] for x in (call.get("args") if isinstance(call.get("args"), list) else [])][:20]
 
@@ -221,7 +238,7 @@ def rust_project(root, call):
         _sync(src, build / "crate", files)
         crate = build / "crate"
         env = _base_env()
-        env.update({"CARGO_HOME": str(home), "CARGO_TARGET_DIR": str(build / "target"), "CARGO_TERM_COLOR": "never",
+        env.update({"CARGO_HOME": str(home), "CARGO_TARGET_DIR": str(target), "CARGO_TERM_COLOR": "never",
                     "CARGO_BUILD_JOBS": CARGO_JOBS})
         env["PATH"] = os.pathsep.join(x for x in (str(sysroot / "bin") if sysroot else "", cargo_bin_dir, env.get("PATH", "")) if x)
         report = [f"Rust ({'sandboxed' if mode == 'bwrap' else 'WITHOUT sandbox, PCL_CARGO_UNSAFE=1'}), project {rel}"]
@@ -234,7 +251,7 @@ def rust_project(root, call):
         def cargo_step(sub, extra=(), stdin=None):
             argv = [cargo, *sub, "--release", "--offline", *extra]
             if mode == "bwrap":
-                argv = _sandbox(build, home, sysroot) + [cargo, *sub, "--release", "--offline", *extra]
+                argv = _sandbox(build, home, sysroot, tname) + [cargo, *sub, "--release", "--offline", *extra]
                 return _run(argv, crate, _base_env(), stdin=stdin, sandboxed=True)
             return _run(argv, crate, env, stdin=stdin)
 
@@ -250,7 +267,7 @@ def rust_project(root, call):
             res = cargo_step(["build"])
             report.append(step_text("cargo build --release", res))
             if res[0] == 0:
-                bins = _binaries(build / "target", cargo)
+                bins = _binaries(target, cargo)
                 report.append("Program(s) built: " + (", ".join(b.name for b in bins) or "(library only)") +
                               ". Finished package with op=package.")
         elif op == "run":
@@ -272,14 +289,14 @@ def rust_project(root, call):
                     b = cargo_step(["build"])
                     report.append(step_text("cargo build --release", b))
                     if b[0] == 0:
-                        report.append(_package(root, src, crate, build, files, name, rel, out, no_tests, rustc))
+                        report.append(_package(root, src, crate, build, files, name, rel, out, no_tests, rustc, target))
         if (crate / "Cargo.lock").is_file() and not (src / "Cargo.lock").exists():
             shutil.copy2(crate / "Cargo.lock", src / "Cargo.lock")  # feste Versionen fuers naechste Mal und fuer den Besitzer
     return "\n".join(report)
 
 
-def _package(root, src, crate, build, files, name, rel, test_out, no_tests, rustc):
-    bins = _binaries(build / "target", None)
+def _package(root, src, crate, build, files, name, rel, test_out, no_tests, rustc, target):
+    bins = _binaries(target, None)
     try:
         host = subprocess.run([rustc, "-vV"], capture_output=True, text=True, encoding="utf-8", errors="replace",
                               timeout=60, env=_base_env()).stdout

@@ -1985,7 +1985,8 @@ const HELP=[
 <li><b>💬 Chat:</b> talk to an agent directly, attach files (📎). A chat can be turned into a task.</li></ul>`},
  {id:'zeitplan',t:'🕘 Schedule and business hours',h:`<ul><li><b>Business hours:</b> outside them the queue waits, nothing runs. Left-over work is resumed when work starts.</li>
 <li><b>Daily tasks:</b> choose a time, “at opening” or “at closing” and weekdays. “▶ Run now” starts immediately, “⏸ Turn off” pauses.</li>
-<li><b>👑 CEO inspection:</b> the boss checks at closing time whether everything is finished and reports to you.</li></ul>`},
+<li><b>👑 CEO inspection:</b> the boss checks at closing time whether everything is finished and reports to you.</li>
+<li><b>Handover:</b> every assignment keeps its state in <code>handover/assignment-&lt;no&gt;.md</code> in the project folder (who worked with which model, every step, result, next step). If a run stops with an error, the task continues by itself after 5, 10, 20 … minutes; if you give the agent another AI model, it continues right away, and after a restart too. The next model continues from that state.</li></ul>`},
  {id:'betrieb',t:'🛰 Operations center and costs',h:`<ul><li><b>🛰 Operations center:</b> what is running and waiting, open approvals, errors of the last 7 days (↻ Retry restarts them), schedules (▶ Now) and the latest events. Tapping the numbers in the bar also opens it.</li>
 <li><b>💶 Costs:</b> estimated AI costs for today and 7 days. Subscription (Claude/Codex CLI) and Ollama count as $0. <b>📊 Usage &amp; costs</b> shows everything by project, agent and model.</li>
 <li><b>📜 History:</b> every event is logged and never deleted.</li></ul>`},

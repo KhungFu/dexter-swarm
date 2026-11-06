@@ -248,6 +248,10 @@ Bu liste programda her değişiklikle genişletilir. Her satır sistemin ne yapt
 | Projede gerçek bir yapay zekâ yok (yalnızca `mock` veya sağlayıcı yok) | Telegram'daki ve posta kutusundaki sabit bildirimler (ör. „✅ Done“, onay notları) İngilizce kalır, çünkü çevirecek kimse yoktur. Ajanlar bir yapay zekâya sahip olur olmaz raporları yine de sizin dilinizde gelir. | CEO'ya (veya başka bir ajana) gerçek bir yapay zekâ verin; o andan itibaren bu yapay zekâ bildirimleri otomatik olarak çevirir. |
 | `.env` içinde `PCL_TRANSLATE` (varsayılan `1`) | `PCL_TRANSLATE=0` ile tüm sabit bildirimler İngilizce kalır ve çeviri için ek yapay zekâ çağrısı yapılmaz. Satır yoksa çeviri yapılır. | Satırı silin veya `PCL_TRANSLATE=1` yazın, Hyperstead'i yeniden başlatın. |
 | Diliniz henüz tanınmadı (yeni kurulum veya yalnızca „ok“ gibi kısa mesajlar) | İlk uzun metninize kadar (yaklaşık 12 harf ve üzeri, komut değil) sabit bildirimler İngilizce kalır. | Kendi dilinizde bir görev veya sohbet mesajı yazın. |
+| Proje klasöründe `handover/assignment-<no>.md` | Hyperstead dosyayı bir görevin ilk adımında oluşturur. Silindiyse görev devam eder, yalnızca bir sonraki model şimdiye kadarki durumu göremez. | Bir şey yapmanız gerekmez. `.env` içinde `PCL_HANDOVER=0` ile dosya yazılmaz. |
+| `.env` içinde `PCL_AUTO_RESUME`, `PCL_RETRY_MIN`, `PCL_RETRY_MAX` | Varsayılan: açık, ilk bekleme 5 dakika (iki katına çıkar, en fazla 120), en fazla 6 deneme. Sonrasında görev başarısız sayılır. `PCL_AUTO_RESUME=0` ile görevler hata durumunda ve yeniden başlatmadan sonra eskisi gibi hemen başarısız olur. | Bir şey yapmanız gerekmez ya da `.env` içindeki değerleri değiştirip Hyperstead'i yeniden başlatın. |
+| `retries` ve `retry_at` sütunları (eski `data.db`) | Başlangıçta otomatik eklenir. | Hiçbir şey. |
+| Rust derleme klasörü `.rust/<ad>/target-<sürüm>-<kimlik>` | Her Rust sürümü kendi klasöründe derler, böylece eski derleme kalıntıları artık E0514 hatasına yol açmaz. Eski `target/` klasörü kalır ve artık kullanılmaz. | Hiçbir şey. Yer gerekiyorsa eski `.rust/*/target` klasörlerini kendiniz silin. |
 
 ## İnternetten erişim
 
@@ -686,6 +690,15 @@ Palettedeki CEO, **„May build its own team“** (kendi ekibini kurabilir, `rec
 **Role uygun haklar**: CEO herkese tam olarak işinin gerektirdiği hakları vermelidir. Bazılarını unutursa sistem bunları ad, rol ve çalışma talimatına göre ekler, ör. araştırma → *web*, görsel/illüstrasyon/grafik/tasarım → *görseller* + *dosya yazma*, video/ses/seslendirme/PDF/mizanpaj → *medya* + *dosya yazma*, yazar/metin/redaksiyon → *dosya yazma*, programlama/web sitesi → *programlama* + *dosya yazma*. Bir çalışanın rolünü değiştirirse haklar yeniden role uygun ayarlanır. Kabuk, kod çalıştırma, bağlantılar ve yayınlama hakkını asla vermez; bunları yalnızca siz işaretlersiniz.
 
 Her ekip değişikliğini önceden görmek istiyorsanız **Freigaben** penceresinde *Teamänderungen freigeben* (ekip değişikliklerini onayla) kutusunu işaretleyin. CEO'da bu işaret yoksa bunların hiçbirini yapamaz. Günlük görevler (zaman planı, denetim turu) ekibi asla değiştirmez.
+
+## Devir: iptal veya model değişikliğinden sonra devam etme
+Her görev proje klasöründe `handover/assignment-<no>.md` dosyasını alır. Hyperstead her adımdan sonra buraya kimin çalıştığını (ajan, sağlayıcı, model), hangi araçların hangi sonuçla çalıştığını, sonucu ve bir sonraki adımı (`next_step`) yazar. En üstte işin nerede yapıldığı yazar: proje klasörü, içindeki Git depoları ve adresleri, varsa `STAND.md` veya `HANDOVER.md` dosyaları.
+
+- Bir çalışma hatayla durursa (kota doldu, sağlayıcıya ulaşılamıyor, çökme) görev açık kalır ve otomatik olarak devam eder: 5, 10, 20 … dakika sonra, en fazla 6 kez. Telegram bunu bir kez bildirir.
+- Ajana başka bir model atarsanız (ajan → ayarlar, „⚠ Models“ veya grup değişikliği) iş hemen devam eder. Son 7 günde başarısız olan üst görevler de yeniden ele alınır.
+- Hyperstead yeniden başlatıldıktan sonra yarıda kalan görevler hemen devam eder.
+- Bir sonraki model, dosyadaki durumu oradan devam etme ve hiçbir şeyi iki kez yapmama talimatıyla alır. CEO kontrol turu bekleyen görevleri „STOPPED BY AN ERROR“ altında gösterir.
+- İpucu: Proje klasöründe kendi `STAND.md` dosyası olan bir depo varsa (ör. firmanın klasöründe `git clone https://github.com/KhungFu/swarm`), dosyanın en üstünde adı geçer ve ajanlar önce onu okur.
 
 ## Çalışma saatleri ve günlük görevler
 

@@ -36,6 +36,7 @@ import werkstatt as W
 import ai_links as AL
 import company_templates
 import growth as G
+import handover as HO
 from flask import Flask, Response, abort, jsonify, redirect, request, send_file, send_from_directory
 
 BASE = Path(__file__).resolve().parent
@@ -230,6 +231,12 @@ RECRUIT_MAX = 20                                                    # Mitarbeite
 RECRUIT_PERMS = ("web", "images", "read_files", "write_files", "media", "code")  # mehr darf der Chef Neuen nie mitgeben
 MAX_TOOL_STEPS = int(os.environ.get("PCL_MAX_TOOL_STEPS", "6"))    # Werkzeug-Runden pro Lauf
 TOOL_RESULT_CHARS = 4500                                            # Ergebnis je Werkzeugaufruf im Prompt
+# Uebergabe + automatisches Weitermachen (Wunsch ABI 2026-11-06, handover.py): Fehler/Neustart -> Aufgabe bleibt offen und
+# laeuft nach Wartezeit (RETRY_MIN, verdoppelt, max. 120 min) bzw. sofort nach einem Modellwechsel weiter, hoechstens RETRY_MAX Mal.
+AUTO_RESUME = os.environ.get("PCL_AUTO_RESUME", "1") != "0"
+RETRY_MIN = max(1, int(os.environ.get("PCL_RETRY_MIN", "5")))
+RETRY_MAX = int(os.environ.get("PCL_RETRY_MAX", "6"))
+RESUME_MARK = "RESUME"
 
 MAX_REVISIONS = int(os.environ.get("PCL_MAX_REVISIONS", "2"))   # wie oft ein Chef dieselbe Aufgabe zurueckgeben darf
 MAX_REVIEW_PASSES = int(os.environ.get("PCL_MAX_REVIEW_PASSES", "4"))  # Pruefrunden pro Chef-Aufgabe
@@ -354,7 +361,8 @@ def init_db():
         for col, ddl in (("feedback", "TEXT DEFAULT ''"), ("prev_result", "TEXT DEFAULT ''"),
                          ("rounds", "INTEGER DEFAULT 0"), ("passes", "INTEGER DEFAULT 0"),
                          ("inbox", "TEXT DEFAULT ''"), ("schedule_id", "INTEGER DEFAULT 0"),
-                         ("resumed", "INTEGER DEFAULT 0"), ("goal_id", "INTEGER DEFAULT 0")):
+                         ("resumed", "INTEGER DEFAULT 0"), ("goal_id", "INTEGER DEFAULT 0"),
+                         ("retries", "INTEGER DEFAULT 0"), ("retry_at", "REAL DEFAULT 0")):
             if col not in have:
                 c.execute(f"ALTER TABLE tasks ADD COLUMN {col} {ddl}")
         if "folder" not in {r["name"] for r in c.execute("PRAGMA table_info(projects)")}:
@@ -369,10 +377,17 @@ def init_db():
             c.execute("ALTER TABLE approvals ADD COLUMN data TEXT DEFAULT ''")
         if "memory" not in {r["name"] for r in c.execute("PRAGMA table_info(agents)")}:
             c.execute("ALTER TABLE agents ADD COLUMN memory TEXT DEFAULT ''")
-        c.execute(
-            "UPDATE tasks SET status='failed', result=result||'\n\n(Abgebrochen: Neustart)' "
-            "WHERE status='running'"
-        )
+        if AUTO_RESUME:  # Wunsch ABI 2026-11-06: nach einem Neustart sofort dort weitermachen, wo die Arbeit stand
+            restarted = [r["id"] for r in c.execute("SELECT id FROM tasks WHERE status='running'").fetchall()]
+            c.execute("UPDATE tasks SET status='queued', retry_at=0, retries=retries+1, "
+                      "feedback=CASE WHEN IFNULL(feedback,'')='' THEN ? ELSE feedback END WHERE status='running'",
+                      (RESUME_MARK + ": the server restarted while you were working.",))
+        else:
+            restarted = []
+            c.execute(
+                "UPDATE tasks SET status='failed', result=result||'\n\n(Abgebrochen: Neustart)' "
+                "WHERE status='running'"
+            )
         # Chefs, die auf ihr Team warten, nach einem Neustart pruefen: ist das Team schon fertig?
         for t in c.execute("SELECT id FROM tasks WHERE status='waiting_subtasks'").fetchall():
             open_kids = c.execute("SELECT COUNT(*) FROM tasks WHERE parent_task_id=? AND status NOT IN "
@@ -380,6 +395,8 @@ def init_db():
             if open_kids == 0:
                 c.execute("UPDATE tasks SET status='queued' WHERE id=?", (t["id"],))
         c.commit()
+    for tid in restarted:
+        handover_note(tid, "aborted by a server restart - continues automatically")
 
 
 def q(sql, args=()):
@@ -1903,6 +1920,10 @@ def build_system(agent, project, mode, final_only=False, team_change_ok=False):
              "design. Recalculate codes, solutions and numbers step by step. If a PDF should rebuild a template (colors, columns, "
              "boxes), write HTML+CSS and use make_document with \"html\" if you have the tool. Turn the assignment into a checklist "
              "and check before reporting that every requested part is included. Write results, files and questions in the language of the assignment.")
+    if HO.enabled() and mode != "recruit":
+        fields.append('"next_step": "what is still to do for this assignment"')
+        rules.append("next_step is optional: if work is left, say concretely what comes next. The server saves it with your "
+                     "result in handover/, so that you or another AI model can continue there after an interruption.")
     fields.append('"remember": ["short lasting fact"]')
     rules.append(f"remember is optional (at most {REMEMBER_MAX} entries, one sentence each): things you want to remember for FUTURE assignments, "
                  "e.g. preferences and decisions of the owner, customers, style, what worked or failed. Not the result itself, "
@@ -1956,9 +1977,15 @@ def work_prompt(t):
             parts.append(f"Requested by: {pt['name']} ({pt['role']}). Their parent task: {pt['title']}")
     if str(t.get("feedback") or "").startswith(WERKSTATT_MARK):
         parts.append(t["feedback"] + "\n\nYour state so far (carry on from here):\n" + clip(t.get("prev_result", ""), 6000))
+    elif str(t.get("feedback") or "").startswith(RESUME_MARK):
+        parts.append(t["feedback"] + " Carry on from the handover state below."
+                     + ("\n\nYour last result before that:\n" + clip(t["prev_result"], 3000) if t.get("prev_result") else ""))
     elif t.get("feedback"):
         parts.append("REVISION REQUEST from your supervisor:\n" + t["feedback"]
                      + "\n\nYour previous result (improve it specifically):\n" + clip(t.get("prev_result", ""), 6000))
+    hb = handover_block(t)
+    if hb:
+        parts.append(hb)
     return "\n\n".join(parts)
 
 
@@ -1969,6 +1996,8 @@ def review_prompt(t, child_tasks):
         parts.append(goal_line(t))
     if str(t.get("feedback") or "").startswith(WERKSTATT_MARK):
         parts.append(t["feedback"] + "\n\nYour state so far (carry on from here):\n" + clip(t.get("prev_result", ""), 6000))
+    elif str(t.get("feedback") or "").startswith(RESUME_MARK):
+        parts.append(t["feedback"] + " Carry on from the handover state below.")
     elif t.get("feedback"):
         parts.append("REVISION REQUEST from your supervisor to you:\n" + t["feedback"]
                      + "\n\nYour previous overall result (improve it specifically, you may involve employees again if needed):\n"
@@ -1979,6 +2008,9 @@ def review_prompt(t, child_tasks):
         parts.append(f"--- [Task #{c['id']}] {c['title']} | Employee: {ag['name']} ({ag['role']}) | "
                      f"Status: {STATUS_DE.get(c['status'], c['status'])} | Send-backs: {c['rounds']}/{MAX_REVISIONS}\n"
                      + clip(c["result"], per))
+    hb = handover_block(t)
+    if hb:
+        parts.append(hb)
     return "\n\n".join(parts)
 
 
@@ -2123,6 +2155,94 @@ def finish(tid, status, result=None):
             inbox_arrived(t)  # oberste Aufgabe fertig = Post fuer den Besitzer
 
 
+# ------------------------------------------------------------ Uebergabe (handover.py)
+def top_task(t):
+    top, n = t, 0
+    while top and top.get("parent_task_id") and n < 50:
+        top = q1("SELECT * FROM tasks WHERE id=?", (top["parent_task_id"],)) or {**dict(top), "parent_task_id": None}
+        n += 1
+    return top
+
+
+def agent_label(a):
+    if not a:
+        return "?"
+    model = a.get("model") or (PROVIDERS.get(a.get("provider") or "", {}).get("model") or "")
+    return f"{a['name']} ({a.get('role') or 'Agent'}) - {a.get('provider') or 'no AI'}/{model or 'default'}"
+
+
+def handover_note(tid, kind, text="", agent=None):
+    """Zwischenschritt in die Uebergabe-Datei des obersten Auftrags schreiben (nie mit Fehler abbrechen)."""
+    if not HO.enabled():
+        return
+    try:
+        t = q1("SELECT * FROM tasks WHERE id=?", (tid,))
+        if not t:
+            return
+        a = agent or q1("SELECT * FROM agents WHERE id=?", (t["agent_id"],))
+        p = q1("SELECT folder FROM projects WHERE id=?", (t["project_id"],)) or {}
+        HO.note(proj_dir(t["project_id"]), top_task(t), tid, agent_label(a), kind, text, p.get("folder") or "")
+    except Exception as e:
+        print("Handover error:", e)
+
+
+def handover_block(t):
+    """Uebergabe-Stand in den Auftrag, wenn an dieser Aufgabe schon gearbeitet wurde (anderer Lauf/anderes Modell)."""
+    if not HO.enabled():
+        return ""
+    try:
+        top = top_task(t)
+        root = proj_dir(t["project_id"])
+        if not (HO.has_entries(root, top["id"], t["id"]) or str(t.get("feedback") or "").startswith(RESUME_MARK)):
+            return ""
+        p = q1("SELECT folder FROM projects WHERE id=?", (t["project_id"],)) or {}
+        return HO.prompt_block(root, top["id"], p.get("folder") or "")
+    except Exception as e:
+        print("Handover error:", e)
+        return ""
+
+
+def retry_later(t, a, msg):
+    """Fehler waehrend der Arbeit: Aufgabe bleibt offen und laeuft spaeter (oder nach Modellwechsel sofort) weiter.
+    Gibt False zurueck, wenn keine Wiederholung mehr erlaubt ist."""
+    if not AUTO_RESUME or (t.get("retries") or 0) >= RETRY_MAX:
+        return False
+    n = (t.get("retries") or 0) + 1
+    wait = min(120, RETRY_MIN * 2 ** (n - 1))
+    fb = t.get("feedback") or ""
+    set_task(t["id"], "queued", result=f"Error: {msg}\n\n(Will continue automatically in {wait} min, attempt {n}/{RETRY_MAX}. "
+             "Changing the AI model of this agent continues it immediately.)",
+             retries=n, retry_at=time.time() + wait * 60,
+             feedback=fb if fb else f"{RESUME_MARK}: your last run stopped with an error ({clip(msg, 300)}).")
+    handover_note(t["id"], f"error - continues automatically in {wait} min (attempt {n}/{RETRY_MAX})", msg, a)
+    log("task_retry", f"in {wait} min, attempt {n}/{RETRY_MAX}: {msg[:200]}", t["project_id"], t["agent_id"], t["id"])
+    if n == 1:
+        tg_notify(f"⏸ #{t['id']} {t['title'][:80]} ({a['name'] if a else '?'}): stopped with an error, continues automatically "
+                  f"in {wait} min or right away when you change the AI model.\n{clip(msg, 300)}")
+    return True
+
+
+def model_changed(agent_ids, label=""):
+    """Neues Modell fuer diese Agenten: wartende Wiederholungen sofort starten, gescheiterte oberste Auftraege wieder aufnehmen."""
+    if not AUTO_RESUME or not agent_ids:
+        return 0
+    ids = ",".join(str(int(i)) for i in agent_ids)
+    n = 0
+    for t in q(f"SELECT * FROM tasks WHERE agent_id IN ({ids}) AND status='queued' AND retry_at>0"):
+        set_task(t["id"], retries=0, retry_at=0)
+        handover_note(t["id"], "AI model changed - continues now", label)
+        n += 1
+    for t in q(f"SELECT * FROM tasks WHERE agent_id IN ({ids}) AND status='failed' AND parent_task_id IS NULL "
+               "AND schedule_id=0 AND result LIKE 'Error:%' AND updated>=?", (time.time() - 7 * 86400,)):
+        fb = t["feedback"] or f"{RESUME_MARK}: the owner changed your AI model after an error. Continue the work."
+        set_task(t["id"], "queued", retries=0, retry_at=0, feedback=fb, prev_result=t["prev_result"] or t["result"], inbox="")
+        handover_note(t["id"], "AI model changed - failed assignment continues", label)
+        n += 1
+    if n:
+        log("work_resumed", f"{n} task(s) continue after a model change")
+    return n
+
+
 RUN_MAX_IMAGES = int(os.environ.get("PCL_RUN_MAX_IMAGES", "8"))  # Bilder je Aufgabenlauf (Anhaenge + view_image)
 SELF_CHECKS = int(os.environ.get("PCL_SELF_CHECKS", "1"))  # wie oft erzeugte PDFs als Bild gegen den Auftrag geprueft werden (0 = aus)
 
@@ -2154,7 +2274,7 @@ def run_with_tools(a, perms, messages, final_only, root, ids, images=None, want=
     text, total, hint = call_llm_img(a, messages, seen)
     if hint:
         log("tool", "Images: " + hint, pid, aid, tid)
-    made, steps, result_idx = [], 0, []
+    made, steps, result_idx, trail = [], 0, [], []
     checked, checks, pushed = set(), 0, False
     while True:
         while allowed:
@@ -2217,6 +2337,7 @@ def run_with_tools(a, perms, messages, final_only, root, ids, images=None, want=
                 arg = str(c.get("query") or c.get("url") or c.get("prompt") or c.get("path") or c.get("name") or c.get("befehl") or "")[:120]
                 log("tool", f"{c.get('tool')}: {arg} -> {out[:150]!r}", pid, aid, tid)
                 outs.append(f"### {c.get('tool')} {arg}\n{clip(out, TOOL_RESULT_CHARS)}")
+                trail.append(f"- {c.get('tool')} {arg} -> {' '.join(str(out).split())[:160]}")
             # aeltere Werkzeugergebnisse kuerzen, damit kleine Modelle nicht ueberlaufen
             for i in result_idx:
                 messages[i]["content"] = clip(messages[i]["content"], 900)
@@ -2225,6 +2346,9 @@ def run_with_tools(a, perms, messages, final_only, root, ids, images=None, want=
                                                      + "\n\n".join(outs) + "\n\nCarry on: more 'tools' or your finished JSON."}]
             result_idx.append(len(messages) - 1)
             steps += 1
+            if trail:  # Zwischenschritt sofort sichern, damit ein Absturz ihn nicht verliert
+                handover_note(tid, f"tool round {steps}", "\n".join(trail), a)
+                trail.clear()
             text, t2, hint = call_llm_img(a, messages, seen)
             if hint:
                 log("tool", "view_image: " + hint, pid, aid, tid)
@@ -2485,6 +2609,7 @@ def execute_task(tid):
 
     set_task(tid, "running")
     log("task_start", f"{t['title']} [{mode}]", pid, aid, tid)
+    handover_note(tid, f"start ({mode})", "" if t["parent_task_id"] or HO.has_entries(proj_dir(pid), t["id"]) else t["title"], a)
     user = review_prompt(t, child_tasks) if mode == "review" else work_prompt(t)
     messages = [{"role": "system", "content": build_system(a, p, mode, final_only, team_change_ok)},
                 {"role": "user", "content": user}]
@@ -2509,6 +2634,9 @@ def execute_task(tid):
         if msg.startswith("MODEL_GONE: "):
             msg = msg[len("MODEL_GONE: "):]
             threading.Thread(target=model_check_and_notify, daemon=True).start()
+        if retry_later(t, a, msg):
+            return
+        handover_note(tid, "failed (no automatic retry left)", msg, a)
         finish(tid, "failed", f"Error: {msg}")
         log("task_failed", msg, pid, aid, tid)
         return
@@ -2516,6 +2644,11 @@ def execute_task(tid):
 
     data = parse_output(text)
     result = str(data.get("result") or text).strip()
+    if t.get("retries"):
+        set_task(tid, retries=0, retry_at=0)
+    handover_note(tid, f"result ({mode})", result[:1000]
+                  + (f"\nFiles: {', '.join(sorted(set(made_files)))[:400]}" if made_files else "")
+                  + (f"\nNEXT STEP: {str(data.get('next_step'))[:500]}" if data.get("next_step") else ""), a)
     notes = []
     if data.get("remember"):
         n = save_memory(a, data["remember"], pid, tid)
@@ -3634,6 +3767,12 @@ def inspection_report(pid):
     if bad:
         L.append("FAILED TOP-LEVEL ASSIGNMENTS (last 24 h):")
         L += [f"- #{t['id']} {t['title'][:80]} ({t['name']})" for t in bad]
+    wait = q("SELECT t.id, t.title, t.retries, t.retry_at, a.name FROM tasks t LEFT JOIN agents a ON a.id=t.agent_id WHERE t.project_id=? "
+             "AND t.status='queued' AND t.retry_at>? ORDER BY t.retry_at LIMIT 8", (pid, time.time()))
+    if wait:
+        L.append("STOPPED BY AN ERROR, CONTINUE AUTOMATICALLY (handover/ keeps their state; a model change continues them at once):")
+        L += [f"- #{t['id']} {t['title'][:80]} ({t['name']}, attempt {t['retries']}/{RETRY_MAX}, at "
+              f"{time.strftime('%H:%M', time.localtime(t['retry_at']))})" for t in wait]
     gb = goals_block(pid)
     if gb:
         L.append(gb.replace("PROJECT GOALS", "\nGOALS AND PROGRESS"))
@@ -3748,8 +3887,9 @@ def claim_next():
         busy_agents = {b["agent_id"] for b in busy}
         ollama_busy = any(b["provider"] == "ollama" for b in busy)
         for t in q("SELECT t.id, t.agent_id, a.provider FROM tasks t LEFT JOIN agents a ON a.id=t.agent_id WHERE t.status='queued'"
+                   " AND IFNULL(t.retry_at,0)<=?"
                    + (f" AND t.project_id NOT IN ({','.join(str(int(c)) for c in closed)})" if closed else "")
-                   + " ORDER BY t.id LIMIT 50"):
+                   + " ORDER BY t.id LIMIT 50", (time.time(),)):
             if t["agent_id"] in busy_agents or (ollama_busy and t["provider"] == "ollama"):
                 continue
             with closing(conn()) as c:
@@ -3976,6 +4116,7 @@ def api_models_replace():
         abort(400, "No agents with this model")
     for i in ids:
         ex("UPDATE agents SET provider=?, model=? WHERE id=?", (new_p, new_m, i))
+    model_changed(ids, f"{new_p}/{new_m or 'default'}")
     if old_p:
         _bad_models.pop((old_p, old_m or PROVIDERS[old_p]["model"]), None)
     log("models_replaced", f"{old_p}/{old_m or 'default'} -> {new_p}/{new_m or 'default'} ({len(ids)} agents)")
@@ -4011,6 +4152,7 @@ def api_models_assign():
     rows = q(f"SELECT id, name FROM agents WHERE id IN ({','.join('?' * len(ids))})", tuple(ids))
     for r in rows:
         ex("UPDATE agents SET provider=?, model=? WHERE id=?", (pid, model, r["id"]))
+    model_changed([r["id"] for r in rows], f"{pid}/{model or 'default'}")
     log("models_assigned", f"{len(rows)} agents -> {pid}/{model or 'default'}: " + ", ".join(r["name"] for r in rows)[:400])
     return jsonify({"ok": True, "changed": len(rows)})
 
@@ -4330,6 +4472,9 @@ def api_agent_put(aid):
         changed.append("perms=" + json.dumps(p))
     if changed:
         log("agent_updated", ", ".join(changed), a["project_id"], aid)
+    b = q1("SELECT provider, model FROM agents WHERE id=?", (aid,))
+    if b and b["provider"] and (b["provider"], b["model"]) != (a["provider"], a["model"]):
+        model_changed([aid], f"{b['provider']}/{b['model'] or 'default'}")
     return jsonify({"ok": True})
 
 

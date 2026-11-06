@@ -129,3 +129,30 @@ def test_projekt_zip_ohne_versteckte_ordner():
     r = A.app.test_client().get(f"/files/{pid}/{A.file_token(pid)}/_projekt.zip")
     names = zipfile.ZipFile(io.BytesIO(r.data)).namelist()
     assert "output/a.txt" in names and not any(n.startswith(".rust") for n in names)
+
+
+def test_bauordner_name_je_toolchain(monkeypatch):
+    """E0514 bei Doc-Tests kam von Bauresten einer aelteren rustc-Version: jede Toolchain bekommt einen eigenen Bauordner."""
+    class Out:
+        def __init__(self, text):
+            self.stdout = text
+    monkeypatch.setattr(R.subprocess, "run", lambda *a, **k: Out("rustc 1.98.0 (88d9e12ae 2026-08-18)\nrelease: 1.98.0\nhost: aarch64\n"))
+    a = R._target_name("rustc")
+    monkeypatch.setattr(R.subprocess, "run", lambda *a, **k: Out("rustc 1.97.0 (x)\nrelease: 1.97.0\nhost: aarch64\n"))
+    b = R._target_name("rustc")
+    assert a.startswith("target-1.98.0-") and b.startswith("target-1.97.0-") and a != b
+    monkeypatch.setattr(R.subprocess, "run", lambda *a, **k: Out(""))
+    assert R._target_name("rustc") == "target"
+
+
+@needs_cargo
+def test_eigener_bauordner_mit_doctest(tmp_path):
+    d = crate(tmp_path, name="lib")
+    (d / "src" / "lib.rs").write_text("/// ```\n/// assert_eq!(lib::zwei(), 2);\n/// ```\npub fn zwei() -> i32 { 2 }\n")
+    old = tmp_path / ".rust" / "lib" / "target" / "release" / "deps"
+    old.mkdir(parents=True)
+    (old / "liblib-0000.rlib").write_bytes(b"alt")  # Rest einer alten Toolchain
+    out = R.rust_project(tmp_path, {"op": "test", "dir": "rust/lib"})
+    assert "cargo test --release: OK" in out
+    assert (tmp_path / ".rust" / "lib" / R._target_name(R._toolchain()[1])).is_dir()
+    assert (old / "liblib-0000.rlib").is_file()  # nichts geloescht
