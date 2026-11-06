@@ -23,3 +23,8 @@ __pycache__/
 macros/*
 !macros/README.md
 !macros/vorlage_*.py
+
+# Von voraussetzungen.py (Windows) bzw. install.sh geladen
+tools/
+models/
+.voraussetzungen-nein

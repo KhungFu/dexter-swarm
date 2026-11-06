@@ -31,6 +31,10 @@ from urllib.parse import parse_qs, quote, unquote, urljoin, urlparse
 
 import requests
 
+import win_pfade
+
+win_pfade.erweitern()  # Windows: nachinstallierte Programme (winget, Tesseract, Git-Bash ...) ohne neues Fenster finden
+
 UA = "Mozilla/5.0 (compatible; Hyperstead/1.0; self-hosted agent team)"
 MAX_PAGE_BYTES = 2_000_000
 MAX_IMAGE_BYTES = 8_000_000
@@ -1375,9 +1379,13 @@ def check_code(root, path):
         return (f"{lang}: check tool '{cmd[0]}' is not installed on the server. The code was saved but not checked "
                 f"(the owner can install it).")
     # Minimale Umgebung: Compiler sehen keine API-Keys aus .env
-    env = {k: os.environ[k] for k in ("PATH", "HOME", "LANG", "JAVA_HOME", "GOROOT", "RUSTUP_HOME", "CARGO_HOME") if k in os.environ}
+    keep = ("PATH", "HOME", "LANG", "JAVA_HOME", "GOROOT", "RUSTUP_HOME", "CARGO_HOME")
+    if os.name == "nt":  # ohne SYSTEMROOT/TEMP starten node, gcc, javac unter Windows nicht
+        keep += ("SYSTEMROOT", "SystemDrive", "TEMP", "TMP", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "PATHEXT", "COMSPEC", "WINDIR")
+    env = {k: os.environ[k] for k in keep if k in os.environ}
     with tempfile.TemporaryDirectory(prefix="pcl-code-") as o:
         args = [a.replace("{f}", str(f)).replace("{o}", o) for a in cmd]
+        args[0] = shutil.which(args[0]) or args[0]  # Windows: tsc.cmd aus npm, Programme aus dem ergaenzten PATH
         try:
             r = subprocess.run(args, cwd=o, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=CODE_TIMEOUT)
         except subprocess.TimeoutExpired:
@@ -2231,7 +2239,8 @@ _VOICES_EDGE = {"de": "de-DE-KatjaNeural", "en": "en-US-AriaNeural", "tr": "tr-T
 def _piper():
     """(Kommando, Modell) fuer Piper. Sucht im venv und in models/piper/, damit PATH und .env nicht stimmen muessen."""
     here = Path(__file__).resolve().parent
-    exe = shutil.which("piper") or next((str(x) for x in (Path(sys.executable).parent / "piper", here / "venv" / "bin" / "piper") if x.exists()), "")
+    exe = shutil.which("piper") or next((str(x) for x in (Path(sys.executable).parent / "piper", Path(sys.executable).parent / "piper.exe",
+                                                          here / "venv" / "bin" / "piper", here / "venv" / "Scripts" / "piper.exe") if x.exists()), "")
     model = _env("PIPER_MODEL")
     if not model:
         cands = sorted((here / "models" / "piper").glob("*.onnx")) if (here / "models" / "piper").is_dir() else []
@@ -2325,9 +2334,10 @@ def speak(root, text, lang="de", name="", voice=None, pitch=None, rate=None, tar
             if r.returncode == 0 and wav.exists():
                 _ff(["-i", wav, "-c:a", "libmp3lame", "-q:a", "3", target], root)
                 done = True
-        if not done and engine == "edge":
+        import importlib.util
+        # edge: ausdruecklich gewaehlt, oder bei "auto" als letzter Rueckfall, wenn edge-tts installiert ist (Windows ohne espeak-ng)
+        if not done and (engine == "edge" or (engine == "auto" and importlib.util.find_spec("edge_tts"))):
             ev = voice if "Neural" in voice else (_env("EDGE_VOICE") or _VOICES_EDGE.get(lang.split("-")[0], "en-US-AriaNeural"))
-            import importlib.util
             py = sys.executable if importlib.util.find_spec("edge_tts") else (shutil.which("python3") or sys.executable)
             extra = ([f"--pitch={int((pitch - 50) * 2):+d}Hz"] if pitch is not None else []) + ([f"--rate={int((rate - 1) * 100):+d}%"] if rate else [])
             r = subprocess.run([py, "-m", "edge_tts", "--voice", ev, "--file", str(txt), "--write-media", str(target)] + extra,
