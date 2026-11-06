@@ -217,10 +217,10 @@ def group_media():
             out = T.speak(root, "Hello, this is a test of the speech output.", "en", "t")
             eng = "Piper" if T._piper()[0] else "espeak-ng"  # noqa: SLF001
             return f"{eng}: {out[:60]}"
-        check("Speech output", tts, optional=WIN, hint=fix("sudo apt install espeak-ng; better: ./install.sh --piper",
+        check("Speech output", tts, optional=WIN, hint=fix("sudo apt install espeak-ng; better: ./install.sh (sets up Piper)",
                                              "venv\\Scripts\\pip install edge-tts and TTS_ENGINE=edge in .env (online voice)"))
         check("Piper (good voice)", lambda: (lambda x: "model " + Path(x[1]).name if x[0] else (_ for _ in ()).throw(RuntimeError("not set up")))(T._piper()),  # noqa: SLF001
-              optional=True, hint=fix("./install.sh --piper", "optional, on Windows by hand (see docs/windows.md)"))
+              optional=True, hint=fix("./install.sh (sets up Piper)", "optional, on Windows by hand (see docs/windows.md)"))
 
         def doc():
             r = T.make_document(root, {"title": "Test", "format": "pdf", "content": "# Chapter\n\nUmlauts: äöüß. Turkish: ğışçö."})
@@ -269,7 +269,7 @@ def group_code():
 def group_browser():
     print("\nReal browser (browse_page)")
     if not T.browser_enabled():
-        line("warn", "Browser", "off (optional: " + fix("./install.sh --browser", "venv\\Scripts\\pip install playwright; venv\\Scripts\\python -m playwright install chromium") + ")")
+        line("warn", "Browser", "off (optional: " + fix("./install.sh (sets up the browser)", "venv\\Scripts\\pip install playwright; venv\\Scripts\\python -m playwright install chromium") + ")")
         return
     with tempfile.TemporaryDirectory(prefix="pcl-selftest-") as td:
         check("Open page in the browser", lambda: (lambda r: f"{len(r[1])} Screenshot, " + r[0].splitlines()[1][:50])(

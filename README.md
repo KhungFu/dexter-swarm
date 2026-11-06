@@ -25,13 +25,15 @@ kopieren ([Beispiel Pi → Windows](docs/windows.md)).
 
 ```bash
 git clone https://github.com/KhungFu/hyperstead-neu hyperstead && cd hyperstead
-./install.sh --service     # venv, Abhängigkeiten, .env mit Zufallspasswort, systemd-Dienst
+./install.sh --service     # venv, Abhängigkeiten, Browser, Piper-Stimme, Rust, .env mit Zufallspasswort, systemd-Dienst
 nano .env                  # API-Keys eintragen, danach: sudo systemctl restart hyperstead
 ```
 
 Ohne Dienst: `./install.sh` und dann `./venv/bin/python app.py` → http://127.0.0.1:8787.
 Das Login-Passwort steht in `.env` (`APP_TOKEN`). Update, Neustart, Sicherung: [Betrieb](#betrieb-wer-macht-was-wo-wann-wie).
-Mehr Funktionen (Video, OCR, Compiler, Browser): `./install.sh --all`.
+`install.sh` richtet automatisch auch den echten Browser (Chromium), die Piper-Stimme und Rust (`cargo`, ohne sudo nach `~/.cargo`) ein.
+Was schon da ist, wird übersprungen. Wer das nicht will: `./install.sh --minimal`. Nicht mit `sudo` starten, das Skript fragt selbst, wo es sudo braucht.
+Mehr Funktionen (Video, OCR, Compiler, Drucken, Code ausführen): `./install.sh --all`.
 
 ### Windows
 
@@ -108,12 +110,15 @@ Hyperstead-Ordner: auf dem Pi im Terminal (`cd ~/hyperstead`), unter Windows in 
 **Raspberry Pi / Linux**, im Terminal:
 
 ```bash
-cd ~/hyperstead
-git pull
-./install.sh               # nur nötig, wenn sich requirements.txt geändert hat; .env bleibt unverändert
-sudo systemctl restart hyperstead
-./venv/bin/python selftest.py llm     # kurz prüfen, ob die KI-Anbieter antworten
+cd ~/hyperstead            # auf älteren Pis: cd ~/paperclip-lite
+./install.sh --update
+./venv/bin/python selftest.py
 ```
+
+`./install.sh --update` macht alles in einem Schritt: `git pull`, Python-Pakete aktualisieren, Browser (Chromium), Piper und Rust
+(`rustup update`) aktualisieren bzw. nachinstallieren, ein per `--node` installiertes Node.js auf die neueste LTS bringen und den
+laufenden Dienst neu starten (`hyperstead`, auf älteren Pis noch `paperclip-lite`). `.env` bleibt unverändert. Systempakete von apt
+aktualisiert es nicht, dafür `sudo apt update && sudo apt upgrade`.
 
 **Windows**, in PowerShell:
 
@@ -203,7 +208,11 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | Bild-, Musik- oder `.blend`-Datei, die im Drehbuch steht | Die Prüfung nennt Szene, Figur und Pfad, es wird nichts gerendert. | Datei nach `assets/` oder `input/` legen oder den Pfad im Drehbuch korrigieren. |
 | Clip einer Szene (`film/clips/`) | `assemble` nennt die fehlenden Szenen und schneidet nichts. Bricht `render` ab (Zeitlimit), bleiben die fertigen Bilder erhalten und der nächste Aufruf macht dort weiter. | Nichts, die Agenten rufen `render` erneut auf. |
 | Sprachausgabe beim Film | `voices`/`render` brechen mit „No speech output available“ ab. Szenen ganz ohne Dialog gehen trotzdem. | Wie bei „Sprachausgabe“ oben (unter Windows `edge-tts` + `TTS_ENGINE=edge`). |
-| `cargo` (Rust, Werkzeug `rust_project`) | Das Werkzeug wird den Agenten nicht angezeigt, `check_code` prüft `.rs`-Dateien weiter, wenn `rustc` da ist. Der Selbsttest (`selftest.py rust`) zeigt MISSING mit dem Installationsbefehl. | Rust installieren: Pi `curl https://sh.rustup.rs -sSf \| sh`, Windows `winget install Rustlang.Rustup`. Danach Hyperstead neu starten. |
+| `cargo` (Rust, Werkzeug `rust_project`) | Das Werkzeug wird den Agenten nicht angezeigt, `check_code` prüft `.rs`-Dateien weiter, wenn `rustc` da ist. Der Selbsttest (`selftest.py rust`) zeigt MISSING mit dem Installationsbefehl. | Pi: `./install.sh` (installiert Rust ohne sudo per rustup), Windows `winget install Rustlang.Rustup`. Danach Hyperstead neu starten. |
+| Chromium | `install.sh` nimmt zuerst `PCL_BROWSER_PATH` aus `.env`, dann ein schon geladenes Chromium von Playwright, dann ein Chromium vom System (`chromium`/`chromium-browser`, bei Raspberry Pi OS meist schon da; wird als `PCL_BROWSER_PATH` eingetragen, nichts wird geladen). Erst wenn keins da ist, lädt es Chromium (ca. 400 MB). Klappt auch das nicht, bleibt `browse_page` aus und es steht eine WARNUNG in der Ausgabe, `fetch_url` geht weiter. | `sudo apt install chromium`, danach `./install.sh` erneut. |
+| Piper-Stimme in `models/piper/` | Die Sprachausgabe nutzt espeak-ng. `install.sh` lädt die Stimme bei jedem Lauf nach, solange sie fehlt. | `./install.sh` erneut (braucht Internet). |
+| Internet beim Installieren oder `./install.sh --update` | Fehlende Downloads (Chromium, Piper-Stimme, Rust) melden sich mit einer Zeile, der Rest läuft weiter. Vorhandenes bleibt, wie es ist. | Später `./install.sh --update` wiederholen. |
+| `.git` im Hyperstead-Ordner (z. B. aus ZIP entpackt) | `./install.sh --update` überspringt `git pull` und aktualisiert nur die Pakete. | Neue Version selbst holen oder mit `git clone` neu einrichten. |
 | bubblewrap beim Rust-Bauen (Pi/Linux) | `rust_project` bleibt ausgeblendet, genau wie `run_code`. | `./install.sh --run` |
 | `PCL_CARGO_UNSAFE=1` (Windows) | Unter Windows gibt es keine Abschottung, deshalb bleibt `rust_project` ohne den Schalter ausgeblendet. Mit Schalter baut der Laptop ohne Abschottung. | Nur setzen, wenn du das Risiko kennst ([Rust-Programme](#-rust-programme-komplett-bauen)), dann neu starten. |
 | `Cargo.toml` im Rust-Ordner | `rust_project` meldet „Cargo.toml is missing in …“ und nennt die Dateien, die der Agent zuerst anlegen muss. | Nichts, der Agent legt sie mit `write_code` an. |
@@ -368,7 +377,7 @@ fertig sind (max. `PCL_MAX_TOOL_STEPS`). Rechte pro Agent: **Internet recherchie
 |---|---|---|
 | `web_search` | Websuche (Gesetze, Preise, Wettbewerb …) | DuckDuckGo; besser: `SEARXNG_URL`, `BRAVE_API_KEY` oder `TAVILY_API_KEY` |
 | `fetch_url` | Webseite als Text lesen | ja |
-| `browse_page` | Seite in einem echten Browser öffnen (JavaScript läuft), optional mit Screenshot, den der Agent als Bild sieht | ja, braucht `./install.sh --browser` |
+| `browse_page` | Seite in einem echten Browser öffnen (JavaScript läuft), optional mit Screenshot, den der Agent als Bild sieht | ja, richtet `./install.sh` ein |
 | `image_search` / `image_save` | frei lizenzierte Fotos suchen und in `assets/` speichern, mit Urheber und Lizenz | Openverse; optional `PEXELS_API_KEY` |
 | `image_generate` | KI-Bild als PNG erzeugen, optional mit bis zu 4 Referenzbildern aus dem Projekt (gleiche Figuren und gleicher Stil über eine Serie), Format quadrat/hoch/quer und Zielpfad in `assets/`, `output/` oder `karten/`. Recht **Bilder** oder **Medien** | Pollinations (ohne Key: ohne Referenzbilder; mit `POLLINATIONS_API_KEY` und Pollen-Guthaben: Modell per `POLLINATIONS_MODEL`, mit Referenzbildern); `IMAGE_STYLE` legt einen festen Zeichenstil fest; weitere: `nvidia` (FLUX über build.nvidia.com), `cloudflare` (Workers AI, FLUX.2 klein mit Referenzbildern), `hf` (Hugging Face), Modell jeweils per `IMAGE_MODEL`; gratis mit Referenzbildern auf eigenem Rechner: `IMAGE_PROVIDER=sdcpp` ([Anleitung](docs/laptop-bildrechner.md)); besser `IMAGE_PROVIDER=openai` mit `OPENAI_API_KEY`, `gemini` oder `openrouter` mit `OPENROUTER_API_KEY` |
 | `list_files` / `read_file` | Dateien im Projektordner lesen (z. B. Texte der Kollegen) | ja |
@@ -421,7 +430,7 @@ rechnet ffmpeg langsam (eine Minute 720p-Video kann mehrere Minuten dauern), Zei
 
 **Gescannte PDFs und Bilder (OCR):** `read_file` liest Scans automatisch per `tesseract` (`sudo apt install tesseract-ocr tesseract-ocr-deu poppler-utils`). Das ist langsam (ca. 5–15 s je Seite auf dem Pi, Limit `PCL_OCR_MAX_PAGES`) und kann Fehler enthalten.
 
-**Gute Sprecherstimme:** `./install.sh --piper` richtet Piper mit deutscher Stimme ein; sie wird danach automatisch für deutsche Texte genutzt (andere Sprachen: espeak-ng).
+**Gute Sprecherstimme:** `./install.sh` richtet Piper mit deutscher Stimme ein (gehört zur Standardinstallation); sie wird danach automatisch für deutsche Texte genutzt (andere Sprachen: espeak-ng).
 
 ## Chat und Vorlagen
 
@@ -582,7 +591,7 @@ Der 👑 Set up CEO inspection schreibt bei Feierabend einen Abendbericht. In de
 
 ## 🌐 Echter Browser und ▶ Code ausführen
 
-- **Browser** (`./install.sh --browser`, installiert Playwright + Chromium, ca. 400 MB, nur 64-Bit-System): Agenten mit dem Recht
+- **Browser** (gehört zu `./install.sh`, installiert Playwright + Chromium, ca. 400 MB, nur 64-Bit-System): Agenten mit dem Recht
   „Internet recherchieren“ bekommen `browse_page`. Die Seite läuft mit JavaScript, der Agent bekommt den sichtbaren Text, die Links und
   auf Wunsch einen Screenshot (sieht ihn wie bei `view_image`, `save` legt ihn in `assets/screenshots/` ab). Jede Anfrage der Seite
   (Skripte, Frames, XHR, WebSockets) muss an eine öffentliche Adresse gehen, LAN/localhost wird blockiert, WebRTC und Downloads sind aus.
@@ -615,7 +624,7 @@ Du bekommst das Paket in der Post bzw. unter **📁 Dateien** (einzeln oder im P
 - **Windows:** Ohne bubblewrap bleibt das Werkzeug aus. Mit `PCL_CARGO_UNSAFE=1` in `.env` baut der Laptop **ohne Abschottung**: Der Code der
   Agenten (Tests, `build.rs`) läuft dann mit deinen Rechten und könnte Dateien auf dem Laptop lesen oder ändern. API-Keys bekommt er nicht
   in die Umgebung. Nur einschalten, wenn du den Agenten und ihren Modellen vertraust.
-- **Rust installieren:** Pi `curl https://sh.rustup.rs -sSf | sh` (aktueller als `apt install cargo`), Windows `winget install Rustlang.Rustup`
+- **Rust installieren:** Pi `./install.sh` (macht `rustup` ohne sudo nach `~/.cargo`, aktueller als `apt install cargo`; `./install.sh --update` aktualisiert es), Windows `winget install Rustlang.Rustup`
   und im Installer die „Visual Studio Build Tools (C++)“ mitnehmen. Danach Hyperstead neu starten und `selftest.py rust` ausführen.
 - **Grenzen:** `PCL_CARGO_TIMEOUT` (900 s je Schritt), `PCL_CARGO_MEM_MB` (3072, nur Linux), `PCL_CARGO_JOBS` (2), immer nur ein Rust-Bau
   gleichzeitig. Der erste Bau auf dem Pi dauert lange, danach baut cargo nur Geändertes neu. Ein Agent hat `PCL_MAX_TOOL_STEPS`
