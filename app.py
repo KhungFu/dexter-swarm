@@ -5411,6 +5411,92 @@ def api_file_delete(pid):
     return jsonify({"ok": True})
 
 
+def _prune_empty_dirs(root, start):
+    """Entfernt leer gewordene Unterordner von start aufwaerts, Ordner der ersten Ebene (input/, output/ ...) bleiben."""
+    d = start
+    while d != root and d.parent != root:
+        try:
+            d.rmdir()  # klappt nur, wenn leer
+        except OSError:
+            break
+        d = d.parent
+
+
+def delete_project_files(pid, paths):
+    """Loescht mehrere Dateien im Projektordner (Mehrfachauswahl in der Dateiansicht). Nur Dateien innerhalb des
+    Projektordners, keine Dot-Pfade. Gibt (geloescht, uebersprungen) zurueck."""
+    root = proj_dir(pid).resolve()
+    done, skipped = [], []
+    for p in dict.fromkeys(str(x) for x in paths):
+        try:
+            target = (root / p).resolve()
+            rel = target.relative_to(root)
+        except (ValueError, OSError):
+            skipped.append(p)
+            continue
+        if not rel.parts or any(x.startswith(".") for x in rel.parts) or not target.is_file():
+            skipped.append(p)
+            continue
+        target.unlink()
+        _prune_empty_dirs(root, target.parent)
+        done.append(rel.as_posix())
+    if done:
+        log("files_deleted", f"{len(done)}: " + ", ".join(done)[:900], pid)
+    return done, skipped
+
+
+def clear_project_folder(pid, folder):
+    """Leert einen Ordner der ersten Ebene (z. B. input/, output/): alle sichtbaren Dateien und Unterordner darin
+    werden geloescht, der Ordner selbst bleibt. Versteckte Dateien/Ordner (.rust, .tmp-*) bleiben unberuehrt."""
+    root = proj_dir(pid).resolve()
+    name = str(folder or "").strip().strip("/")
+    if not name or "/" in name or "\\" in name or name.startswith(".") or name in ("..",):
+        raise ValueError("Invalid folder.")
+    d = (root / name)
+    if d.is_symlink() or not d.is_dir():
+        raise ValueError("Folder not found.")
+    n = 0
+    for f in sorted(d.rglob("*"), key=lambda x: len(x.parts), reverse=True):
+        rel = f.relative_to(root)
+        if any(x.startswith(".") for x in rel.parts):
+            continue
+        if f.is_symlink() or f.is_file():
+            f.unlink()
+            n += 1
+        elif f.is_dir():
+            try:
+                f.rmdir()
+            except OSError:
+                pass  # enthaelt noch versteckte Dateien
+    log("folder_cleared", f"{name}/ ({n} files)", pid)
+    return n
+
+
+@app.post("/api/projects/<int:pid>/files/delete")
+def api_files_delete_many(pid):
+    if not q1("SELECT 1 FROM projects WHERE id=?", (pid,)):
+        abort(404)
+    paths = (request.get_json(force=True) or {}).get("paths")
+    if not isinstance(paths, list) or not paths:
+        abort(400, "No file selected.")
+    done, skipped = delete_project_files(pid, paths[:5000])
+    return jsonify({"ok": True, "deleted": len(done), "skipped": skipped})
+
+
+@app.post("/api/projects/<int:pid>/files/clear")
+def api_files_clear(pid):
+    if not q1("SELECT 1 FROM projects WHERE id=?", (pid,)):
+        abort(404)
+    d = request.get_json(force=True) or {}
+    if d.get("confirm") is not True:  # Schutz: Leeren nur mit ausdruecklicher Bestaetigung aus dem Dialog
+        abort(400, "Emptying a folder needs a confirmation.")
+    try:
+        n = clear_project_folder(pid, d.get("folder"))
+    except ValueError as e:
+        abort(400, str(e))
+    return jsonify({"ok": True, "deleted": n})
+
+
 @app.route("/files/<int:pid>/<tok>/", defaults={"rel": "index.html"})
 @app.route("/files/<int:pid>/<tok>/<path:rel>")
 def serve_file(pid, tok, rel):

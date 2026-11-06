@@ -564,6 +564,8 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
 .inbar label{display:flex;gap:6px;align-items:center;cursor:pointer;margin-right:auto;font-size:13px}
 .insel{display:inline-flex;align-items:center;margin-right:6px;cursor:pointer;vertical-align:middle}
 .insel input,.inbar input{width:18px;height:18px;margin:0}
+.fgrp{margin:0 0 12px}
+.fgrp-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 8px;margin-bottom:4px;border-bottom:1px solid var(--line)}
 /* Anleitung + Hinweise */
 .help-search{width:100%;margin-bottom:10px}
 .help-sec{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--panel2)}
@@ -1573,6 +1575,10 @@ async function showFiles(){
   const kb=n=>n<1024?n+' B':n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).toFixed(1)+' MB';
   const icon=p=>isVid(p)?'🎬':isAud(p)?'🎵':/\.pdf$/i.test(p)?'📕':/\.(epub|docx)$/i.test(p)?'📘':'📄';
   const idx=r.files.find(f=>f.path==='www/index.html')||r.files.find(f=>f.path==='index.html');
+  const top=p=>p.includes('/')?p.split('/')[0]:'';
+  const gm=new Map(); r.files.forEach(f=>{ const g=top(f.path); if(!gm.has(g)) gm.set(g,[]); gm.get(g).push(f); });
+  const ORD=['input','output','www','wissen'], groups=[...gm.entries()].sort((x,y)=>{ const i=ORD.indexOf(x[0]), j=ORD.indexOf(y[0]);
+    return (x[0]===''?99:i<0?50:i)-(y[0]===''?99:j<0?50:j) || x[0].localeCompare(y[0]); });
   const st=await api('/projects/'+S.pid+'/site');
   body.innerHTML = `
     <div class="task" style="padding:10px;margin-bottom:12px">
@@ -1588,12 +1594,24 @@ async function showFiles(){
     + (r.files.length ? `<div class="row" style="margin:0 0 10px"><a class="btn pri sm" href="${r.zip}">⬇ Everything as ZIP</a>
       ${idx?`<a class="btn sm" target="_blank" rel="noopener" href="${idx.url}">🌐 Open website (index.html)</a>`:''}</div>
       <div style="color:var(--mute);font-size:12px;margin-bottom:8px">The preview runs isolated (sandbox). The link contains a secret key, do not share it.</div>`
-      + r.files.map(f=>`<div class="task" style="padding:8px;display:flex;gap:10px;align-items:center">
+      + `<div class="inbar">
+        <label title="Select all files or clear the selection"><input type="checkbox" id="f_all"> Select all</label>
+        <button class="btn sm" id="f_del" disabled title="Delete all ticked files (asks first)">🗑 Delete selected</button>
+      </div>`
+      + groups.map(([g,fs])=>`<div class="fgrp">
+        <div class="fgrp-head">
+          <label class="insel" title="Select every file in this folder"><input type="checkbox" data-fgrp="${esc(g)}" aria-label="Select folder ${esc(g)}"></label>
+          <b style="flex:1">${g?'📁 '+esc(g)+'/':'📄 Project folder'}</b>
+          <span style="color:var(--mute);font-size:12px;white-space:nowrap">${fs.length} file${fs.length===1?'':'s'} · ${kb(fs.reduce((a,f)=>a+f.size,0))}</span>
+          ${g?`<button class="btn danger sm" data-fclr="${esc(g)}" title="Delete everything in ${esc(g)}/ (asks first)">🧹 Empty folder</button>`:''}
+        </div>`
+      + fs.map(f=>`<div class="task" style="padding:8px;display:flex;gap:10px;align-items:center">
+        <label class="insel" title="Select this file (to delete it)"><input type="checkbox" data-fsel="${esc(f.path)}" data-fg="${esc(g)}" aria-label="Select ${esc(f.path)}"></label>
         ${isImg(f.path)?`<img src="${f.url}" style="width:44px;height:44px;object-fit:cover;border-radius:6px">`:`<span style="width:44px;text-align:center;font-size:22px">${icon(f.path)}</span>`}
         <a href="${f.url}" target="_blank" rel="noopener" style="flex:1;color:var(--text);word-break:break-all">${esc(f.path)}</a>
         <span style="color:var(--mute);font-size:12px;white-space:nowrap">${kb(f.size)}</span>
         <button class="icon-btn" title="Upload (GitHub, Google Drive, OneDrive) or send to Telegram" data-cup="${esc(f.path)}">☁️</button>
-        <button class="icon-btn" title="Delete file" data-delf="${esc(f.path)}">🗑</button></div>`).join('')
+        <button class="icon-btn" title="Delete file" data-delf="${esc(f.path)}">🗑</button></div>`).join('')+'</div>').join('')
       : '<div style="color:var(--mute)">No files yet. What the team creates (websites, images, videos, documents) appears here.</div>');
   $('#sitebtn').onclick=async()=>{ try{ await api('/projects/'+S.pid+'/site','POST',{enabled:!st.running}); }catch(_){} showFiles(); };
   $('#upf').onchange=async e=>{
@@ -1606,6 +1624,23 @@ async function showFiles(){
   };
   body.querySelectorAll('[data-delf]').forEach(b=>b.onclick=async()=>{ if(confirm('Delete “'+b.dataset.delf+'”?')){ await fetch('/api/projects/'+S.pid+'/files?path='+encodeURIComponent(b.dataset.delf),{method:'DELETE',headers:{'X-PCL':'1'}}); showFiles(); } });
   body.querySelectorAll('[data-cup]').forEach(b=>b.onclick=()=>cloudUpload(b.dataset.cup));
+  const sels=[...body.querySelectorAll('[data-fsel]')], all=$('#f_all'), del=$('#f_del');
+  const grps=[...body.querySelectorAll('[data-fgrp]')];
+  const picked=()=>sels.filter(c=>c.checked).map(c=>c.dataset.fsel);
+  const tri=(box,list)=>{ const n=list.filter(c=>c.checked).length; box.checked=n>0&&n===list.length; box.indeterminate=n>0&&n<list.length; };
+  const upd=()=>{ if(!del) return; const n=picked().length; del.disabled=!n; del.textContent='🗑 Delete selected'+(n?` (${n})`:'');
+    tri(all,sels); grps.forEach(gb=>tri(gb,sels.filter(c=>c.dataset.fg===gb.dataset.fgrp))); };
+  sels.forEach(c=>c.onchange=upd);
+  grps.forEach(gb=>gb.onchange=()=>{ sels.filter(c=>c.dataset.fg===gb.dataset.fgrp).forEach(c=>c.checked=gb.checked); upd(); });
+  if(all) all.onchange=()=>{ sels.forEach(c=>c.checked=all.checked); upd(); };
+  if(del) del.onclick=async()=>{ const paths=picked(); if(!paths.length) return;
+    if(!confirm(`Delete ${paths.length} file${paths.length===1?'':'s'}?\n\n`+paths.slice(0,8).join('\n')+(paths.length>8?`\n… and ${paths.length-8} more`:''))) return;
+    try{ const x=await api('/projects/'+S.pid+'/files/delete','POST',{paths}); toast(`${x.deleted} file${x.deleted===1?'':'s'} deleted`); }catch(_){}
+    showFiles(); };
+  body.querySelectorAll('[data-fclr]').forEach(b=>b.onclick=async()=>{ const g=b.dataset.fclr, n=(gm.get(g)||[]).length;
+    if(!confirm(`Really empty the folder “${g}/”?\n\nAll ${n} file${n===1?'':'s'} in it (including subfolders) are deleted for good. The folder itself stays.`)) return;
+    try{ const x=await api('/projects/'+S.pid+'/files/clear','POST',{folder:g,confirm:true}); toast(`Folder ${g}/ emptied (${x.deleted})`); }catch(_){}
+    showFiles(); });
 }
 $('#btnFiles').onclick=showFiles;
 

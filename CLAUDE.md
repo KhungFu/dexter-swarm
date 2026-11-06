@@ -332,3 +332,4 @@ Tests: `python -m pytest -q tests` (mock-Anbieter, ohne Internet). UI-Prüfung w
   `_run_cli(extra_env=...)` NUR an Programme `claude*` weiter (`_run_cli` filtert sonst alle `*_TOKEN`). Anmeldefehler (`_CLAUDE_AUTH_RE`) ->
   `CLAUDE_LOGIN_HINT` + Telegram max. alle 6 h; Token-Datei aelter als 335 Tage -> Telegram taeglich. Skripte `deploy/claude-erneuern.sh`,
   `deploy/windows/claude-erneuern.ps1` (claude setup-token, Token unsichtbar einlesen). Doku `docs/claude-anmeldung.md`, Test `tests/test_claude_anmeldung.py`.
+- Dateiansicht (`showFiles`): Dateien nach Ordnern der ersten Ebene gruppiert, Kästchen je Datei/Ordner + „Select all“ → `POST /api/projects/<id>/files/delete` {paths} (`delete_project_files`, keine Dot-Pfade, leere Unterordner weg); „🧹 Empty folder“ → `POST …/files/clear` {folder, confirm:true} (`clear_project_folder`, nur erste Ebene, Dot-Dateien bleiben).
