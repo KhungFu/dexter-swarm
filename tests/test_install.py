@@ -16,7 +16,7 @@ def test_install_sh_syntax():
 
 def test_install_sh_standard_und_update():
     s = SH.read_text(encoding="utf-8")
-    assert 'has --minimal || OPT="$OPT --browser --piper --rust "' in s
+    assert 'has --minimal || OPT="$OPT --browser --piper --rust --node "' in s
     assert "git pull --ff-only" in s and "--nach-pull" in s
     assert "rustup\" update stable" in s and "--profile minimal" in s
     for svc in ("hyperstead", "paperclip-lite"):

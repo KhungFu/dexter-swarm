@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 # Hyperstead Installer (Raspberry Pi / Debian / Ubuntu / MX Linux)
 #   ./install.sh            -> venv + Abhaengigkeiten + .env mit zufaelligem Passwort, dazu automatisch
-#                              Browser (Chromium), Piper-Stimme und Rust (cargo). Schon Vorhandenes wird uebersprungen.
+#                              Browser (Chromium), Piper-Stimme, Rust (cargo) und Node.js (ohne sudo). Schon Vorhandenes wird uebersprungen.
 #   ./install.sh --update   -> neue Version holen (git pull) und ALLES aktualisieren: Python-Pakete, Browser, Piper,
 #                              Rust (rustup update), Node.js (falls per --node installiert), danach Dienst neu starten
-#   ./install.sh --minimal  -> nur das Noetigste, ohne Browser, Piper und Rust
+#   ./install.sh --minimal  -> nur das Noetigste, ohne Browser, Piper, Rust und Node.js
 #   ./install.sh --service  -> zusaetzlich systemd-Dienst einrichten und starten (braucht sudo)
 #   ./install.sh --system   -> fehlende Systemprogramme fuer Video, Sprache, OCR, PDF-Schriften per apt installieren (sudo)
 #   ./install.sh --code     -> Compiler/Pruefer fuer das Recht "Programmieren" per apt installieren (sudo, ca. 1,5 GB)
 #   ./install.sh --run      -> bubblewrap fuer das Recht "Code ausfuehren" (abgeschottet, ohne Internet)
 #   ./install.sh --node     -> Node.js LTS ohne sudo nach ~/.local (fuer Remotion & Co., deploy/node-ohne-sudo.sh --remotion)
 #   ./install.sh --print    -> CUPS-Programme (lp, lpstat) zum Drucken der Abendberichte auf einem Netzwerkdrucker
-#   ./install.sh --all      -> alles oben zusammen (system + code + run + print + service, dazu Browser, Piper, Rust)
+#   ./install.sh --all      -> alles oben zusammen (system + code + run + print + node + service, dazu Browser, Piper, Rust)
 #   Optionen sind kombinierbar. Danach pruefen:  ./venv/bin/python selftest.py
 #   Nicht mit sudo starten: wo sudo noetig ist, fragt das Skript selbst danach.
 set -euo pipefail
 cd "$(dirname "$0")"
 DIR="$(pwd)"
 OPT=" $* "
-case "$OPT" in *" --all "*) OPT="$OPT --system --code --run --print --service ";; esac
+case "$OPT" in *" --all "*) OPT="$OPT --system --code --run --print --node --service ";; esac
 has() { case "$OPT" in *" $1 "*) return 0;; esac; return 1; }
 
 # --update: neue Version holen und danach das NEUE install.sh mit denselben Optionen starten
@@ -29,8 +29,8 @@ if has --update && ! has --nach-pull; then
   fi
   exec bash "$0" "$@" --nach-pull
 fi
-# Standard (Wunsch ABI 2026-11-06): Browser, Piper und Rust gehoeren zur Installation. --minimal laesst sie weg.
-has --minimal || OPT="$OPT --browser --piper --rust "
+# Standard (Wunsch ABI 2026-11-06): Browser, Piper, Rust und Node.js gehoeren zur Installation. --minimal laesst sie weg.
+has --minimal || OPT="$OPT --browser --piper --rust --node "
 UPD=""; if has --update; then UPD="--upgrade"; fi
 # Befehle mit apt bekommen kein stdin: sonst "verschluckt" apt/needrestart Zeilen, die man danach ins Terminal eingefuegt hat
 
