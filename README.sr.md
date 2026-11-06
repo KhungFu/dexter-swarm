@@ -45,6 +45,8 @@ notepad .env
 deploy\windows\hyperstead-start.bat
 ```
 
+`install.ps1` zatim proverava sve preduslove (video, glas, pregledač, OCR, filmski studio, server za slike, Rust, kompajleri), prikazuje svaki deo koji nedostaje sa komandom i veličinom i pita **pre svake instalacije** (j/n = da/ne, a = da za sve ostale, x = ne za sve ostale). Bez „j“ se ništa ne instalira. `hyperstead-start.bat` proverava ponovo pri svakom pokretanju i postavlja jedno pitanje sa 20 sekundi za odgovor; bez odgovora Hyperstead se jednostavno pokreće (autostart nikad ne zastaje). Samo prikaz: `venv\Scripts\python.exe voraussetzungen.py --liste`.
+
 Šta nedostaje na Windowsu, automatsko pokretanje i paralelni rad sa Pi-jem: [docs/windows.md](docs/windows.md).
 Kasnije ažuriranje: `git pull`, pa ponovo pokrenite.
 
@@ -183,6 +185,7 @@ Ova lista se dopunjuje pri svakoj promeni programa. Svaki red kaže šta sistem 
 | Nedostaje | Šta sistem radi | Šta vi radite |
 | --- | --- | --- |
 | `.env` | Hyperstead se pokreće bez ključeva i bez lozinke, dostupan samo sa ovog računara. Sa `HOST=0.0.0.0` pokretanje se prekida dok je `APP_TOKEN` prazan. | `./install.sh` (Pi) odnosno `install.ps1` (Windows) ga pravi sa nasumičnom lozinkom. |
+| Dodatni programi za Windows (ffmpeg, Piper/edge-tts, pregledač, Tesseract + jezici, Poppler, Blender, server za slike, Rust + Build Tools, Node/TypeScript, Java, Go, GCC, Git Bash, Ruby, PHP, Lua) | `install.ps1` i `hyperstead-start.bat` prikazuju listu sa komandama i pitaju pre svake instalacije. Delove odbijene sa „n“ pamti `.voraussetzungen-nein`: pokretanje više ne pita, `install.ps1` ponovo pita. Ako se `requirements.txt` promenio od poslednje instalacije, pokretanje nudi `pip install`. Novo instalirane programe Hyperstead nalazi bez novog prozora (PATH se dopunjuje pri pokretanju). Ako server za slike ne radi (`IMAGE_PROVIDER=sdcpp`, lokalno), pokretanje nudi da ga pokrene. | Odgovoriti „j“ u prozoru ili pokrenuti `powershell -ExecutionPolicy Bypass -File install.ps1`. Ako instalacija ne uspe, u ispisu stoji komanda za ručni rad. |
 | `data.db` | Pravi se nov i prazan. Firme, zadaci i pošta su nestali. | Prvo napravite rezervu (vidi Rad). Vraćajte samo iz rezerve. |
 | API ključ u `.env` | Provajder se u samoproveri prijavljuje kao MISSING i agenti ga ne koriste. Ako je unet, ali nevažeći: ERROR sa HTTP 401. | Unesite ključ ili isključite red sa `#`. |
 | Ollama nedostupna ili model prevelik | Zadatak ne uspeva uz „Ollama not reachable“ odnosno „Not enough RAM for this model“; model koji nedostaje javlja „`ollama pull …`“. Ako Ollama `OLLAMA_TIMEOUT` sekundi ništa ne pošalje, zahtev se prekida s tom napomenom, bez ponavljanja. | `systemctl status ollama`, preuzmite manji model (`ollama pull qwen2.5:1.5b`) i izaberite ga kod agenta, ili povećajte `OLLAMA_TIMEOUT`. |

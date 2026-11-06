@@ -45,6 +45,8 @@ notepad .env
 deploy\windows\hyperstead-start.bat
 ```
 
+`install.ps1` then checks all prerequisites (video, voice, browser, OCR, film studio, image server, Rust, compilers), shows every missing part with its command and size and asks **before each installation** (j/n = yes/no, a = yes to all further, x = no to all further). Nothing is installed without “j”. `hyperstead-start.bat` checks again on every start and asks one question with 20 seconds to answer; without an answer Hyperstead simply starts (autostart never hangs). Only show: `venv\Scripts\python.exe voraussetzungen.py --liste`.
+
 What is missing under Windows, autostart and running in parallel with the Pi: [docs/windows.md](docs/windows.md).
 Update later: `git pull`, then restart.
 
@@ -183,6 +185,7 @@ This list is extended with every change to the program. Each row says what the s
 | Missing | What the system does | What you do |
 | --- | --- | --- |
 | `.env` | Hyperstead starts without keys and without a password, reachable only from this computer. With `HOST=0.0.0.0` the start is aborted as long as `APP_TOKEN` is empty. | `./install.sh` (Pi) or `install.ps1` (Windows) creates it with a random password. |
+| Windows add-on programs (ffmpeg, Piper/edge-tts, browser, Tesseract + languages, Poppler, Blender, image server, Rust + Build Tools, Node/TypeScript, Java, Go, GCC, Git Bash, Ruby, PHP, Lua) | `install.ps1` and `hyperstead-start.bat` show the list with commands and ask before each installation. Parts declined with “n” are remembered in `.voraussetzungen-nein`: the start no longer asks, `install.ps1` asks again. If `requirements.txt` changed since the last installation, the start offers `pip install`. Hyperstead finds newly installed programs without a new window (PATH is extended at start). If the image server is not running (`IMAGE_PROVIDER=sdcpp`, local), the start offers to start it. | Answer “j” in the window or run `powershell -ExecutionPolicy Bypass -File install.ps1`. If an installation fails, the output shows the command to do it by hand. |
 | `data.db` | Is created new and empty. Companies, tasks and posts are gone. | Back it up first (see Operations). Only copy back from a backup. |
 | API key in `.env` | The provider is reported as MISSING in the self-test and the agents do not use it. If it is set but invalid: ERROR with HTTP 401. | Enter the key, or switch the line off with `#`. |
 | Ollama not reachable or model too big | The task fails with „Ollama not reachable“ or „Not enough RAM for this model“; a missing model reports „`ollama pull …`“. If Ollama delivers nothing for `OLLAMA_TIMEOUT` seconds, the request stops with this hint, without repetition. | `systemctl status ollama`, pull a smaller model (`ollama pull qwen2.5:1.5b`) and choose it in the agent, or raise `OLLAMA_TIMEOUT`. |

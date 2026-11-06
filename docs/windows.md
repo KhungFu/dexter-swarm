@@ -73,12 +73,46 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 Das legt `venv` an, installiert die Pakete und erzeugt `.env` mit einem zufälligen Login-Passwort (wird angezeigt,
 notieren). Keys eintragen: `notepad .env`.
 
+Danach prüft `install.ps1` alle weiteren Voraussetzungen (`voraussetzungen.py`) und zeigt eine Liste der fehlenden
+Teile mit Befehl und Größe. **Vor jeder Installation kommt eine Frage**, beantwortet mit einer Taste:
+`j` installieren, `n` nicht, `a` alle weiteren ja, `x` alle weiteren nein. Ohne `j` wird nichts installiert.
+
+| Teil | Wozu | Wie es installiert wird |
+| --- | --- | --- |
+| Python-Pakete | Hyperstead selbst (nach einem Update mit geänderter `requirements.txt`) | `pip install -r requirements.txt` |
+| ffmpeg + ffprobe | Video, Filmstudio, Sprachausgabe, YouTube | `winget install -e --id Gyan.FFmpeg` |
+| Piper | gute deutsche Offline-Stimme | `pip install piper-tts` + Stimme `de_DE-thorsten-medium` nach `models\piper` |
+| edge-tts | Online-Stimmen für Türkisch, Englisch … (Rückfall, wenn Piper die Sprache nicht hat) | `pip install edge-tts` |
+| Browser | `browse_page` | `pip install playwright` + `playwright install chromium` |
+| Tesseract | OCR | `winget install -e --id UB-Mannheim.TesseractOCR` |
+| OCR-Sprachen | Deutsch und Türkisch für OCR | Download nach `tools\tessdata` (ohne Administrator) |
+| Poppler | gescannte PDFs | Download nach `tools\poppler` |
+| Blender | Filmstudio | `winget install -e --id BlenderFoundation.Blender` |
+| Bildrechner | nur mit `IMAGE_PROVIDER=sdcpp` | `deploy\windows\bildrechner-einrichten.ps1` (ca. 4 GB) |
+| Rust | Rust prüfen und bauen | `winget install -e --id Rustlang.Rustup` |
+| Visual Studio Build Tools (C++) | Linker für Rust (ca. 6 GB) | `winget install -e --id Microsoft.VisualStudio.2022.BuildTools` mit C++-Workload |
+| `PCL_CARGO_UNSAFE=1` | `rust_project` unter Windows (ohne Abschottung!) | nur Eintrag in `.env`, wird extra gefragt |
+| Node.js, TypeScript | JavaScript/TypeScript prüfen, Remotion | `winget … OpenJS.NodeJS.LTS`, `npm install -g typescript` |
+| Java, Go, GCC, Git-Bash, Ruby, PHP, Lua | `check_code` | `winget …` (Temurin 21 JDK, GoLang.Go, WinLibs, Git.Git, Ruby 3.3, PHP 8.3, DEVCOM.Lua) |
+
+Programme, die winget oder Tesseract nicht in den PATH legen, findet Hyperstead trotzdem: beim Start wird PATH aus
+der Registry neu gelesen und um die bekannten Installationsordner ergänzt (`win_pfade.py`). Ein neues Fenster ist
+nicht nötig. Für Programme aus winget erscheint teils eine Windows-Sicherheitsabfrage (Administrator).
+
+Nur anzeigen, nichts installieren: `venv\Scripts\python.exe voraussetzungen.py --liste`
+
 ## 3. Starten
 
 Doppelklick auf `deploy\windows\hyperstead-start.bat` (oder `venv\Scripts\python.exe app.py`).
 Dann im Browser: <http://127.0.0.1:8787>
 
-Prüfen, was geht: `venv\Scripts\python.exe selftest.py`
+Die Startdatei prüft vorher dieselben Voraussetzungen. Fehlt etwas, zeigt sie die Liste und fragt einmal:
+`j` = einzeln fragen und installieren, `n` = diesmal nicht, `x` = beim Start nie mehr fragen. Ohne Antwort startet
+Hyperstead nach 20 Sekunden einfach, so bleibt der Autostart nie hängen. Mit `n` abgelehnte Teile merkt sich
+`.voraussetzungen-nein`, der Start fragt danach nicht mehr, `install.ps1` fragt wieder. Läuft der Bildrechner nicht
+(`IMAGE_PROVIDER=sdcpp` auf diesem Laptop), bietet der Start an, ihn in einem eigenen Fenster zu starten.
+
+Prüfen, was geht: `python selftest.py`
 
 ## 4. Vom Handy oder anderen Rechnern erreichbar
 
@@ -116,13 +150,13 @@ dem Laptop passt nicht mehr.
 | Funktion | Unter Windows | Was tun |
 | --- | --- | --- |
 | Code ausführen (`run_code`) | geht nicht | braucht Linux-Sandbox (bubblewrap), das Werkzeug wird automatisch ausgeblendet |
-| Rust-Programme bauen (`rust_project`) | nur mit Schalter, ohne Abschottung | `winget install Rustlang.Rustup` (mit „Visual Studio Build Tools (C++)“), in `.env` `PCL_CARGO_UNSAFE=1`, neu starten, `venv\Scripts\python.exe selftest.py rust`. Der Code der Agenten läuft dann mit deinen Rechten (siehe README, Abschnitt Rust-Programme) |
-| Code prüfen (`check_code`) | Python und JSON gehen | andere Sprachen nur, wenn der Compiler im PATH ist |
+| Rust-Programme bauen (`rust_project`) | nur mit Schalter, ohne Abschottung | `install.ps1` bietet Rust, Build Tools und `PCL_CARGO_UNSAFE=1` an (fragt je Teil), danach `python selftest.py rust`. Der Code der Agenten läuft dann mit deinen Rechten (siehe README, Abschnitt Rust-Programme) |
+| Code prüfen (`check_code`) | Python und JSON gehen | andere Sprachen bietet `install.ps1` an |
 | Shell-Freigaben (`PCL_ALLOW_SHELL`) | laufen in `cmd.exe` | Linux-Befehle (`ls`, `grep`) gehen dort nicht |
 | HTML → PDF (`make_document` mit html) | meist nicht | WeasyPrint braucht GTK unter Windows; PDF aus Text/Markdown geht trotzdem |
-| OCR für gescannte PDFs | nur mit Zusatz | Tesseract und Poppler für Windows installieren und in den PATH legen |
-| Video (`video_edit`) | nur mit Zusatz | `winget install Gyan.FFmpeg` |
-| Sprache (`speak`) | nur mit Zusatz | `venv\Scripts\pip install edge-tts` (braucht Internet); Piper/espeak optional |
-| Echter Browser (`browse_page`) | optional | `venv\Scripts\pip install playwright` und `venv\Scripts\python -m playwright install chromium` |
+| OCR für gescannte PDFs | nur mit Zusatz | `install.ps1` bietet Tesseract, OCR-Sprachen und Poppler an |
+| Video (`video_edit`) | nur mit Zusatz | `install.ps1` bietet ffmpeg an |
+| Sprache (`speak`) | nur mit Zusatz | `install.ps1` bietet Piper (Deutsch, offline) und edge-tts (andere Sprachen, online) an |
+| Echter Browser (`browse_page`) | optional | `install.ps1` bietet Playwright + Chromium an |
 | Claude/Codex über CLI | wenn installiert | `claude` bzw. `codex` unter Windows installieren und anmelden (Claude: `deploy\windows\claude-erneuern.ps1`), `PCL_ALLOW_CLI=1` |
 | Ollama | geht | Ollama für Windows installieren; auf 8 GB RAM nur kleine Modelle |

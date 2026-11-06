@@ -333,3 +333,10 @@ Tests: `python -m pytest -q tests` (mock-Anbieter, ohne Internet). UI-Prüfung w
   `CLAUDE_LOGIN_HINT` + Telegram max. alle 6 h; Token-Datei aelter als 335 Tage -> Telegram taeglich. Skripte `deploy/claude-erneuern.sh`,
   `deploy/windows/claude-erneuern.ps1` (claude setup-token, Token unsichtbar einlesen). Doku `docs/claude-anmeldung.md`, Test `tests/test_claude_anmeldung.py`.
 - Dateiansicht (`showFiles`): Dateien nach Ordnern der ersten Ebene gruppiert, Kästchen je Datei/Ordner + „Select all“ → `POST /api/projects/<id>/files/delete` {paths} (`delete_project_files`, keine Dot-Pfade, leere Unterordner weg); „🧹 Empty folder“ → `POST …/files/clear` {folder, confirm:true} (`clear_project_folder`, nur erste Ebene, Dot-Dateien bleiben).
+
+## Windows-Voraussetzungen (2026-11-06, Wunsch ABI)
+- `voraussetzungen.py` (nur Windows): `teile()` = Liste aller Zusatzprogramme mit `da()`/`install()` (winget, pip im venv, Downloads nach `tools/`).
+  NIE ohne Rueckfrage installieren (`frage`: j/n/a/x). `install.ps1` ruft es ohne Option (fragt alles), `hyperstead-start.bat` mit `--start`
+  (eine Frage, 20 s, Standard n, damit der Autostart nie haengt; mit n Abgelehntes in `.voraussetzungen-nein`). `--liste` zeigt nur.
+- `win_pfade.erweitern()` (Import in agent_tools) liest PATH aus der Registry neu und haengt bekannte Ordner an (WinGet Links/Packages,
+  Tesseract, Git\bin, .cargo\bin, npm, JDK, Ruby, Lua, tools\poppler), setzt TESSDATA_PREFIX auf tools\tessdata. Tests `tests/test_voraussetzungen.py`.

@@ -45,6 +45,8 @@ notepad .env
 deploy\windows\hyperstead-start.bat
 ```
 
+`install.ps1` ardından tüm gereksinimleri denetler (video, ses, tarayıcı, OCR, film stüdyosu, görüntü sunucusu, Rust, derleyiciler), eksik her parçayı komutu ve boyutuyla gösterir ve **her kurulumdan önce sorar** (j/n = evet/hayır, a = sonrakilerin hepsine evet, x = sonrakilerin hepsine hayır). “j” olmadan hiçbir şey kurulmaz. `hyperstead-start.bat` her başlatmada yeniden denetler ve 20 saniye süreli tek bir soru sorar; yanıt gelmezse Hyperstead yine başlar (otomatik başlatma asla takılmaz). Yalnızca göstermek için: `venv\Scripts\python.exe voraussetzungen.py --liste`.
+
 Windows'ta eksik olanlar, otomatik başlatma ve Pi ile paralel çalışma: [docs/windows.md](docs/windows.md).
 Sonradan güncelleme: `git pull`, ardından yeniden başlatın.
 
@@ -182,6 +184,7 @@ Bu liste programda her değişiklikle genişletilir. Her satır sistemin ne yapt
 | Eksik | Sistem ne yapar | Siz ne yaparsınız |
 | --- | --- | --- |
 | `.env` | Hyperstead anahtarsız ve şifresiz başlar; yalnızca bu bilgisayardan erişilebilir. `HOST=0.0.0.0` ile `APP_TOKEN` boş olduğu sürece başlatma iptal edilir. | `./install.sh` (Pi) ya da `install.ps1` (Windows) rastgele şifreli bir tane oluşturur. |
+| Windows ek programları (ffmpeg, Piper/edge-tts, tarayıcı, Tesseract + diller, Poppler, Blender, görüntü sunucusu, Rust + Build Tools, Node/TypeScript, Java, Go, GCC, Git Bash, Ruby, PHP, Lua) | `install.ps1` ve `hyperstead-start.bat` listeyi komutlarla gösterir ve her kurulumdan önce sorar. “n” ile reddedilenler `.voraussetzungen-nein` dosyasında tutulur: başlatma artık sormaz, `install.ps1` yeniden sorar. `requirements.txt` son kurulumdan beri değiştiyse başlatma `pip install` önerir. Yeni kurulan programlar yeni pencere açmadan bulunur (PATH başlangıçta genişletilir). Görüntü sunucusu çalışmıyorsa (`IMAGE_PROVIDER=sdcpp`, yerel) başlatma onu çalıştırmayı önerir. | Pencerede “j” ile yanıtlayın ya da `powershell -ExecutionPolicy Bypass -File install.ps1` çalıştırın. Bir kurulum olmazsa, elle yapmak için komut çıktıda yazar. |
 | `data.db` | Boş olarak yeniden oluşturulur. Şirketler, görevler ve gönderiler kaybolur. | Önce yedekleyin (İşletim bölümüne bakın). Yalnızca bir yedekten geri kopyalayın. |
 | `.env` içindeki API anahtarı | Sağlayıcı selbsttest'te MISSING olarak gösterilir ve ajanlar kullanmaz. Girilmiş ama geçersizse: HTTP 401 ile ERROR. | Anahtarı girin ya da satırı `#` ile kapatın. |
 | Ollama erişilemiyor veya model çok büyük | Görev „Ollama not reachable“ ya da „Not enough RAM for this model“ ile başarısız olur; eksik model „`ollama pull …`“ bildirir. Ollama `OLLAMA_TIMEOUT` saniye boyunca hiçbir şey göndermezse istek bu uyarıyla, tekrarlanmadan durur. | `systemctl status ollama`, daha küçük bir model çekin (`ollama pull qwen2.5:1.5b`) ve ajanda seçin ya da `OLLAMA_TIMEOUT` değerini artırın. |

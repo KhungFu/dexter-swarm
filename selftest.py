@@ -102,9 +102,9 @@ if WIN:
     os.system("")  # schaltet Farbcodes in cmd.exe ein (sonst erscheint "←[32m")
 # Installationshinweis je System: (Linux/Pi, Windows)
 WIN_HINTS = {
-    "ffmpeg": "winget install Gyan.FFmpeg (then open a new window)",
-    "tesseract-ocr tesseract-ocr-deu": "winget install UB-Mannheim.TesseractOCR (tick German during installation), add the folder to PATH",
-    "poppler-utils": "Poppler for Windows (github.com/oschwartz10612/poppler-windows), add the folder Library\\bin to PATH",
+    "ffmpeg": "install.ps1 offers it (asks first), or: winget install Gyan.FFmpeg",
+    "tesseract-ocr tesseract-ocr-deu": "install.ps1 offers it (asks first), or: winget install UB-Mannheim.TesseractOCR",
+    "poppler-utils": "install.ps1 offers it (asks first) (downloads Poppler to tools\\poppler)",
 }
 
 
@@ -274,9 +274,9 @@ def group_media():
             eng = "Piper" if T._piper()[0] else "espeak-ng"  # noqa: SLF001
             return f"{eng}: {out[:60]}"
         check("Speech output", tts, optional=WIN, hint=fix("sudo apt install espeak-ng; better: ./install.sh (sets up Piper)",
-                                             "venv\\Scripts\\pip install edge-tts and TTS_ENGINE=edge in .env (online voice)"))
+                                             "install.ps1 offers it (asks first) (Piper, edge-tts)"))
         check("Piper (good voice)", lambda: (lambda x: "model " + Path(x[1]).name if x[0] else (_ for _ in ()).throw(RuntimeError("not set up")))(T._piper()),  # noqa: SLF001
-              optional=True, hint=fix("./install.sh (sets up Piper)", "optional, on Windows by hand (see docs/windows.md)"))
+              optional=True, hint=fix("./install.sh (sets up Piper)", "install.ps1 offers it (asks first)"))
 
         def doc():
             r = T.make_document(root, {"title": "Test", "format": "pdf", "content": "# Chapter\n\nUmlauts: äöüß. Turkish: ğışçö."})
@@ -292,7 +292,7 @@ def group_ocr():
           optional=WIN)
     check("pdftoppm", lambda: need("pdftoppm", "poppler-utils") and "ok", optional=WIN)
     if shutil.which("tesseract") and "deu" not in T._tess_lang():  # noqa: SLF001
-        line("warn", "German for OCR", fix("sudo apt install tesseract-ocr-deu", "reinstall Tesseract and tick German")
+        line("warn", "German for OCR", fix("sudo apt install tesseract-ocr-deu", "install.ps1 offers it (asks first) (OCR languages)")
              + " (otherwise umlauts are recognised worse)")
 
 
@@ -313,7 +313,7 @@ def group_code():
             def run(fn=fn):
                 r = T.check_code(td, fn)
                 if "not installed" in r:
-                    raise RuntimeError(r.split(".")[0] + fix("  -> ./install.sh --code", "  -> optional, install the compiler and add it to PATH"))
+                    raise RuntimeError(r.split(".")[0] + fix("  -> ./install.sh --code", "  -> optional, install.ps1 offers it (asks first)"))
                 if "ERROR" in r:
                     raise RuntimeError(r[:200])
                 return "ok"
@@ -325,7 +325,7 @@ def group_code():
 def group_browser():
     print("\nReal browser (browse_page)")
     if not T.browser_enabled():
-        line("warn", "Browser", "off (optional: " + fix("./install.sh (sets up the browser)", "venv\\Scripts\\pip install playwright; venv\\Scripts\\python -m playwright install chromium") + ")")
+        line("warn", "Browser", "off (optional: " + fix("./install.sh (sets up the browser)", "install.ps1 offers it (asks first)") + ")")
         return
     with tempfile.TemporaryDirectory(prefix="pcl-selftest-") as td:
         check("Open page in the browser", lambda: (lambda r: f"{len(r[1])} Screenshot, " + r[0].splitlines()[1][:50])(
@@ -384,13 +384,13 @@ def group_rust():
     import rust_builder as R
     if not R.cargo_path():
         line("warn", "cargo", fix("not found: curl https://sh.rustup.rs -sSf | sh (then restart Hyperstead)",
-                                  "not found: winget install Rustlang.Rustup (with Visual Studio Build Tools C++), then restart"))
+                                  "not found: install.ps1 offers it (asks first) (Rust + Build Tools)"))
         return
     line("ok", "cargo", R.cargo_path())
     mode = R.sandbox_mode()
     if not mode:
         line("warn", "Build Rust", fix("off (bubblewrap missing: ./install.sh --run, or PCL_CARGO=0/PCL_ALLOW_RUN=0)",
-                                       "off: on Windows without sandbox only with PCL_CARGO_UNSAFE=1 in .env"))
+                                       "off: on Windows without sandbox only with PCL_CARGO_UNSAFE=1 in .env (install.ps1 asks)"))
         return
     line("ok" if mode == "bwrap" else "warn", "Isolation", "bubblewrap" if mode == "bwrap" else "NONE (PCL_CARGO_UNSAFE=1)")
     with tempfile.TemporaryDirectory(prefix="pcl-selftest-") as td:
@@ -414,7 +414,7 @@ def group_film():
     exe = F.blender_exe()
     if not exe:
         line("warn", "Blender", fix("not found: sudo apt install blender or BLENDER_PATH in .env",
-                                    "not found: BLENDER_PATH=C:\\Program Files\\Blender Foundation\\Blender 4.2\\blender.exe in .env"))
+                                    "not found: install.ps1 offers it (asks first), or BLENDER_PATH in .env"))
         return
     line("ok", "Blender", exe)
     with tempfile.TemporaryDirectory(prefix="pcl-selftest-") as td:
