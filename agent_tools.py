@@ -152,7 +152,12 @@ TOOLS = {
      requisiten (props) typ: baum=tree busch=bush haus=house stein=stone ball wolke=cloud blume=flower kiste=box bild=picture. ort (place): himmel=sky, boden=ground (false = none), hintergrund=background (image), licht=light tag|abend|nacht (day|evening|night).
      kamera: einstellung (shot) total|halbtotal|nah (wide|medium|close), ziel (target character), bewegung (movement) keine|zoom_rein|zoom_raus|schwenk_links|schwenk_rechts|folgen (none|zoom in|zoom out|pan left|pan right|follow).
      stimme/erzaehler_stimme (voice/narrator voice): lang, voice, pitch, rate, optional engine (e.g. elevenlabs only for the characters that should sound especially good).
-     dialog without figur = narrator (erzaehler_stimme). Optional: musik, musik_lautstaerke (volume), titelkarte (title card, seconds), renderer eevee|workbench|cycles.
+     dialog without figur = narrator (erzaehler_stimme). Optional: titelkarte (title card, seconds), renderer eevee|workbench|cycles.
+     SOUND (you decide what each scene needs; speech always stays audible, music and atmo duck automatically under speech, ducken false = off):
+     musik + musik_lautstaerke for the whole film (default 0.25) or per scene (default 0.3); per scene "atmo" = background sound looped for the whole scene
+     (place/room tone, e.g. engine hum, rain) + atmo_lautstaerke (default 0.4); per scene "geraeusche" = sound effects at fixed points: [{"datei": "film/geraeusche/klick.mp3", "zeit": 2.5}]
+     or bound to a dialogue line: {"datei": ..., "zeile": 2, "zeit": -0.3} (+ lautstaerke 0-3, schleife true = loop, dauer). Missing sound files: create them with
+     sound_generate (kind sfx for atmo/effects, kind music for music) and use the path from its result. op=check lists scenes without any sound.
      Flow: op=save with "film": {...} (checks + saves) -> op=check -> op=voices -> op=preview, szene "s01" (still image, then view_image)
      -> op=render (szene "s01" or all; only changed scenes, can take long) -> op=assemble, name "film", untertitel (subtitles) true -> output/<name>.mp4"""),
     "make_document": ("media", """{"tool": "make_document", "format": "pdf", "title": "Book title", "author": "Name", "sources": ["chapter1.md", "chapter2.md"], "name": "book"}

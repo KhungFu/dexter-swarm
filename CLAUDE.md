@@ -139,6 +139,11 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   bei Abbruch weiterverwendet). Bei Aenderungen am Blender-Skript `SCRIPT_VERSION` erhoehen.
 - Blender-Aufruf: `-b --factory-startup --disable-autoexec -noaudio --python-exit-code 3`, Umgebung ohne KEY/TOKEN/SECRET/PASSWORD, `T._heavy_lock`
   (gleiche Sperre wie sdcpp). `blender_exe`: `BLENDER_PATH`, PATH, Windows-Standardordner (neueste Version). Erfolg nur mit `PCL_FERTIG` in der Ausgabe.
+- Geraeusche je Szene (Wunsch ABI 2026-11-06): `geraeusche` [{datei, zeit, zeile, lautstaerke, schleife, dauer}], `sound_times` (zeile = Start der
+  Dialogzeile + zeit, fehlende Zeile -> weg), `scene_audio` mischt sie (adelay, -stream_loop, atrim), Dateien im `_scene_hash`. MAX_GERAEUSCHE 40.
+  `atmo`/`atmo_lautstaerke` je Szene (Schleife ueber die ganze Szene). Ducking: `ducken` (Drehbuch, Std. an, in jede Szene kopiert) ->
+  Musik+Atmo per `DUCK` (sidechaincompress, Schluessel = Sprachmix) in `scene_audio` und Filmmusik in `op_assemble` (Schluessel = Filmton).
+  `sound_notes` (in `op_check`) meldet Szenen ohne Ton, damit das Studio selbst entscheidet. Tests in `tests/test_film.py`.
 - Bildfiguren drehen sich nie (werden gespiegelt), Hintergrundbild haengt an der Kamera. `speak` hat `voice/pitch/rate/target`.
 - Getestet mit Blender 5.2 als pip-Paket `bpy` (Huellskript als BLENDER_PATH, `PCL_TEST_BLENDER`), eevee/workbench/cycles rendern; echtes Windows-Blender ungetestet.
 

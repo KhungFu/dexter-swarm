@@ -46,6 +46,7 @@ LICHT = ("tag", "abend", "nacht")
 ENGINES = ("eevee", "workbench", "cycles")
 MAX_SZENEN = 60
 MAX_DAUER = 120.0
+MAX_GERAEUSCHE = 40
 WALK_SPEED = 1.6  # Meter pro Sekunde
 
 
@@ -204,6 +205,8 @@ def normalize(root, data):
         f = guard(_file, root, data.get("musik"), "musik", AUDIO_EXT)
         plan["musik"] = str(f) if f else None
     plan["musik_lautstaerke"] = guard(_f, data.get("musik_lautstaerke"), 0.25, 0, 2, "musik_lautstaerke") or 0.25
+    # Musik und Atmo werden leiser, solange jemand spricht (Sprache muss hoerbar bleiben, Wunsch ABI 2026-11-06)
+    plan["ducken"] = data.get("ducken", True) is not False
     plan["titelkarte"] = guard(_f, data.get("titelkarte"), 0, 0, 10, "titelkarte") or 0
 
     figs = data.get("figuren") or {}
@@ -280,6 +283,35 @@ def _norm_scene(root, sc, sid, plan, errs, guard):
         f = guard(_file, root, sc.get("musik"), f"Scene {sid}: musik", AUDIO_EXT)
         s["musik"] = str(f) if f else None
     s["musik_lautstaerke"] = guard(_f, sc.get("musik_lautstaerke"), 0.3, 0, 2, f"Scene {sid}: musik_lautstaerke") or 0.3
+    # Atmo = Dauergeraeusch der ganzen Szene (Maschinenbrummen, Regen), laeuft in Schleife
+    s["atmo"] = None
+    if sc.get("atmo"):
+        f = guard(_file, root, sc.get("atmo"), f"Scene {sid}: atmo", AUDIO_EXT)
+        s["atmo"] = str(f) if f else None
+    s["atmo_lautstaerke"] = guard(_f, sc.get("atmo_lautstaerke"), 0.4, 0, 2, f"Scene {sid}: atmo_lautstaerke") or 0.4
+    s["ducken"] = plan.get("ducken", True)
+    # Geraeusche an festen Stellen (Wunsch ABI 2026-11-06): Startzeit in Sekunden ODER an eine Dialogzeile gebunden
+    s["geraeusche"] = []
+    ger = sc.get("geraeusche") or []
+    if not isinstance(ger, list):
+        errs.append(f"Scene {sid}: geraeusche must be a list: [{{\"datei\": \"film/geraeusche/klick.mp3\", \"zeit\": 2.5}}]")
+        ger = []
+    for i, g in enumerate(ger[:MAX_GERAEUSCHE], 1):
+        g = g if isinstance(g, dict) else {"datei": g}
+        tag = f"Scene {sid}: geraeusch {i}"
+        f = guard(_file, root, g.get("datei"), tag, AUDIO_EXT) if g.get("datei") else errs.append(f"{tag}: datei missing")
+        zeile = None
+        if g.get("zeile") not in (None, ""):
+            zeile = guard(_f, g.get("zeile"), 1, 1, 60, f"{tag}: zeile")
+        if f:
+            s["geraeusche"].append({
+                "datei": str(f), "zeile": int(zeile) if zeile else None,
+                "zeit": guard(_f, g.get("zeit"), 0, -MAX_DAUER, MAX_DAUER, f"{tag}: zeit") or 0.0,
+                "lautstaerke": guard(_f, g.get("lautstaerke"), 1.0, 0, 3, f"{tag}: lautstaerke") or 1.0,
+                "schleife": g.get("schleife") is True,
+                "dauer": guard(_f, g.get("dauer"), 0, 0, MAX_DAUER, f"{tag}: dauer") or 0.0})
+    if len(ger) > MAX_GERAEUSCHE:
+        errs.append(f"Scene {sid}: at most {MAX_GERAEUSCHE} geraeusche per scene")
 
     ents = []
     figs = sc.get("figuren") or {}
@@ -457,20 +489,62 @@ def envelope(root, audio, fps):
     return [round(min(1.0, max(0.0, (v / top - 0.12) / 0.88)), 3) for v in vals]
 
 
+def sound_times(scene, timed):
+    """Startzeit jedes Geraeuschs: zeile N = Beginn der N-ten Dialogzeile + zeit (Versatz), sonst zeit ab Szenenbeginn."""
+    out = []
+    for g in scene.get("geraeusche") or []:
+        base = 0.0
+        if g.get("zeile"):
+            if g["zeile"] > len(timed):
+                continue  # Zeile gibt es nicht (mehr): Geraeusch weglassen statt falsch platzieren
+            base = timed[g["zeile"] - 1]["start"]
+        out.append(dict(g, start=round(max(0.0, base + g["zeit"]), 3)))
+    return out
+
+
+DUCK = "sidechaincompress=threshold=0.015:ratio=8:attack=20:release=450:makeup=1"
+
+
 def scene_audio(root, scene, timed, dur, dst):
-    """Alle Zeilen an ihrer Startzeit + Szenenmusik -> eine WAV-Datei mit genau der Szenenlaenge."""
+    """Alle Zeilen an ihrer Startzeit + Geraeusche + Atmo + Szenenmusik -> eine WAV-Datei mit genau der Szenenlaenge.
+    Musik und Atmo (das 'Bett') werden per Sidechain leiser, solange gesprochen wird (scene['ducken'])."""
+    fmt = "aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo"
     args, parts, n = ["-f", "lavfi", "-t", f"{dur:.3f}", "-i", "anullsrc=r=48000:cl=stereo"], [], 1
+    speech, fx, bed = [], [], []
     for ln in timed:
         args += ["-i", ln["datei"]]
         ms = int(ln["start"] * 1000)
-        parts.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,adelay={ms}|{ms}[a{n}]")
+        parts.append(f"[{n}:a]{fmt},adelay={ms}|{ms}[a{n}]")
+        speech.append(f"[a{n}]")
         n += 1
-    if scene.get("musik"):
-        args += ["-stream_loop", "-1", "-i", scene["musik"]]
-        parts.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,volume={scene['musik_lautstaerke']}[a{n}]")
+    for g in sound_times(scene, timed):
+        if g["start"] >= dur:
+            continue
+        args += (["-stream_loop", "-1"] if g["schleife"] else []) + ["-i", g["datei"]]
+        ms = int(g["start"] * 1000)
+        cut = f",atrim=0:{g['dauer']:.3f}" if g["dauer"] else (f",atrim=0:{dur - g['start']:.3f}" if g["schleife"] else "")
+        parts.append(f"[{n}:a]{fmt}{cut},volume={g['lautstaerke']},adelay={ms}|{ms}[a{n}]")
+        fx.append(f"[a{n}]")
         n += 1
-    labels = "[0:a]" + "".join(f"[a{i}]" for i in range(1, n))
-    fc = ";".join(parts + [f"{labels}amix=inputs={n}:duration=first:dropout_transition=0:normalize=0[out]"]) if n > 1 else "[0:a]anull[out]"
+    for key in ("atmo", "musik"):
+        if scene.get(key):
+            args += ["-stream_loop", "-1", "-i", scene[key]]
+            parts.append(f"[{n}:a]{fmt},atrim=0:{dur:.3f},volume={scene[key + '_lautstaerke']}[a{n}]")
+            bed.append(f"[a{n}]")
+            n += 1
+    if n == 1:
+        fc = "[0:a]anull[out]"
+    elif bed and speech and scene.get("ducken", True):
+        parts.append(f"[0:a]{fmt}[sil]")
+        parts.append(f"[sil]{''.join(speech)}amix=inputs={len(speech) + 1}:duration=first:dropout_transition=0:normalize=0,asplit=2[spk][key]")
+        parts.append(f"{''.join(bed)}amix=inputs={len(bed)}:duration=longest:dropout_transition=0:normalize=0[bed0]" if len(bed) > 1
+                     else f"{bed[0]}anull[bed0]")
+        parts.append(f"[bed0][key]{DUCK}[bed]")
+        ins = ["[spk]", "[bed]"] + fx
+        fc = ";".join(parts + [f"{''.join(ins)}amix=inputs={len(ins)}:duration=first:dropout_transition=0:normalize=0[out]"])
+    else:
+        labels = "[0:a]" + "".join(f"[a{i}]" for i in range(1, n))
+        fc = ";".join(parts + [f"{labels}amix=inputs={n}:duration=first:dropout_transition=0:normalize=0[out]"])
     T._ff(args + ["-filter_complex", fc, "-map", "[out]", "-t", f"{dur:.3f}", "-c:a", "pcm_s16le", dst], root)
 
 
@@ -744,7 +818,24 @@ def op_check(root, plan):
         out.append(f"- {sc['id']}: {len(sc['entities'])} objects, {len(sc['aktionen'])} actions, {len(sc['dialog'])} dialogue lines, approx. {dur:.0f} s")
     exe = blender_exe()
     out.append(f"Estimated length: {total:.0f} s. Blender: {exe or 'NOT found (' + blender_hint() + ')'}")
+    out += sound_notes(plan)
     return "\n".join(out)
+
+
+def sound_notes(plan):
+    """Hinweise fuer das Studio: Szenen ohne Ton-Bett / ohne Geraeusche. Das Studio entscheidet selbst, ob es etwas braucht."""
+    quiet = [sc["id"] for sc in plan["szenen"] if not (sc.get("atmo") or sc.get("musik") or sc.get("geraeusche"))]
+    if not quiet and plan.get("musik"):
+        return []
+    out = []
+    if quiet:
+        out.append(f"SOUND: no atmo, musik or geraeusche in {', '.join(quiet[:12])}{' ...' if len(quiet) > 12 else ''}. "
+                   "Decide per scene: a quiet room tone or place sound as atmo (e.g. engine hum on a ship, rain outside), "
+                   "geraeusche for visible actions (button, fall, door), musik only where it helps the mood.")
+    if not plan.get("musik") and not any(sc.get("musik") for sc in plan["szenen"]):
+        out.append("SOUND: no music. Optional: musik for the whole film (soft, e.g. musik_lautstaerke 0.2) or per scene. "
+                   "Music and atmo duck automatically under speech.")
+    return out
 
 
 def op_voices(root, plan, call):
@@ -788,7 +879,8 @@ def _clip_index(root):
 
 def _scene_hash(plan, sc, timed):
     figs = {e["fig"]: plan["figuren"][e["fig"]] for e in sc["entities"] if "fig" in e}
-    files = [figs[k].get("bild") or figs[k].get("datei") for k in figs] + [sc["ort"]["hintergrund"], sc.get("musik")] + \
+    files = [figs[k].get("bild") or figs[k].get("datei") for k in figs] + [sc["ort"]["hintergrund"], sc.get("musik"), sc.get("atmo")] + \
+            [g["datei"] for g in sc.get("geraeusche") or []] + \
             [e.get("bild") for e in sc["entities"]] + [ln["datei"] for ln in timed]
     keys = {k: plan[k] for k in ("breite", "hoehe", "fps", "renderer", "samples", "umriss")}
     return _hash(SCRIPT_VERSION, keys, sc, figs, [(f, _mtime(f)) for f in files if f])
@@ -893,8 +985,11 @@ def op_assemble(root, plan, call):
         cur = joined
         if plan["musik"]:
             mixed = tmp / "musik.mp4"
+            fmt = "aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo"
+            fc = (f"[0:a]{fmt},asplit=2[f][key];[1:a]{fmt},volume={plan['musik_lautstaerke']}[m0];[m0][key]{DUCK}[m];"
+                  if plan.get("ducken", True) else f"[0:a]{fmt}[f];[1:a]{fmt},volume={plan['musik_lautstaerke']}[m];")
             T._ff(["-i", cur, "-stream_loop", "-1", "-i", plan["musik"], "-filter_complex",
-                   f"[1:a]volume={plan['musik_lautstaerke']}[m];[0:a][m]amix=inputs=2:duration=first:normalize=0[a]",
+                   fc + "[f][m]amix=inputs=2:duration=first:normalize=0[a]",
                    "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", mixed], root)
             cur = mixed
         (tmp / "u.srt").write_text("\n".join(srt), encoding="utf-8")
