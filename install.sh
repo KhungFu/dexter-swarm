@@ -7,6 +7,7 @@
 #   ./install.sh --code     -> Compiler/Pruefer fuer das Recht "Programmieren" per apt installieren (sudo, ca. 1,5 GB)
 #   ./install.sh --browser  -> echter Browser (Chromium ueber Playwright) fuer Seiten mit JavaScript (ca. 400 MB)
 #   ./install.sh --run      -> bubblewrap fuer das Recht "Code ausfuehren" (abgeschottet, ohne Internet)
+#   ./install.sh --node     -> Node.js LTS ohne sudo nach ~/.local (fuer Remotion & Co., deploy/node-ohne-sudo.sh --remotion)
 #   ./install.sh --print    -> CUPS-Programme (lp, lpstat) zum Drucken der Abendberichte auf einem Netzwerkdrucker
 #   ./install.sh --all      -> alles oben zusammen (system + code + piper + browser + run + print + service)
 #   Optionen sind kombinierbar. Danach pruefen:  ./venv/bin/python selftest.py
@@ -85,6 +86,11 @@ if has --browser; then
   else
     echo "Playwright liess sich nicht installieren (32-Bit-System?). browse_page bleibt aus, fetch_url funktioniert weiter."
   fi
+fi
+
+# Node.js ohne sudo (Werkstatt/Remotion). Optional:  ./install.sh --node
+if has --node; then
+  bash deploy/node-ohne-sudo.sh --remotion || echo "Node.js-Installation fehlgeschlagen, siehe docs/werkstatt.md (Remotion auf dem Raspberry Pi)."
 fi
 
 # Piper: gute Offline-Stimme (deutsch). Optional:  ./install.sh --piper

@@ -1393,12 +1393,17 @@ def native_hint(agent, lvl):
         return ("- You run as Claude Code WITH your own tools (Bash, Read, Write, Edit, Glob, Grep"
                 + (", WebFetch, WebSearch" if lvl >= 2 else "") + ") in the project folder. Use them directly. "
                 "Installations are blocked for you there" + (" (not at level 3)" if lvl >= 3 else "")
-                + ": request them with nachruesten. Your final answer stays the JSON below.")
+                + ": request them with nachruesten. " + SANDBOX_NOTE + " Your final answer stays the JSON below.")
     if pv == "codex_cli":
         return ("- You run as Codex WITH your own tools in the project folder ("
                 + {1: "read only", 2: "write in the project, no network", 3: "no restrictions"}[lvl]
-                + "). You request network and installations with nachruesten. Your final answer stays the JSON below.")
+                + "). You request network and installations with nachruesten. " + SANDBOX_NOTE + " Your final answer stays the JSON below.")
     return ""
+
+
+SANDBOX_NOTE = ("If a program crashes in your own tools with 'Bad system call' or sudo says 'no new privileges', that is the sandbox "
+                "of your CLI, not the computer: run the same command with the server tool befehl "
+                "(e.g. {\"tool\": \"befehl\", \"befehl\": \"node --version\"}), it runs outside your sandbox in the project folder.")
 
 
 def werkstatt_cli_args(agent, argv):
@@ -1451,6 +1456,10 @@ def werkstatt_tool(call, a, pid, tid):
     if art == "verboten":
         log("denied", f"befehl: {cmd[:200]} ({grund})", pid, a["id"], tid)
         return f"ERROR: {grund}."
+    blocked = W.needs_root_blocked(cmd)
+    if blocked:
+        log("denied", f"befehl: {cmd[:200]} (needs root)", pid, a["id"], tid)
+        return blocked
     if call.get("tool") == "nachruesten" or art == "antrag" and lvl < 3 or lvl == 1:
         return request_werkstatt(call, a, pid, tid, cmd, grund or "Level 1: every command needs approval")
     if art == "antrag":  # Stufe 3: laeuft, Besitzer bekommt eine Meldung
