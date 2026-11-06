@@ -105,6 +105,37 @@ def classify(cmd, root):
     return "frei", ""
 
 
+def no_new_privs():
+    """Linux: laeuft der Prozess mit NoNewPrivileges (systemd-Dienst)? Dann kann sudo/su nie klappen."""
+    if IS_WIN:
+        return False
+    try:
+        for line in Path("/proc/self/status").read_text().splitlines():
+            if line.startswith("NoNewPrivs:"):
+                return line.split(":", 1)[1].strip() == "1"
+    except OSError:
+        pass
+    return False
+
+
+ROOT_CMD = re.compile(r"(^|[\s;&|(])(sudo|su|doas|pkexec)(\s|$)|\b(apt|apt-get|aptitude|dpkg)\s+(install|remove|purge|-i)\b", re.I)
+NODE_SCRIPT = Path(__file__).resolve().parent / "deploy" / "node-ohne-sudo.sh"
+
+
+def needs_root_blocked(cmd):
+    """-> Meldung, wenn der Befehl Root-Rechte braucht, die es hier nie gibt (sonst ''). Spart dem Besitzer sinnlose Antraege."""
+    if IS_WIN or not ROOT_CMD.search(str(cmd or "")):
+        return ""
+    if not no_new_privs() and os.geteuid() == 0:
+        return ""
+    if not no_new_privs() and os.environ.get("PCL_WERKSTATT_SUDO", "0") == "1":
+        return ""  # Besitzer sagt: passwortfreies sudo ist eingerichtet und erlaubt
+    return ("ERROR: sudo/apt cannot work here: Hyperstead runs as a service without root rights (NoNewPrivileges). "
+            "Do NOT request sudo or apt. Node.js without sudo: request `bash " + str(NODE_SCRIPT) + "` (installs Node.js LTS into "
+            "~/.local, then node/npm/npx are available). npm packages go into the project folder (npm install remotion @remotion/cli). "
+            "If a system library is really missing, write in result exactly which `sudo apt install ...` the owner must run himself in a terminal.")
+
+
 def clean_env(root=None):
     """Umgebung ohne Zugangsdaten; npx installiert nichts heimlich nach."""
     env = {k: v for k, v in os.environ.items()
@@ -112,9 +143,15 @@ def clean_env(root=None):
     env["npm_config_yes"] = "false"
     env["PCL_WERKSTATT"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
+    extra = []
     if root:
-        nb = Path(root) / "node_modules" / ".bin"
-        env["PATH"] = str(nb) + os.pathsep + env.get("PATH", "")
+        extra.append(str(Path(root) / "node_modules" / ".bin"))
+    if not IS_WIN:  # Node.js aus deploy/node-ohne-sudo.sh, auch wenn Hyperstead von Hand ohne ~/.local/bin im PATH startet
+        lb = Path.home() / ".local" / "bin"
+        if lb.is_dir() and str(lb) not in env.get("PATH", "").split(os.pathsep):
+            extra.append(str(lb))
+    if extra:
+        env["PATH"] = os.pathsep.join(extra + [env.get("PATH", "")])
     return env
 
 
@@ -192,7 +229,15 @@ def platform_hint():
         return ("Windows: commands run in PowerShell (or \"shell\": \"cmd\"). You install programs with winget "
                 "(z. B. winget install --id OpenJS.NodeJS.LTS -e --scope user --accept-package-agreements --accept-source-agreements), "
                 "packages with npm/pip.")
-    return "Linux: commands run in bash. Programs via apt (needs sudo), packages with npm/pip (pip preferably in a venv in the project)."
+    import platform
+    where = f"You run directly ON this computer ({platform.node() or 'Linux'}, Linux {platform.machine()}), not in a separate session."
+    if no_new_privs() or os.environ.get("PCL_WERKSTATT_SUDO", "0") != "1":
+        return (where + " Commands run in bash WITHOUT root rights: sudo and apt do not work, never request them. "
+                "Node.js missing? Request `bash " + str(NODE_SCRIPT) + "` (Node.js LTS into ~/.local, no sudo). "
+                "Packages with npm/pip go into the project folder (pip preferably in a venv in the project). "
+                "For Remotion: npm install remotion @remotion/cli, then npx remotion browser ensure. If a system library is missing, "
+                "name the exact `sudo apt install ...` line for the owner in result.")
+    return where + " Commands run in bash. Programs via apt (sudo), packages with npm/pip (pip preferably in a venv in the project)."
 
 
 def doc(lvl, native=""):

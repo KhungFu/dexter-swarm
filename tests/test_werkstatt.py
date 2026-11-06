@@ -218,3 +218,33 @@ def test_api_saves_level(ws, client):
     ag = [x for x in g["agents"] if x["id"] == dev][0]
     assert ag["perms"]["werkstatt"] is True and ag["perms"]["werkstatt_stufe"] == 1
     assert client.get("/api/info").get_json()["werkstatt"] is True
+
+
+def test_sudo_never_requested_without_root(ws, monkeypatch):
+    """Im systemd-Dienst (NoNewPrivileges) kann sudo nie klappen: kein Antrag, sondern Hinweis auf Node.js ohne sudo."""
+    monkeypatch.setattr(W, "no_new_privs", lambda: True)
+    msg = W.needs_root_blocked("sudo apt install npm")
+    assert "node-ohne-sudo.sh" in msg and "sudo" in msg
+    assert W.needs_root_blocked("apt-get install -y nodejs")
+    assert not W.needs_root_blocked("npm install remotion @remotion/cli")
+    assert not W.needs_root_blocked("bash deploy/node-ohne-sudo.sh")
+    assert "WITHOUT root rights" in W.platform_hint() and "node-ohne-sudo.sh" in W.platform_hint()
+    pid, ceo, dev = setup()
+    tid = make_task(pid, dev, "Remotion einrichten")
+    out = A.werkstatt_tool({"tool": "nachruesten", "befehl": "sudo apt install npm"}, A.q1("SELECT * FROM agents WHERE id=?", (dev,)), pid, tid)
+    assert out.startswith("ERROR: sudo/apt cannot work here")
+    assert not A.q1("SELECT 1 FROM approvals WHERE task_id=?", (tid,))
+    assert not ws  # Besitzer wird nicht belaestigt
+
+
+def test_sudo_allowed_when_owner_says_so(monkeypatch):
+    monkeypatch.setattr(W, "no_new_privs", lambda: False)
+    monkeypatch.setenv("PCL_WERKSTATT_SUDO", "1")
+    assert W.needs_root_blocked("sudo apt install npm") == ""
+
+
+def test_local_bin_in_path(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    (tmp_path / ".local" / "bin").mkdir(parents=True)
+    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    assert str(tmp_path / ".local" / "bin") in W.clean_env(tmp_path).get("PATH").split(":")
