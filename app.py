@@ -5331,6 +5331,12 @@ def save_input(pid, filename, write, folder="input"):
         i += 1
     write(str(target))
     log("file_uploaded", f"{folder}/{target.name} ({target.stat().st_size // 1024} KB)", pid)
+    if ext == "zip" and folder == "input" and os.environ.get("PCL_UNZIP_UPLOADS", "1") != "0":
+        try:  # ZIP gleich entpacken, damit die Agenten die Dateien lesen koennen (input/<name>/)
+            dest, n, _ = tools.unzip_safe(target)
+            log("file_unzipped", f"{folder}/{dest.name}/ ({n} files)", pid)
+        except tools.ToolError as e:
+            log("file_unzip_failed", f"{folder}/{target.name}: {e}", pid)
     return f"{folder}/{target.name}", target.name != f"{base}.{ext}"
 
 

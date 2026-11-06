@@ -1529,6 +1529,73 @@ def list_files(root, path=""):
     return "\n".join(rows) or "(no files)"
 
 
+UNZIP_MAX_FILES = 5000
+
+
+def unzip_safe(zpath, dest=None):
+    """Entpackt eine ZIP sicher neben sich in <name>/ (ohne absolute Pfade, '..', Links; Groessen- und Dateigrenze).
+    Vorhandener Zielordner bleibt unberuehrt. Gibt (Zielordner, Dateien, Bytes) zurueck oder wirft ToolError."""
+    zpath = Path(zpath)
+    dest = Path(dest) if dest else zpath.with_suffix("")
+    max_bytes = int(_env("PCL_UNZIP_MAX_MB", "2000")) * 1_000_000
+    if dest.exists():
+        n = sum(1 for x in dest.rglob("*") if x.is_file())
+        return dest, n, 0
+    try:
+        z = zipfile.ZipFile(zpath)
+    except (zipfile.BadZipFile, OSError) as e:
+        raise ToolError(f"ZIP not readable ({type(e).__name__})")
+    with z:
+        infos = [i for i in z.infolist() if not i.is_dir()]
+        if len(infos) > UNZIP_MAX_FILES:
+            raise ToolError(f"ZIP has {len(infos)} files, max. {UNZIP_MAX_FILES}")
+        if sum(i.file_size for i in infos) > max_bytes:
+            raise ToolError(f"ZIP unpacked is larger than {max_bytes // 1_000_000} MB (PCL_UNZIP_MAX_MB)")
+        tmp = dest.with_name("." + dest.name + ".unzip")
+        shutil.rmtree(tmp, ignore_errors=True)
+        tmp.mkdir(parents=True)
+        base = tmp.resolve()
+        n = total = 0
+        try:
+            for i in infos:
+                name = i.filename.replace("\\", "/")
+                parts = [x for x in name.split("/") if x not in ("", ".")]
+                if not parts or ".." in parts or name.startswith("/") or re.match(r"^[A-Za-z]:", name):
+                    continue  # unsichere Pfade still auslassen
+                if parts[0] == "__MACOSX" or parts[-1] == ".DS_Store":
+                    continue
+                if (i.external_attr >> 16) & 0o170000 == 0o120000:
+                    continue  # symbolische Links nie anlegen
+                out = (tmp / Path(*parts)).resolve()
+                out.relative_to(base)
+                out.parent.mkdir(parents=True, exist_ok=True)
+                with z.open(i) as src, open(out, "wb") as dst:
+                    shutil.copyfileobj(src, dst, 1 << 20)
+                n += 1
+                total += out.stat().st_size
+                if total > max_bytes:
+                    raise ToolError(f"ZIP unpacked is larger than {max_bytes // 1_000_000} MB (PCL_UNZIP_MAX_MB)")
+        except BaseException:
+            shutil.rmtree(tmp, ignore_errors=True)
+            raise
+        tmp.rename(dest)
+    return dest, n, total
+
+
+def zip_overview(root, f, path):
+    """read_file auf einer ZIP: sicher entpacken (falls noch nicht geschehen) und den Inhalt auflisten."""
+    try:
+        dest, n, _ = unzip_safe(f)
+    except ToolError as e:
+        return f"{path}: ZIP file ({f.stat().st_size // 1024} KB), not unpacked: {e}"
+    rel = dest.relative_to(Path(root).resolve()).as_posix() if dest.resolve().is_relative_to(Path(root).resolve()) else dest.name
+    files = sorted(x for x in dest.rglob("*") if x.is_file())
+    lines = [f"{x.relative_to(dest).as_posix()} ({x.stat().st_size // 1024} KB)" for x in files[:200]]
+    more = f"\n... and {len(files) - 200} more" if len(files) > 200 else ""
+    return (f"{path}: ZIP file, unpacked to {rel}/ ({n} files). Read the files there with read_file/view_image/media_info:\n"
+            + "\n".join(lines) + more)
+
+
 def read_file(root, path, offset=0):
     try:
         f = _inside(root, path)
@@ -1547,7 +1614,9 @@ def read_file(root, path, offset=0):
                 else f"{path}: image without recognisable text ({f.stat().st_size // 1024} KB). You see the content with view_image.")
     if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp"):
         return f"{path}: image ({f.stat().st_size // 1024} KB). Look at it with view_image, read_file does not read images."
-    if ext in (".mp4", ".webm", ".mov", ".mp3", ".wav", ".ogg", ".zip"):
+    if ext == ".zip":
+        return zip_overview(root, f, path)
+    if ext in (".mp4", ".webm", ".mov", ".mp3", ".wav", ".ogg"):
         return f"{path}: media file ({f.stat().st_size // 1024} KB). For videos/audio: media_info."
     cap = int(_env("PCL_MAX_READ_MB", "200")) * 1_000_000 if ext == ".pdf" else 30_000_000  # Scans sind oft sehr gross
     raw = f.read_bytes()[:cap]
