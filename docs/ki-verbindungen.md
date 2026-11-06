@@ -24,6 +24,27 @@ Server aus `tokens/claude-mcp.json`, andere Werkzeuge werden abgelehnt (Ausnahme
 Zeigt der Selbsttest „NOT AVAILABLE“, liegt es vermutlich daran. Dann melde dich auf dem Rechner einmal normal mit
 `claude` → `/login` an und benenne `tokens/claude-oauth-token.txt` testweise um.
 
+### Canva meldet „NOT AVAILABLE“ (2026-11-06 auf dem Laptop so gesehen)
+
+Mit dem Langzeit-Token aus `claude setup-token` lädt `claude` die claude.ai-Konnektoren offenbar nicht. Zwei Auswege:
+
+**A (empfohlen, Token bleibt):** Canva als eigenen MCP-Server bei Claude Code anmelden, einmal auf dem Laptop:
+
+```
+claude mcp add --transport http --scope user canva https://mcp.canva.com/mcp
+claude
+```
+
+In Claude `/mcp` eingeben, `canva` wählen, „Authenticate“, im Browser bei Canva anmelden, Claude mit `/exit` beenden.
+`PCL_CLAUDE_CONNECTORS=Canva` bleibt in `.env`. Hyperstead erlaubt dann auch den Server `canva` (Werkzeuge `mcp__canva__…`).
+Danach Hyperstead neu starten und `python selftest.py links`.
+
+**B:** Ohne Langzeit-Token: `tokens/claude-oauth-token.txt` umbenennen (und `CLAUDE_CODE_OAUTH_TOKEN` aus `.env` nehmen), dann
+`claude` → `/login` mit dem claude.ai-Konto. Die normale Anmeldung erneuert sich selbst, kann aber ablaufen
+(siehe [claude-anmeldung.md](claude-anmeldung.md)).
+
+Beides ist ungeprüft, weil es nur auf dem Laptop geht.
+
 ## 2. Eigene MCP-Server
 
 Datei `tokens/claude-mcp.json` (anderer Ort: `PCL_CLAUDE_MCP=` in `.env`), Format wie bei Claude Code:
@@ -69,6 +90,30 @@ Bilder kommen schon länger als echtes Bild beim Modell an: im Chat per 📎 ode
 steht, in Aufträgen, wenn der Pfad `input/…` genannt wird, sonst über das Werkzeug `view_image`. Neu: Erwähnt der Besitzer im Chat
 ein Bild („Bild“, „Referenzbild“, „Foto“, „image“, „resim“, „görsel“ …), ohne eines anzuhängen, schickt Hyperstead das
 **neueste Bild aus `input/`** automatisch mit und sagt dem Agenten, dass es automatisch gewählt wurde.
+
+## Bilder über Canva (mit Referenzbild)
+
+Canva erreicht nur die Claude-CLI, nicht der Hyperstead-Server selbst. Darum erzeugt ein Claude-CLI-Agent die Bilder mit seinem
+Canva-Konnektor, und Hyperstead hilft mit zwei Werkzeugen (Recht `images`, sichtbar nur mit `PCL_CLAUDE_CONNECTORS=Canva`):
+
+1. Agent ruft Canva `create-upload-url` auf (einmal nutzbarer Upload-Link).
+2. `canva_upload {"path": "input/referenz.jpg", "upload_url": "…"}`: Hyperstead schickt das Referenzbild roh an Canva und gibt
+   die Antwort mit der Media-ID zurück. Erlaubt sind nur https-Links von `canva.com`, `canva-api.com`, `canva.cn`; weitere Hosts
+   mit `PCL_CANVA_UPLOAD_HOSTS=` in `.env`, falls Canva den Upload über einen anderen Host schickt (die Fehlermeldung nennt ihn).
+3. Canva `generate-image` mit dem Prompt und `imageReferences` = Media-ID, dann `get-generate-image-job` bis `SUCCESS`.
+4. `image_save {"url": "…", "path": "karten/bilder/k01.png"}` holt das Bild in den Projektordner, danach `view_image`.
+
+So nutzt du es:
+
+- `IMAGE_PROVIDER=canva` in `.env`: `image_generate` erzeugt dann selbst nichts, sondern erklärt dem Agenten diesen Weg.
+- Bleibt ein anderer Anbieter eingestellt und scheitert er (z. B. OpenRouter ohne Guthaben, HTTP 402), nennt die Fehlermeldung
+  den Canva-Weg. Ist `IMAGE_FALLBACK=pollinations` gesetzt und gibt es Referenzbilder, aber keinen `POLLINATIONS_API_KEY`, gibt es
+  **kein** Gratis-Ersatzbild mehr, denn das würde ohne Referenzbild Figuren und Stil verfehlen.
+- Der Agent, der die Bilder macht, muss den Anbieter „Claude (CLI, your subscription)“ und das Recht `images` haben.
+
+**Ungeprüft:** Der echte Canva-Upload und die Bildgröße. Aus der Cloud-Testumgebung kam das Canva-Bild nur als kleine Vorschau
+(ca. 200 px) an. Ist das Bild auf dem Laptop auch so klein, kann der Agent es in ein Canva-Design legen und mit `export-design` als
+PNG exportieren.
 
 ## Grenzen
 

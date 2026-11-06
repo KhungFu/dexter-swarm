@@ -70,7 +70,11 @@ TOOLS = {
     "download_file": ("web", '{"tool": "download_file", "url": "https://.../x.pdf", "name": "shortname"}  Save a file (PDF, EPUB, Office, audio, video, ZIP) '
                              'in downloads/. Respect copyright/licence, only for permitted use'),
     "image_search": ("images", '{"tool": "image_search", "query": "mountain lake sunrise"}  Search freely usable photos (licence/author are included)'),
-    "image_save": ("images", '{"tool": "image_save", "url": "https://...jpg", "name": "hero"}  Save an image in the project\'s assets/'),
+    "image_save": ("images", '{"tool": "image_save", "url": "https://...jpg", "name": "hero"}  Save an image in the project\'s assets/; '
+                             'optional "path": "karten/bilder/k01.png" = fixed target in assets/, output/ or karten/'),
+    "canva_upload": ("images", '{"tool": "canva_upload", "path": "input/reference.jpg", "upload_url": "https://..."}  Upload an image from the '
+                               'project folder to Canva (only if your AI has the Canva connection). First get a fresh upload_url with Canva '
+                               'create-upload-url, then call this; the answer contains the Canva media ID for generate-image imageReferences'),
     "image_generate": ("images", """{"tool": "image_generate", "prompt": "detailed image description incl. style", "name": "logo"}  Create an image with AI (PNG), default: new in assets/.
      Optional: "refs": ["input/template.png", "karten/characters.png"] = up to 4 reference images from the project folder, so that characters and style
      stay the same across many images (for series ALWAYS pass the same reference images); "format": "square" | "portrait" | "landscape";
@@ -174,7 +178,8 @@ def available(perms):
             and (n != "site_macro" or bool(macro_sites()))
             and (n != "browse_page" or browser_enabled())
             and (n != "run_code" or run_enabled())
-            and (n != "rust_project" or cargo_enabled())]
+            and (n != "rust_project" or cargo_enabled())
+            and (n != "canva_upload" or canva_enabled())]
 
 
 def describe(names):
@@ -732,11 +737,18 @@ def _store_image(root, data, name, default):
     return f"assets/{target.name}", len(data)
 
 
-def image_save(root, url, name=""):
+def image_save(root, url, name="", path=""):
     r, data, cut = safe_get(str(url or "").strip(), MAX_IMAGE_BYTES)
     if cut:
         raise ToolError(f"Image is larger than {MAX_IMAGE_BYTES // 1_000_000} MB")
-    rel, size = _store_image(root, data, name, "bild")
+    target = _img_target(Path(root), {"path": path}, _sniff(data) or "png") if str(path or "").strip() else None
+    if target:
+        if _sniff(data) not in ("png", "jpg", "webp"):
+            raise ToolError("The address does not deliver a PNG, JPG or WEBP image")
+        target.write_bytes(data)
+        rel, size = _rel(Path(root), target), len(data)
+    else:
+        rel, size = _store_image(root, data, name, "bild")
     return f"Saved: {rel} ({size // 1024} KB). Embed it in HTML like this: <img src=\"{rel}\" alt=\"...\">"
 
 
@@ -1125,6 +1137,57 @@ def _gen_hf(prompt, refs, fmt, call):
     return img
 
 
+# ------------------------------------------------------------------ Canva ueber die Claude-CLI (Konnektor aus dem claude.ai-Abo)
+# Der Server selbst kommt nicht an Canva. Das kann nur ein Agent mit dem Anbieter claude_cli und PCL_CLAUDE_CONNECTORS=Canva.
+# Hier gibt es nur zwei Hilfen: canva_upload (Referenzbild in den Upload-Link von Canva schicken) und klare Hinweise.
+CANVA_UPLOAD_HOSTS = ("canva.com", "canva-api.com", "canva.cn")
+CANVA_MAX_UPLOAD = 25_000_000
+
+CANVA_HOWTO = ("Create the image through Canva with your AI's own Canva connection, ALWAYS with the reference image(s): "
+               "1) Canva create-upload-url, 2) canva_upload {\"path\": \"<reference image in the project>\", \"upload_url\": \"<url>\"} -> media ID, "
+               "3) Canva generate-image with the prompt and imageReferences [{\"type\": \"MEDIA\", \"id\": \"<media ID>\"}], "
+               "4) poll get-generate-image-job until SUCCESS, 5) image_save {\"url\": \"<image URL>\", \"path\": \"<target>\"}, 6) view_image. "
+               "Never create characters or landscapes without the reference image.")
+
+
+def canva_enabled():
+    import ai_links
+    return any(c.strip().lower() == "canva" for c in ai_links.connector_names())
+
+
+def _canva_host_ok(host):
+    host = (host or "").lower().rstrip(".")
+    extra = [h.strip().lower() for h in _env("PCL_CANVA_UPLOAD_HOSTS").split(",") if h.strip()]
+    return any(host == h or host.endswith("." + h) for h in list(CANVA_UPLOAD_HOSTS) + extra)
+
+
+def canva_upload(root, path, upload_url):
+    """Schickt ein Bild aus dem Projektordner roh (application/octet-stream) an einen Upload-Link von Canva."""
+    if not canva_enabled():
+        raise ToolError("Canva is not connected (owner: PCL_CLAUDE_CONNECTORS=Canva in .env, see docs/ki-verbindungen.md)")
+    f = _img_path(Path(root), str(path or "").strip())
+    if not f:
+        raise ToolError(f"Image not found in the project folder: {path}")
+    data = f.read_bytes()
+    if len(data) > CANVA_MAX_UPLOAD:
+        raise ToolError(f"Image too large for the upload (max. {CANVA_MAX_UPLOAD // 1_000_000} MB)")
+    if _sniff(data) not in ("png", "jpg", "webp"):
+        raise ToolError("Only PNG, JPG or WEBP images can be uploaded")
+    url = str(upload_url or "").strip()
+    u = urlparse(url)
+    if u.scheme != "https" or not _canva_host_ok(u.hostname):
+        raise ToolError(f"upload_url must be an https address of Canva (got host '{u.hostname or ''}'). "
+                        "Take it unchanged from Canva create-upload-url. Owner can allow more hosts with PCL_CANVA_UPLOAD_HOSTS.")
+    check_public(u.hostname)
+    r = requests.post(url, data=data, headers={"Content-Type": "application/octet-stream", "User-Agent": UA},
+                      timeout=(10, 120), allow_redirects=False)
+    if r.status_code >= 400:
+        raise ToolError(f"Canva upload failed: HTTP {r.status_code} {_clip(r.text, 300)}. The link is single-use: "
+                        "get a new one with create-upload-url and try once more.")
+    return (f"Uploaded {_rel(Path(root), f)} to Canva ({len(data) // 1024} KB). Canva answered: {_clip(r.text, 1500)}\n"
+            "Use the media ID from this answer in generate-image imageReferences.")
+
+
 def image_generate(root, call):
     prompt = str(call.get("prompt") or "").strip()[:4000]
     if not prompt:
@@ -1137,6 +1200,11 @@ def image_generate(root, call):
     refs = _ref_images(root, call.get("refs") or call.get("reference_images"))
     _img_target(root, call, "png")  # Pfad vor dem (kostenpflichtigen) Aufruf pruefen
     prov = _env("IMAGE_PROVIDER", "pollinations").lower()
+    if prov == "canva":
+        if not canva_enabled():
+            raise ToolError("IMAGE_PROVIDER=canva, but Canva is not connected (owner: PCL_CLAUDE_CONNECTORS=Canva in .env, "
+                            "see docs/ki-verbindungen.md)")
+        raise ToolError("IMAGE_PROVIDER=canva: image_generate does not create images itself. " + CANVA_HOWTO)
     gen = {"gemini": _gen_gemini, "openai": _gen_openai, "openrouter": _gen_openrouter,
            "sdcpp": _gen_sdcpp, "nvidia": _gen_nvidia, "cloudflare": _gen_cloudflare, "hf": _gen_hf,
            "huggingface": _gen_hf}.get(prov, _gen_pollinations)
@@ -1145,8 +1213,14 @@ def image_generate(root, call):
         data = gen(prompt, refs, fmt, call)
     except (ToolError, requests.RequestException) as e:
         # IMAGE_FALLBACK=pollinations: kostenloser Ersatz, aber OHNE Referenzbilder (Figuren/Stil koennen abweichen)
+        canva = (f" Alternative: {CANVA_HOWTO}" if canva_enabled() else "")
         if gen is _gen_pollinations or _env("IMAGE_FALLBACK").lower() != "pollinations":
+            if canva:
+                raise ToolError(f"{_clip(str(e), 300)}.{canva}")
             raise
+        if refs and canva and not _env("POLLINATIONS_API_KEY").strip():
+            # Ersatzbild ohne Referenzbild wuerde Figuren/Stil verfehlen: lieber Canva mit Referenzbild
+            raise ToolError(f"{_clip(str(e), 300)}. Free fallback skipped because it cannot use reference images.{canva}")
         keep = refs if _env("POLLINATIONS_API_KEY").strip() else []  # mit Key gehen Referenzbilder auch dort
         data = _gen_pollinations(prompt, keep, fmt, call)
         code = re.search(r"HTTP \d{3}", str(e))
@@ -2609,7 +2683,9 @@ def run_tool(call, root, perms):
         elif name == "image_search":
             out = image_search(call.get("query"), call.get("count"))
         elif name == "image_save":
-            out = image_save(root, call.get("url"), call.get("name"))
+            out = image_save(root, call.get("url"), call.get("name"), call.get("path"))
+        elif name == "canva_upload":
+            out = canva_upload(root, call.get("path"), call.get("upload_url") or call.get("url"))
         elif name == "image_generate":
             out = image_generate(root, call)
         elif name == "video_generate":

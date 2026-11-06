@@ -113,6 +113,10 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   init-Zeile (`parse_init`/`record`, `STATE`), Fehler -> `_links_report` (Audit `ai_link_failed`, Telegram je Verbindung alle 6 h). `prompt_block` in
   `build_system`/`chat_system`. Codex: nur Namen aus `~/.codex/config.toml`. API `/api/ai_links`(+`/check`), `selftest.py links`. Chat: `auto_image`
   haengt das neueste Bild aus `input/` an, wenn `IMG_WORDS` passt und kein Bild dabei ist. Tests `tests/test_ki_verbindungen.py`.
+- Canva-Bilder (Wunsch ABI 2026-11-05, nur mit Referenzbild): Server kommt nicht an Canva, der Claude-CLI-Agent ruft Canva nativ auf. `canva_upload`
+  (Recht `images`, nur mit Konnektor Canva) POSTet ein Projektbild roh an den Upload-Link (nur https `CANVA_UPLOAD_HOSTS` + `PCL_CANVA_UPLOAD_HOSTS`).
+  `IMAGE_PROVIDER=canva` -> `image_generate` wirft `CANVA_HOWTO`; scheitert ein anderer Anbieter, haengt der Fehler den Weg an, und mit Referenzbildern
+  gibt es dann kein Pollinations-Ersatzbild ohne Referenz. `image_save` kann `path`. Prompt-Absatz `_canva_block` in ai_links. Tests `tests/test_canva.py`.
 - `claude_cli`: läuft mit `--strict-mcp-config` (keine Konnektoren wie Gmail/Drive aus dem Abo) und bekommt die System-Nachricht als
   `--system-prompt` statt des Claude-Code-Prompts. Ohne beides hielt sich das Modell für werkzeuglos und ignorierte die JSON-Werkzeuge.
   Kann ein Modell keine Bilder, sagt `call_llm_img` ihm das (Bericht nennt Agent/Modell). Angeworbene Mitarbeiter haben immer `read_files`.
