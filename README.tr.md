@@ -99,7 +99,7 @@ Kılavuz ve senaryo biçimi (Almanca): [docs/filmstudio.md](docs/filmstudio.md).
 | Çalışıyor mu? | sorun olduğunda | `systemctl status hyperstead` | başlatma penceresi açık mı? Tarayıcı: <http://127.0.0.1:8787> |
 | Günlüğe bakma | hatalarda | `journalctl -u hyperstead -f` (Ctrl+C ile çıkılır) | başlatma penceresinde görünür |
 | Güncelleme | yeni bir sürüm olduğunda (ör. birleştirilmiş bir pull request'ten sonra) | aşağıya bakın | aşağıya bakın |
-| Kontrol | kurulumdan, güncellemeden, yeni anahtarlardan sonra | `./venv/bin/python selftest.py` | `venv\Scripts\python.exe selftest.py` |
+| Kontrol | kurulumdan, güncellemeden, yeni anahtarlardan sonra | `python3 selftest.py` | `python selftest.py` |
 | Anahtarlar / ayarlar | yeni anahtar, başka görsel sağlayıcısı | `nano .env`, sonra yeniden başlatın | `notepad .env`, sonra yeniden başlatın |
 | Yedekleme | düzenli olarak, taşımadan ve büyük güncellemelerden önce | `data.db`, `workspace/`, `.env` kopyalayın (önce durdurun) | Hyperstead klasöründe aynısı |
 
@@ -112,7 +112,7 @@ cd ~/hyperstead
 git pull
 ./install.sh               # yalnızca requirements.txt değiştiyse gerekir; .env değişmez
 sudo systemctl restart hyperstead
-./venv/bin/python selftest.py llm     # yapay zekâ sağlayıcılarının yanıt verdiğini kısaca kontrol edin
+python3 selftest.py llm     # yapay zekâ sağlayıcılarının yanıt verdiğini kısaca kontrol edin
 ```
 
 **Windows**, PowerShell'de:
@@ -123,7 +123,7 @@ sudo systemctl restart hyperstead
    (mevcut `.env` değişmez).
 4. Hyperstead'in siyah başlatma penceresini kapatın.
 5. `deploy\windows\hyperstead-start.bat` dosyasını yeniden başlatın (çift tıklayın ya da PowerShell'e yazın).
-6. Kontrol: `venv\Scripts\python.exe selftest.py llm`
+6. Kontrol: `python selftest.py llm`
 
 `git pull` „local changes would be overwritten“ diyorsa, programın bir dosyasını kendiniz değiştirmişsiniz demektir.
 `git stash` değişikliği kenara koyar, ardından `git pull` komutunu tekrarlayın. Verileriniz (`data.db`, `workspace/`, `.env`)
@@ -166,7 +166,7 @@ bundan asla etkilenmez, çünkü Git bunları bilmez.
 
 - **Nerede:** Blender'ın kurulu olduğu bilgisayarda (ör. dizüstü). `film` aracını kullanan şirket **bu** Hyperstead kurulumunda çalışmalıdır.
 - **Ne zaman:** Blender'ın açık olması gerekmez, Hyperstead onu her sahne için arka planda başlatır ve yeniden kapatır.
-- **Kontrol:** `venv\Scripts\python.exe selftest.py film` (Windows) ya da `./venv/bin/python selftest.py film`.
+- **Kontrol:** `python selftest.py film` (Windows) ya da `python3 selftest.py film`.
 - **Ne kadar sürer:** 640×360 ve saniyede 12 karede, dizüstüne göre 10 saniyelik film başına yaklaşık 1 ila 5 dakika. Blender hiçbir zaman görsel bilgisayarıyla aynı anda çalışmaz.
 
 ### Taşınma (ör. Pi → dizüstü)
@@ -583,7 +583,7 @@ maliyet doğabilir; belirteçleri düğümde ajan başına görürsünüz.
   `.env` yok, veritabanı yok, ev klasörü yok. Betiğin çalışma dizinine yazdığı her şey `output/run/<zaman>/` içine düşer
   (en fazla 50 dosya/50 MB). Sınırlar: `PCL_RUN_TIMEOUT` (60 sn), `PCL_RUN_MEM_MB` (1024). Sistemin Python/Node'unu çalıştırır,
   yani yalnızca apt ile kurulmuş paketler (ör. `sudo apt install python3-pandas python3-matplotlib`). Genel olarak kapatmak: `PCL_ALLOW_RUN=0`.
-  Kontrol: `./venv/bin/python selftest.py run browser`.
+  Kontrol: `python3 selftest.py run browser`.
 
 ## 🦀 Rust programlarını eksiksiz derleme
 
@@ -643,7 +643,7 @@ farklı projelerin görevleri. Bir ajan asla aynı anda iki görev üzerinde ça
 
 ## Selbsttest (öz test)
 
-Kurulum ve anahtarların girilmesinden sonra `./venv/bin/python selftest.py` internet olmadan test edilemeyen her gerçek şeyi kontrol eder:
+Kurulum ve anahtarların girilmesinden sonra `python3 selftest.py` internet olmadan test edilemeyen her gerçek şeyi kontrol eder:
 web araması, sayfa okuma, görsel araması ve görsel üretici, SSRF koruması, her yapay zekâ sağlayıcısı mini bir istekle (Ollama dahil),
 Telegram (bot belirteci ve sohbet kimliğinize test mesajı), ffmpeg, sesli çıktı, Almanca karakterli PDF, OCR. Tek tek gruplar:
 `selftest.py web | llm | telegram | media | ocr | rust | film`. Her satır OK, MISSING (isteğe bağlı) ya da somut bir notla ERROR gösterir.

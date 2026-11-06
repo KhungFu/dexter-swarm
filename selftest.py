@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Hyperstead Selbsttest: prueft auf dem echten Rechner (Pi), ob alles funktioniert, was die Agenten brauchen.
 
-    ./venv/bin/python selftest.py            # alles pruefen
-    ./venv/bin/python selftest.py web        # nur Gruppe: web | browser | run | llm | links | telegram | media | ocr | code | film
+    python selftest.py            # alles pruefen (Windows; auf dem Pi: python3 selftest.py)
+    python selftest.py web        # nur Gruppe: web | browser | run | llm | links | telegram | media | ocr | code | film
+
+Wird das Skript mit dem normalen System-Python gestartet, wechselt es selbst ins Hyperstead-venv
+(venv\\Scripts\\python.exe bzw. ./venv/bin/python). Fehlt das venv, sagt es, wie man es anlegt.
 
 Jede Zeile: OK / MISSING (optional) / ERROR, bei Problemen mit konkretem Hinweis. Es werden keine Keys ausgegeben.
 Die LLM-Tests senden je Anbieter eine winzige Anfrage (kostet praktisch nichts). Bilder werden nur im Temp-Ordner erzeugt.
@@ -14,11 +17,64 @@ import tempfile
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import requests  # noqa: E402
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
 
-import agent_tools as T  # noqa: E402
-import app as A  # noqa: E402  (laedt .env)
+
+def venv_python(root=HERE, windows=os.name == "nt"):
+    """Pfad zum Python im Hyperstead-venv (oder None, wenn es keins gibt)."""
+    p = root / "venv" / ("Scripts/python.exe" if windows else "bin/python")
+    return p if p.exists() else None
+
+
+def in_venv():
+    return sys.prefix != getattr(sys, "base_prefix", sys.prefix)
+
+
+def missing_venv_hint(windows=os.name == "nt", missing="requests"):
+    head = f"Python package '{missing}' is missing (no Hyperstead venv yet, or it is out of date).\n"
+    if windows:
+        return (head +
+                "  Run in PowerShell in the Hyperstead folder:\n"
+                "    powershell -ExecutionPolicy Bypass -File install.ps1\n"
+                "  Then again:  python selftest.py")
+    return (head +
+            "  Run in the Hyperstead folder:  ./install.sh  (or ./install.sh --update)\n"
+            "  Then again:  python3 selftest.py")
+
+
+def ensure_venv(argv=None, run=None):
+    """Startet den Selbsttest mit dem venv-Python neu, wenn er mit dem System-Python gestartet wurde.
+
+    Gibt None zurueck, wenn hier weitergemacht werden soll, sonst den Exit-Code des neuen Laufs.
+    """
+    if in_venv() or os.environ.get("HYPERSTEAD_SELFTEST_REEXEC"):
+        return None
+    vpy = venv_python()
+    if vpy is None:
+        return None
+    import subprocess
+    env = dict(os.environ, HYPERSTEAD_SELFTEST_REEXEC="1")
+    print(f"(using Hyperstead venv: {vpy})")
+    sys.stdout.flush()
+    return (run or subprocess.call)([str(vpy), str(HERE / "selftest.py"), *(sys.argv[1:] if argv is None else argv)], env=env)
+
+
+if __name__ == "__main__":
+    _rc = ensure_venv()
+    if _rc is not None:
+        sys.exit(_rc)
+
+try:
+    import requests  # noqa: E402
+
+    import agent_tools as T  # noqa: E402
+    import app as A  # noqa: E402  (laedt .env)
+except ModuleNotFoundError as _e:
+    if __name__ == "__main__":
+        print(missing_venv_hint(missing=_e.name))
+        sys.exit(2)
+    raise
 
 RES = {"ok": 0, "warn": 0, "fail": 0}
 

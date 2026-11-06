@@ -100,7 +100,7 @@ folderu Hyperstead: na Pi-ju u terminalu (`cd ~/hyperstead`), na Windowsu u Powe
 | Radi li? | kada ima problema | `systemctl status hyperstead` | da li je prozor za pokretanje otvoren? Pregledač: <http://127.0.0.1:8787> |
 | Pregled dnevnika | kod grešaka | `journalctl -u hyperstead -f` (Ctrl+C prekida) | prikazuje se u prozoru za pokretanje |
 | Ažuriranje | kada postoji nova verzija (npr. poslije spojenog pull requesta) | vidi dolje | vidi dolje |
-| Provjera | poslije instalacije, ažuriranja, novih ključeva | `./venv/bin/python selftest.py` | `venv\Scripts\python.exe selftest.py` |
+| Provjera | poslije instalacije, ažuriranja, novih ključeva | `python3 selftest.py` | `python selftest.py` |
 | Ključevi / podešavanja | novi ključ, drugi provajder slika | `nano .env`, pa ponovo pokrenite | `notepad .env`, pa ponovo pokrenite |
 | Rezerva | redovno, prije selidbe i većih ažuriranja | kopirajte `data.db`, `workspace/`, `.env` (prvo zaustavite) | isto u folderu Hyperstead |
 
@@ -113,7 +113,7 @@ cd ~/hyperstead
 git pull
 ./install.sh               # potrebno samo ako se requirements.txt promijenio; .env ostaje nepromijenjen
 sudo systemctl restart hyperstead
-./venv/bin/python selftest.py llm     # kratka provjera da li AI provajderi odgovaraju
+python3 selftest.py llm     # kratka provjera da li AI provajderi odgovaraju
 ```
 
 **Windows**, u PowerShell-u:
@@ -124,7 +124,7 @@ sudo systemctl restart hyperstead
    (postojeći `.env` ostaje nepromijenjen).
 4. Zatvorite crni prozor za pokretanje Hyperstead-a.
 5. Ponovo pokrenite `deploy\windows\hyperstead-start.bat` (dvoklik ili upišite u PowerShell).
-6. Provjera: `venv\Scripts\python.exe selftest.py llm`
+6. Provjera: `python selftest.py llm`
 
 Ako `git pull` javi „local changes would be overwritten“, sami ste promijenili neki fajl programa.
 `git stash` odlaže promjenu na stranu, zatim ponovite `git pull`. Vaši podaci (`data.db`, `workspace/`, `.env`)
@@ -167,7 +167,7 @@ nikada nisu ugroženi, jer ih Git ne poznaje.
 
 - **Gdje:** na računaru sa Blenderom (npr. laptop). Firma s alatom `film` mora raditi u **ovoj** instanci Hyperstead.
 - **Kada:** Blender ne mora biti otvoren, Hyperstead ga za svaku scenu pokreće u pozadini i ponovo zatvara.
-- **Provjera:** `venv\Scripts\python.exe selftest.py film` (Windows) ili `./venv/bin/python selftest.py film`.
+- **Provjera:** `python selftest.py film` (Windows) ili `python3 selftest.py film`.
 - **Koliko traje:** pri 640×360 i 12 sličica u sekundi, zavisno od laptopa, oko 1 do 5 minuta po 10 sekundi filma. Blender nikad ne radi istovremeno sa računarom za slike.
 
 ### Selidba (npr. Pi → laptop)
@@ -590,7 +590,7 @@ Radi bez interneta i bez ključeva (dobavljač `mock`, vlastita baza).
   bez `.env`-a, bez baze, bez kućnog foldera. Ono što skripta upiše u svoj radni direktorijum završi u `output/run/<vrijeme>/`
   (najviše 50 fajlova/50 MB). Granice: `PCL_RUN_TIMEOUT` (60 s), `PCL_RUN_MEM_MB` (1024). Pokreće Python/Node sistema,
   dakle samo pakete instalirane preko apt-a (npr. `sudo apt install python3-pandas python3-matplotlib`). Globalno isključeno: `PCL_ALLOW_RUN=0`.
-  Provjera: `./venv/bin/python selftest.py run browser`.
+  Provjera: `python3 selftest.py run browser`.
 
 ## 🦀 Kompletna izrada Rust programa
 
@@ -650,7 +650,7 @@ različitih projekata. Agent nikada ne radi na dva zadatka odjednom, a istovreme
 
 ## Samoprovjera
 
-Poslije instalacije i unosa ključeva `./venv/bin/python selftest.py` provjerava sve stvarne stvari koje se bez interneta nisu mogle testirati:
+Poslije instalacije i unosa ključeva `python3 selftest.py` provjerava sve stvarne stvari koje se bez interneta nisu mogle testirati:
 web pretragu, čitanje stranica, pretragu slika i generator slika, SSRF zaštitu, svakog AI provajdera mini zahtjevom (uključujući Ollama),
 Telegram (token bota i probna poruka na vaš ID čata), ffmpeg, glasovni izlaz, PDF sa dijakriticima, OCR. Pojedinačne grupe:
 `selftest.py web | llm | telegram | media | ocr | rust | film`. Svaki red prikazuje OK, MISSING (opciono) ili ERROR sa konkretnom napomenom.

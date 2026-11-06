@@ -30,4 +30,4 @@ if (-not (Test-Path ".env")) {
 }
 Write-Host ""
 Write-Host "Starten:  deploy\windows\hyperstead-start.bat   (oder: venv\Scripts\python.exe app.py)"
-Write-Host "Pruefen:  venv\Scripts\python.exe selftest.py"
+Write-Host "Pruefen:  python selftest.py"

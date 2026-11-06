@@ -100,7 +100,7 @@ Hyperstead folder: on the Pi in the terminal (`cd ~/hyperstead`), on Windows in 
 | Is it running? | when there are problems | `systemctl status hyperstead` | is the start window open? Browser: <http://127.0.0.1:8787> |
 | View the log | on errors | `journalctl -u hyperstead -f` (Ctrl+C stops it) | shown in the start window |
 | Update | when there is a new version (e.g. after a merged pull request) | see below | see below |
-| Check | after installation, an update, new keys | `./venv/bin/python selftest.py` | `venv\Scripts\python.exe selftest.py` |
+| Check | after installation, an update, new keys | `python3 selftest.py` | `python selftest.py` |
 | Keys / settings | new key, other image provider | `nano .env`, then restart | `notepad .env`, then restart |
 | Back up | regularly, before a move and big updates | copy `data.db`, `workspace/`, `.env` (stop first) | the same in the Hyperstead folder |
 
@@ -113,7 +113,7 @@ cd ~/hyperstead
 git pull
 ./install.sh               # only needed if requirements.txt changed; .env stays unchanged
 sudo systemctl restart hyperstead
-./venv/bin/python selftest.py llm     # quick check that the AI providers answer
+python3 selftest.py llm     # quick check that the AI providers answer
 ```
 
 **Windows**, in PowerShell:
@@ -124,7 +124,7 @@ sudo systemctl restart hyperstead
    (the existing `.env` stays unchanged).
 4. Close the black start window of Hyperstead.
 5. Start `deploy\windows\hyperstead-start.bat` again (double-click or type it in PowerShell).
-6. Check: `venv\Scripts\python.exe selftest.py llm`
+6. Check: `python selftest.py llm`
 
 If `git pull` says „local changes would be overwritten“, you changed a file of the program yourself.
 `git stash` sets the change aside, then repeat `git pull`. Your data (`data.db`, `workspace/`, `.env`)
@@ -167,7 +167,7 @@ is never affected, because Git does not know them.
 
 - **Where:** on the computer with Blender (e.g. the laptop). The company with the `film` tool must run in **this** Hyperstead instance.
 - **When:** Blender does not need to be open, Hyperstead starts it in the background for each scene and closes it again.
-- **Check:** `venv\Scripts\python.exe selftest.py film` (Windows) or `./venv/bin/python selftest.py film`.
+- **Check:** `python selftest.py film` (Windows) or `python3 selftest.py film`.
 - **How long:** at 640×360 and 12 frames/s, depending on the laptop, about 1 to 5 minutes per 10 seconds of film. Blender never runs at the same time as the image computer.
 
 ### Moving (e.g. Pi → laptop)
@@ -232,6 +232,7 @@ This list is extended with every change to the program. Each row says what the s
 | `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` | Preparing and analysing keep working. Uploading reports “YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET are missing”, agents are told that no channel is signed in. | Create a Google Cloud project and add the lines ([docs/youtube.md](docs/youtube.md)), restart. |
 | YouTube sign-in (`tokens/youtube-<lang>.json`) | No upload for this channel (“not signed in”). While the Google project is in testing mode the sign-in expires after 7 days (“sign-in expired”). | `python youtube_channel.py login de` (or `en`, `tr`) on the computer running Hyperstead. |
 | `tzdata` (Windows only) | The schedule reports “Unknown time zone”, packages get no date. | `venv\Scripts\pip install -r requirements.txt` |
+| Python packages for the self-test (`requests`, `flask` …) | `python selftest.py` (Windows) or `python3 selftest.py` (Pi) switches to the Hyperstead venv by itself. If there is no venv yet or a package is missing in it, it says which package is missing and what to do instead of a Python error (exit code 2). | Windows: `powershell -ExecutionPolicy Bypass -File install.ps1`, Pi: `./install.sh` or `./install.sh --update`. Then run `python selftest.py` again. |
 | `youtube_channel.py` (program file) | Hyperstead does not start (import error). | Run `git pull` again, the file is part of the program. |
 | `PCL_ALLOW_WERKSTATT=1` | The “Workshop” checkbox is grey, no agent gets `befehl` or `nachruesten`. Everything else works as before. | Add the line to `.env`, restart, tick the box for the agent ([docs/werkstatt.md](docs/werkstatt.md)). |
 | A program an agent needs (e.g. Node.js, Remotion, a Python package) | With the workshop the agent files an upgrade request: the CEO checks it, you get ✅/❌ via Telegram and under ✋ Approvals. After your yes the server installs it and the task continues. Without the workshop the agent only names what is missing. | Read the request and decide. Without Telegram only on the web. |
@@ -591,7 +592,7 @@ The 👑 CEO inspection writes an evening report at closing time. In 📬 Mail a
   no `.env`, no database, no home. What the script writes into its work directory lands in `output/run/<time>/`
   (max. 50 files/50 MB). Limits: `PCL_RUN_TIMEOUT` (60 s), `PCL_RUN_MEM_MB` (1024). It runs the system's Python/Node,
   so only packages installed via apt (e.g. `sudo apt install python3-pandas python3-matplotlib`). Off globally: `PCL_ALLOW_RUN=0`.
-  Check: `./venv/bin/python selftest.py run browser`.
+  Check: `python3 selftest.py run browser`.
 
 ## 🦀 Building complete Rust programs
 
@@ -651,10 +652,12 @@ of different projects. An agent never works on two tasks at once, and at most on
 
 ## Self-test
 
-After installation and entering the keys, `./venv/bin/python selftest.py` checks everything real that could not be tested without internet:
+After installation and entering the keys, `python selftest.py` (Windows) or `python3 selftest.py` (Pi) checks everything real that could not be tested without internet:
 web search, reading pages, image search and image generator, SSRF protection, every AI provider with a mini request (incl. Ollama), Telegram
 (bot token and test message to your chat ID), ffmpeg, speech output, PDF with umlauts, OCR. Single groups:
 `selftest.py web | llm | telegram | media | ocr | rust | film`. Each line shows OK, MISSING (optional) or ERROR with a concrete note.
+
+You do not need to know the venv path: on Windows `python selftest.py` is enough, on the Pi `python3 selftest.py`. Started with the normal system Python, the self-test restarts itself with `venv\Scripts\python.exe` (Windows) or `./venv/bin/python` (Pi) and prints “(using Hyperstead venv: …)”. Without a venv it tells you which install command to run. The old way `venv\Scripts\python.exe selftest.py` still works.
 
 ## Ollama (local models)
 

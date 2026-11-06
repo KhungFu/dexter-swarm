@@ -12,7 +12,7 @@
 #   ./install.sh --node     -> Node.js LTS ohne sudo nach ~/.local (fuer Remotion & Co., deploy/node-ohne-sudo.sh --remotion)
 #   ./install.sh --print    -> CUPS-Programme (lp, lpstat) zum Drucken der Abendberichte auf einem Netzwerkdrucker
 #   ./install.sh --all      -> alles oben zusammen (system + code + run + print + node + service, dazu Browser, Piper, Rust)
-#   Optionen sind kombinierbar. Danach pruefen:  ./venv/bin/python selftest.py
+#   Optionen sind kombinierbar. Danach pruefen:  python3 selftest.py
 #   Nicht mit sudo starten: wo sudo noetig ist, fragt das Skript selbst danach.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -218,7 +218,7 @@ elif has --update; then
   done
   [ -n "$RESTARTED" ] || echo "Kein laufender Dienst gefunden. Hyperstead selbst neu starten (Startfenster schliessen und neu starten)."
   echo
-  echo "Update fertig. Pruefen:  ./venv/bin/python selftest.py"
+  echo "Update fertig. Pruefen:  python3 selftest.py"
 else
   echo
   echo "Manuell starten:   ./venv/bin/python app.py     (http://127.0.0.1:8787)"
