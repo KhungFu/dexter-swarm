@@ -68,7 +68,7 @@ def test_mcp_file_and_connectors_build_args(env, monkeypatch):
     monkeypatch.setenv("PCL_CLAUDE_CONNECTORS", "Canva, Google Drive")
     out = L.claude_args(["claude", "-p", "--allowedTools", "Read,Glob", "--strict-mcp-config"])
     assert "--strict-mcp-config" not in out
-    assert out[out.index("--allowedTools") + 1] == "Read,Glob,mcp__echo,mcp__web_site,mcp__claude_ai_Canva,mcp__claude_ai_Google_Drive"
+    assert out[out.index("--allowedTools") + 1] == "Read,Glob,mcp__echo,mcp__web_site,mcp__claude_ai_Canva,mcp__claude_ai_Google_Drive,mcp__canva,mcp__google_drive"
     assert out.count("--allowedTools") == 1
 
 

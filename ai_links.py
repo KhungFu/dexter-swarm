@@ -84,6 +84,9 @@ def claude_args(argv, cfg=None):
         out[1:1] = ["--mcp-config", str(cfg["file"])]
     allow = [f"mcp__{norm(n)}" for n in cfg["servers"]] + [f"mcp__claude_ai_{norm(c)}" for c in cfg["connectors"]]
     allow += [f"mcp__{norm(LEARNED[c])}" for c in cfg["connectors"] if c in LEARNED and f"mcp__{norm(LEARNED[c])}" not in allow]
+    # Ersatz, wenn der Abo-Konnektor mit dem Token aus 'claude setup-token' nicht laedt: gleichnamiger eigener MCP-Server
+    # (claude mcp add --scope user canva ...), Name in Kleinbuchstaben
+    allow += [f"mcp__{norm(c).lower()}" for c in cfg["connectors"] if f"mcp__{norm(c).lower()}" not in allow]
     for i, a in enumerate(out):
         if a in ("--allowedTools", "--allowed-tools") and i + 1 < len(out):
             out[i + 1] = ",".join([x for x in out[i + 1].split(",") if x] + allow)

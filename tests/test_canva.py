@@ -106,3 +106,16 @@ def test_prompt_nennt_canva_weg(monkeypatch, tmp_path):
     assert "IMAGES THROUGH CANVA" in L.prompt_block("claude_cli")
     monkeypatch.setenv("PCL_CLAUDE_CONNECTORS", "Gmail")
     assert "IMAGES THROUGH CANVA" not in L.prompt_block("claude_cli")
+
+
+def test_eigener_canva_server_zaehlt_als_konnektor(monkeypatch, tmp_path):
+    """Laedt der Abo-Konnektor nicht (Langzeit-Token), darf ein eigener Server 'canva' einspringen."""
+    monkeypatch.setenv("PCL_TOKENS_DIR", str(tmp_path))
+    monkeypatch.delenv("PCL_CLAUDE_MCP", raising=False)
+    monkeypatch.setenv("PCL_CLAUDE_CONNECTORS", "Canva")
+    monkeypatch.setattr(L, "LEARNED", {})
+    monkeypatch.setattr(L, "STATE", {})
+    out = L.claude_args(["claude", "-p", "--strict-mcp-config"])
+    assert "mcp__canva" in out[out.index("--allowedTools") + 1].split(",")
+    bad = L.record("claude_cli", {"canva": "connected"}, L.claude_config())
+    assert bad == [] and L.LEARNED["Canva"] == "canva"

@@ -24,6 +24,27 @@ Server aus `tokens/claude-mcp.json`, andere Werkzeuge werden abgelehnt (Ausnahme
 Zeigt der Selbsttest „NOT AVAILABLE“, liegt es vermutlich daran. Dann melde dich auf dem Rechner einmal normal mit
 `claude` → `/login` an und benenne `tokens/claude-oauth-token.txt` testweise um.
 
+### Canva meldet „NOT AVAILABLE“ (2026-11-06 auf dem Laptop so gesehen)
+
+Mit dem Langzeit-Token aus `claude setup-token` lädt `claude` die claude.ai-Konnektoren offenbar nicht. Zwei Auswege:
+
+**A (empfohlen, Token bleibt):** Canva als eigenen MCP-Server bei Claude Code anmelden, einmal auf dem Laptop:
+
+```
+claude mcp add --transport http --scope user canva https://mcp.canva.com/mcp
+claude
+```
+
+In Claude `/mcp` eingeben, `canva` wählen, „Authenticate“, im Browser bei Canva anmelden, Claude mit `/exit` beenden.
+`PCL_CLAUDE_CONNECTORS=Canva` bleibt in `.env`. Hyperstead erlaubt dann auch den Server `canva` (Werkzeuge `mcp__canva__…`).
+Danach Hyperstead neu starten und `python selftest.py links`.
+
+**B:** Ohne Langzeit-Token: `tokens/claude-oauth-token.txt` umbenennen (und `CLAUDE_CODE_OAUTH_TOKEN` aus `.env` nehmen), dann
+`claude` → `/login` mit dem claude.ai-Konto. Die normale Anmeldung erneuert sich selbst, kann aber ablaufen
+(siehe [claude-anmeldung.md](claude-anmeldung.md)).
+
+Beides ist ungeprüft, weil es nur auf dem Laptop geht.
+
 ## 2. Eigene MCP-Server
 
 Datei `tokens/claude-mcp.json` (anderer Ort: `PCL_CLAUDE_MCP=` in `.env`), Format wie bei Claude Code:
