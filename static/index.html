@@ -1755,18 +1755,19 @@ async function showPrinters(){
   if(!S.pid){ toast('Choose a project first.'); return; }
   openOv('🖨 Printer'); const body=$('#ovbody'); body.innerHTML='<div style="color:var(--mute)">Looking for printers …</div>';
   const r=await api('/printers?pid='+S.pid);
-  const kinds={network:' (found on the network, not set up)',remote:' (printer of the Pi)'};
-  const opts=(r.details||r.printers.map(n=>({name:n}))).map(d=>`<option value="${esc(d.name)}" data-kind="${esc(d.kind||'')}" ${d.name===(r.selected||((r.details||[]).find(x=>x.default)||{}).name)?'selected':''}>${esc(d.name)}${d.default?' (Windows default)':''}${kinds[d.kind]||''}</option>`).join('');
+  const kinds={network:' (found on the network, not set up)',remote:' (remote printer)',mail:' (e-mail printer)'};
+  const opts=(r.details||r.printers.map(n=>({name:n}))).map(d=>`<option value="${esc(d.name)}" data-kind="${esc(d.kind||'')}" ${d.name===(r.selected||((r.details||[]).find(x=>x.default)||{}).name)?'selected':''}>${d.label?esc(d.label):esc(d.name)+(d.default?' (Windows default)':'')+(kinds[d.kind]||'')}</option>`).join('');
   body.innerHTML=`
-    <div style="color:var(--mute);font-size:12px;margin-bottom:8px">Evening reports (result of the 👑 CEO inspection) get a 🖨 Print button in the 📬 mail and in the tasks. Nothing is printed before you confirm. ${r.system==='windows'?'Windows: all printers installed on this computer are listed (default first). Shared printers: connect them first under Settings › Printers &amp; scanners.':'Pi/Linux: set up network printers in CUPS (docs/drucken.md).'}</div>
+    <div style="color:var(--mute);font-size:12px;margin-bottom:8px">Evening reports (result of the 👑 CEO inspection) get a 🖨 Print button in the 📬 mail and in the tasks. Nothing is printed before you confirm. ${r.system==='windows'?'Windows: all printers installed on this computer are listed (default first). Shared printers: connect them first under Settings › Printers &amp; scanners.':'Linux: printers set up in CUPS are listed. Remote printers: add their address below.'}</div>
     ${r.error?`<div class="task" style="padding:8px;margin-bottom:8px;border-color:var(--warn,#c90)">⚠ ${esc(r.error)}</div>`:''}
     <label>Printer</label>
     <select id="pr_sel"><option value="">– none –</option>${opts}</select>
     <small style="color:var(--mute);display:block;margin-top:4px">“${esc(r.test)}” does not print but saves the printout as a text file (workspace/.druck/). Good for trying it out.</small>
-    <label style="margin-top:8px">Pi address (to print on the Pi's printers)</label>
-    <div class="row"><input id="pr_srv" value="${esc(r.cups_server||'')}" placeholder="${r.system==='windows'?'e.g. dexter.local or 192.168.1.20':'only needed on the laptop'}" style="flex:1"><button class="btn sm" id="pr_srv_save" title="Save the Pi's address and search again">Use</button></div>
-    <small style="color:var(--mute);display:block;margin-top:4px">Printers the Pi has set up then appear here as “Name @ address”. No Windows driver needed. Once on the Pi: <code>sudo cupsctl --remote-any --share-printers</code></small>
-    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Use this printer for all evening reports">Save</button><button class="btn sm" id="pr_test" title="Print a test page on the selected printer to see whether it is the right one">🧾 Print test page</button><button class="btn sm" id="pr_diag" title="Check why nothing comes out: printer state, waiting jobs, driver">🩺 Check printer</button><button class="btn sm" id="pr_reload" title="Fetch the printer list from the system again">↻ Search again</button><button class="btn sm" id="pr_setup" style="display:none" title="Set up this network printer once in CUPS (driverless, shared for the laptop)">🔧 Set up printer</button></div>
+    <label style="margin-top:8px">Remote printers (one address per line)</label>
+    <textarea id="pr_srv" rows="3" style="width:100%" placeholder="192.168.1.50&#10;printer.example.com&#10;ipp://printer.example.com/ipp/print&#10;abc123@print.epsonconnect.com">${esc(r.remote_printers||'')}</textarea>
+    <div class="row"><button class="btn sm" id="pr_srv_save" title="Save the remote printer addresses and search again">Use</button></div>
+    <small style="color:var(--mute);display:block;margin-top:4px">IP address or name of a network printer (printed directly, no driver needed), of a computer that shares its printers (they appear as “Name @ address”), or the printer's e-mail address (Epson Connect, HP ePrint …: sent as PDF${r.smtp?'':', needs SMTP_HOST/SMTP_USER/SMTP_PASSWORD in the .env'}).</small>
+    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Use this printer for all evening reports">Save</button><button class="btn sm" id="pr_test" title="Print a test page on the selected printer to see whether it is the right one">🧾 Print test page</button><button class="btn sm" id="pr_diag" title="Check why nothing comes out: printer state, waiting jobs, driver">🩺 Check printer</button><button class="btn sm" id="pr_reload" title="Fetch the printer list from the system again">↻ Search again</button><button class="btn sm" id="pr_setup" style="display:none" title="Set up this network printer once in CUPS (driverless, shared for other computers)">🔧 Set up printer</button></div>
     <div id="pr_out"></div>
     <div class="task" style="padding:10px;margin-top:12px">
       <b>Printing in this project: ${r.allowed?'✅ allowed':'⛔ blocked'}</b>
@@ -1777,7 +1778,7 @@ async function showPrinters(){
   $('#pr_reload').onclick=showPrinters;
   const kindNow=()=>{ const o=$('#pr_sel').selectedOptions[0]; return o?o.dataset.kind:''; };
   const upd=()=>{ $('#pr_setup').style.display=kindNow()==='network'?'':'none'; }; upd(); $('#pr_sel').onchange=upd;
-  $('#pr_srv_save').onclick=async()=>{ try{ await api('/printers','PUT',{cups_server:$('#pr_srv').value.trim()}); toast('Pi address saved'); showPrinters(); }catch(_){} };
+  $('#pr_srv_save').onclick=async()=>{ try{ await api('/printers','PUT',{remote_printers:$('#pr_srv').value.trim()}); toast('Remote printers saved'); showPrinters(); }catch(_){} };
   $('#pr_setup').onclick=()=>prSetup($('#pr_sel').value);
   $('#pr_test').onclick=async()=>{ const n=$('#pr_sel').value; if(!n){ toast('Select a printer first.'); return; }
     if(!confirm('Print a test page on “'+n+'”?')) return;
@@ -1789,7 +1790,7 @@ async function showPrinters(){
   if($('#pr_allow')) $('#pr_allow').onclick=async()=>{ await api('/projects/'+S.pid+'/print','PUT',{allowed:!r.allowed}); toast(r.allowed?'Printing blocked':'Printing allowed'); showPrinters(); };
 }
 async function prSetup(n){
-  if(!n||!confirm('Set up “'+n+'” as a printer in CUPS on this Pi (driverless, shared so the laptop can use it)?')) return;
+  if(!n||!confirm('Set up “'+n+'” as a printer in CUPS on this computer (driverless, shared so other computers can use it)?')) return;
   const out=$('#pr_out'); out.innerHTML='<div style="color:var(--mute);margin-top:8px">Setting up the printer …</div>';
   try{ const x=await api('/printers/setup','POST',{printer:n}); toast('✅ '+x.message); await showPrinters(); }
   catch(e){ out.innerHTML=`<div class="task" style="padding:8px;margin-top:8px;border-color:var(--warn,#c90)">⚠ ${esc(String(e.message||e))}</div>`; }
@@ -1798,7 +1799,7 @@ async function prDiag(n,append){
   const out=$('#pr_out'); if(!out) return;
   let r; try{ r=await api('/printers/status?printer='+encodeURIComponent(n)); }catch(_){ return; }
   const html=`<div class="task" style="padding:8px;margin-top:8px"><b>🩺 ${esc(n)}</b>
-    ${r.setup?`<div style="margin:6px 0"><button class="btn sm pri" data-prsetup="1" title="Set up this network printer once in CUPS (driverless, shared for the laptop)">🔧 Set up printer</button></div>`:''}
+    ${r.setup?`<div style="margin:6px 0"><button class="btn sm pri" data-prsetup="1" title="Set up this network printer once in CUPS (driverless, shared for other computers)">🔧 Set up printer</button></div>`:''}
     ${r.problems.length?`<ul style="margin:6px 0 4px 18px">${r.problems.map(p=>`<li>⚠ ${esc(p)}</li>`).join('')}</ul>`:'<div style="margin:6px 0">No problem found by the system. If nothing comes out: is the printer on, has paper, and is it reachable from this computer?</div>'}
     <div style="font-size:12px;color:var(--mute)">Waiting jobs: ${r.jobs.length?r.jobs.map(esc).join('<br>'):'none'}</div>
     ${r.lines.length?`<details style="margin-top:4px"><summary style="cursor:pointer;font-size:12px;color:var(--mute)">Details</summary><pre style="white-space:pre-wrap;font-size:11px">${esc(r.lines.join('\n'))}</pre></details>`:''}</div>`;
@@ -2068,7 +2069,7 @@ const HELP=[
 <li><b>📜 History:</b> every event is logged and never deleted.</li></ul>`},
  {id:'dateien',t:'📁 Files, cloud and connections',h:`<ul><li><b>📁 Files:</b> everything the agents have created. Tapping opens it, “⬇ Everything as ZIP” downloads the project. Videos and sounds play right there: “🎬 Finished videos” at the top shows the newest film from <code>output/</code>, ▶️ next to any video or sound file plays it in the list, ⬇ downloads a single file. Uploaded files land in <code>input/</code>.</li>
 <li><b>Publishing a website:</b> if <code>www/index.html</code> is in the project, Hyperstead can serve it as a website (“Publish”).</li>
-<li><b>🖨 Printer:</b> choose the printer for the evening reports (network printers via CUPS or Windows). With 🧾 Print test page you see beforehand whether it is the right printer. The CEO allows or blocks printing. Every evening report then shows 🖨 Print; printing happens after your confirmation. Nothing comes out? 🩺 Check printer names the cause (stopped, offline, no driver, stuck job).</li>
+<li><b>🖨 Printer:</b> choose the printer for the evening reports: the printers of this computer, or remote printers you add by IP address, network name or e-mail address (Epson Connect, HP ePrint). With 🧾 Print test page you see beforehand whether it is the right printer. The CEO allows or blocks printing. Every evening report then shows 🖨 Print; printing happens after your confirmation. Nothing comes out? 🩺 Check printer names the cause (stopped, offline, no driver, stuck job).</li>
 <li><b>☁️ Cloud:</b> set up GitHub, Google Drive, OneDrive and Telegram. Every upload by an agent waits for your approval. ☁️ next to a file uploads it yourself.</li>
 <li><b>▶️ YouTube:</b> agents with the permission “May manage YouTube” write upload packages (title, description, keywords, hashtags, date) to <code>youtube/</code> and a review list <code>youtube/REVIEW.md</code>, and evaluate CSV exports from YouTube Studio that you upload. Each video upload waits for your approval, is uploaded as private and goes public at the planned time. You sign in the channels yourself once: <code>docs/youtube.md</code>.</li>
 <li><b>🔌 Connections:</b> webhooks. Agents with the permission “Connections” may call the addresses you entered (e.g. Zapier, Home Assistant), Hyperstead reports new mail to a service, or other programs send tasks in through a secret inbound address. Without an entry nothing happens.</li></ul>`},

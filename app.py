@@ -4611,18 +4611,21 @@ def report_print_text(t):
     return f"{head}\n\n{(t.get('result') or '(empty)').strip()}\n"
 
 
-def cups_server():
-    """CUPS des Pi fuer den Laptop: Einstellung im Drucker-Fenster, sonst PCL_CUPS_SERVER aus der .env."""
-    return (get_setting("cups_server", "") or os.environ.get("PCL_CUPS_SERVER", "")).strip()
+def remote_printers():
+    """Entfernte Drucker (IP, Name, ipp://, E-Mail), je Zeile einer: Fenster 🖨 Printer, dazu PCL_REMOTE_PRINTERS und
+    das alte cups_server / PCL_CUPS_SERVER."""
+    parts = [get_setting("remote_printers", ""), get_setting("cups_server", ""),
+             os.environ.get("PCL_REMOTE_PRINTERS", ""), os.environ.get("PCL_CUPS_SERVER", "")]
+    return "\n".join(e["addr"] for e in printing.parse_remotes("\n".join(x for x in parts if x)))
 
 
 @app.get("/api/printers")
 def api_printers():
-    items, err = printing.list_details(cups_server())
+    items, err = printing.list_details(remote_printers())
     pid = request.args.get("pid", type=int)
     out = {"printers": [i["name"] for i in items], "details": items, "error": err, "selected": get_setting("printer", ""),
            "test": printing.TEST_PRINTER, "system": "windows" if printing.is_windows() else "cups",
-           "cups_server": cups_server()}
+           "remote_printers": remote_printers(), "smtp": printing.smtp_config()[0]}
     if pid:
         ceo = ceo_of(pid)
         out.update(allowed=print_allowed(pid), ceo={"id": ceo["id"], "name": ceo["name"]} if ceo else None)
@@ -4632,16 +4635,18 @@ def api_printers():
 @app.put("/api/printers")
 def api_printers_set():
     d = request.get_json(force=True) or {}
-    if "cups_server" in d:  # Adresse des Pi (nur das Feld, Drucker bleibt)
-        srv = str(d.get("cups_server") or "").strip()
-        if srv.startswith(("http://", "https://", "ipp://")):
-            srv = srv.split("://", 1)[1].split("/", 1)[0]
-        if srv and not printing.valid_server(srv):
-            abort(400, "Invalid Pi address. Example: dexter.local or 192.168.1.20")
-        set_setting("cups_server", srv)
-        log("printer_server", srv or "(none)")
+    if "remote_printers" in d or "cups_server" in d:  # entfernte Drucker (nur das Feld, gewaehlter Drucker bleibt)
+        txt = str(d.get("remote_printers", d.get("cups_server")) or "")
+        bad = printing.invalid_remotes(txt)
+        if bad:
+            abort(400, "Not a printer address: " + ", ".join(bad[:5]) +
+                  ". Examples: 192.168.1.50, printer.local, ipp://printer.example.com/ipp/print, abc@print.epsonconnect.com")
+        clean = "\n".join(e["addr"] for e in printing.parse_remotes(txt))
+        set_setting("remote_printers", clean)
+        set_setting("cups_server", "")
+        log("printer_remote", clean.replace("\n", ", ")[:300] or "(none)")
         if "printer" not in d:
-            return jsonify({"ok": True, "cups_server": srv})
+            return jsonify({"ok": True, "remote_printers": clean})
     name = str(d.get("printer", "")).strip()
     if name and not printing.valid_name(name):
         abort(400, "Invalid printer name.")
@@ -4676,10 +4681,10 @@ def test_page_text(printer):
 def api_printers_test():
     """Testseite auf einem Drucker aus der Liste, damit der Besitzer sieht, ob es der richtige ist (vor dem Speichern)."""
     name = str((request.get_json(force=True) or {}).get("printer", "")).strip()
-    names, _ = printing.list_printers(cups_server())
+    names, _ = printing.list_printers(remote_printers())
     if not name or name not in names:
         abort(400, "This printer does not exist (any more). ↻ Search again and choose from the list.")
-    ok, msg = printing.print_text(name, "Hyperstead Testseite", test_page_text(name), WORKSPACE / ".druck", cups_server())
+    ok, msg = printing.print_text(name, "Hyperstead Testseite", test_page_text(name), WORKSPACE / ".druck", remote_printers())
     log("print_test" if ok else "print_failed", f"Testseite -> {name}: {msg}"[:400])
     if not ok:
         abort(400, msg)
@@ -4692,7 +4697,7 @@ def api_printers_status():
     name = (request.args.get("printer") or get_setting("printer", "") or "").strip()
     if not name or not printing.valid_name(name):
         abort(400, "Select a printer first.")
-    return jsonify(printing.status(name, cups_server()))
+    return jsonify(printing.status(name, remote_printers()))
 
 
 @app.put("/api/projects/<int:pid>/print")
@@ -4725,7 +4730,7 @@ def api_task_print(tid):
     printer = get_setting("printer", "")
     if not printer:
         abort(400, "No printer chosen yet (🖨 Printer in the sidebar).")
-    ok, msg = printing.print_text(printer, f"Abendbericht #{tid}", report_print_text(t), WORKSPACE / ".druck", cups_server())
+    ok, msg = printing.print_text(printer, f"Abendbericht #{tid}", report_print_text(t), WORKSPACE / ".druck", remote_printers())
     log("print" if ok else "print_failed", f"Abendbericht #{tid} -> {printer}: {msg}"[:400], t["project_id"], t["agent_id"], tid)
     if not ok:
         abort(400, msg)

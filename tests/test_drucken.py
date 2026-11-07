@@ -350,7 +350,7 @@ def test_windows_liste_utf8_und_rueckfall(monkeypatch):
 def test_windows_nur_virtuelle_drucker(monkeypatch):
     win(monkeypatch, out="Microsoft Print to PDF\nOneNote (Desktop)\nFax\n")
     _, err = P.list_printers()
-    assert "only has virtual printers" in err and "Pi's address" in err
+    assert "only has virtual printers" in err and "remote printer" in err
 
 
 def test_windows_fehler_wird_gezeigt(monkeypatch):
@@ -373,7 +373,7 @@ def _a(tag, name, v):
 @pytest.fixture
 def pi():
     """Kleiner IPP-Server wie CUPS auf dem Pi: zwei Drucker, nimmt Auftraege an."""
-    got = {"jobs": [], "stopped": False}
+    got = {"jobs": [], "stopped": False, "mode": "cups", "formats": [], "reasons": ["none"]}
 
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):
@@ -384,8 +384,13 @@ def pi():
             op = struct.unpack(">H", body[2:4])[0]
             st, groups = P._parse(body)
             ops = groups[0][1]
-            head = struct.pack(">BBHi", 2, 0, 0, 1) + b"\x01" + _a(0x47, "attributes-charset", "utf-8")
-            if op == 0x4002:
+            code = 0
+            if got["mode"] == "printer" and (op == 0x4002 or self.path != "/ipp/print"):
+                code = 0x0501 if op == 0x4002 else 0x0400  # kein CUPS / falscher Pfad
+            head = struct.pack(">BBHi", 2, 0, code, 1) + b"\x01" + _a(0x47, "attributes-charset", "utf-8")
+            if code:
+                out = head
+            elif op == 0x4002:
                 out = head
                 for n in ("Buero", "Keller Laser"):
                     out += b"\x04" + _a(0x42, "printer-name", n)
@@ -394,7 +399,12 @@ def pi():
                 out = head + b"\x02" + _a(0x21, "job-id", 77)
             else:
                 out = head + b"\x04" + _a(0x23, "printer-state", 5 if got["stopped"] else 3) + \
-                    _a(0x41, "printer-make-and-model", "HP Laser MFP, driverless") + _a(0x21, "queued-job-count", 0)
+                    _a(0x41, "printer-make-and-model", "EPSON ET-2810 Series" if got["mode"] == "printer" else "HP Laser MFP, driverless") + \
+                    _a(0x21, "queued-job-count", 0)
+                for i, f in enumerate(got["formats"]):
+                    out += _a(0x49, "document-format-supported" if i == 0 else "", f)
+                for i, f in enumerate(got["reasons"]):
+                    out += _a(0x44, "printer-state-reasons" if i == 0 else "", f)
             out += b"\x03"
             self.send_response(200)
             self.send_header("Content-Type", "application/ipp")
@@ -413,18 +423,20 @@ def test_pi_drucker_vom_laptop(client, monkeypatch, pi):
     win(monkeypatch, out="Microsoft Print to PDF\n")
     monkeypatch.setattr(P, "WAIT_AFTER", 1)
     monkeypatch.setattr(P.time, "sleep", lambda s: None)
-    assert client.put("/api/printers", json={"cups_server": "http://" + pi["server"] + "/"}).status_code == 200
+    assert client.put("/api/printers", json={"remote_printers": pi["server"]}).status_code == 200
     r = client.get("/api/printers").get_json()
     name = "Keller Laser @ " + pi["server"]
-    assert name in r["printers"] and r["cups_server"] == pi["server"]
-    assert {"name": name, "kind": "remote"} in r["details"] and "virtual" in r["error"] and "Pi's address" not in r["error"]
+    assert name in r["printers"] and r["remote_printers"] == pi["server"]
+    assert any(d["name"] == name and d["kind"] == "remote" for d in r["details"]) and "virtual" in r["error"]
     t = client.post("/api/printers/test", json={"printer": name})
     assert t.status_code == 200, t.get_data(as_text=True)
     assert "Job 77" in t.get_json()["message"]
     path, ops, body = pi["jobs"][-1]
-    assert path == "/printers/Keller%20Laser" and ops["document-format"] == ["text/plain"]
+    assert path == "/printers/Keller%20Laser" and ops["document-format"] == ["application/pdf"]
     assert ops["printer-uri"] == ["ipp://" + pi["server"] + "/printers/Keller%20Laser"]
-    assert "TEST PAGE" in body.decode("utf-8") and "ä ö ü" in body.decode("utf-8")
+    import io
+    from pypdf import PdfReader
+    assert "TEST PAGE" in PdfReader(io.BytesIO(body[body.index(b"%PDF"):])).pages[0].extract_text()
     st = client.get("/api/printers/status?printer=" + name).get_json()
     assert not st["problems"] and any("driverless" in x for x in st["lines"])
     pi["stopped"] = True
@@ -435,12 +447,12 @@ def test_pi_drucker_vom_laptop(client, monkeypatch, pi):
 def test_pi_nicht_erreichbar(monkeypatch):
     monkeypatch.setattr(P, "IPP_TIMEOUT", 1)
     names, err = P.remote_printers("127.0.0.1:9")
-    assert names == [] and "Cannot reach CUPS" in err and "cupsctl" in err
+    assert names == [] and "Cannot reach 127.0.0.1:9" in err
 
 
 def test_pi_adresse_pruefen(client):
-    assert client.put("/api/printers", json={"cups_server": "dexter; rm -rf /"}).status_code == 400
-    assert client.put("/api/printers", json={"cups_server": "dexter.local"}).get_json()["cups_server"] == "dexter.local"
+    assert client.put("/api/printers", json={"remote_printers": "dexter; rm -rf /"}).status_code == 400
+    assert client.put("/api/printers", json={"cups_server": "dexter.local"}).get_json()["remote_printers"] == "dexter.local"
     assert P.remote_split("Buero @ dexter.local", "dexter.local") == ("Buero", "dexter.local")
     assert P.remote_split("Buero @ anders", "dexter.local") == ("Buero @ anders", "")
 
@@ -465,3 +477,110 @@ def test_windows_api_waehlt_standarddrucker(client, monkeypatch):
     win(monkeypatch, enum=(["Microsoft Print to PDF", "Canon"], "Canon", ""))
     r = client.get("/api/printers").get_json()
     assert r["printers"][0] == "Canon" and r["details"][0]["default"] and r["error"] == ""
+
+
+def test_adressen_erkennen():
+    assert P.parse_remote("abc123@print.epsonconnect.com")["kind"] == "mail"
+    e = P.parse_remote("192.168.1.50")
+    assert e["kind"] == "host" and e["base"] == "http://192.168.1.50:631"
+    e = P.parse_remote("ipps://drucker.example.com/ipp/print")
+    assert e["kind"] == "url" and e["base"] == "https://drucker.example.com:631" and e["path"] == "/ipp/print"
+    assert P.parse_remote("https://cloud.example.com/printers/x")["base"] == "https://cloud.example.com:443"
+    for bad in ("ftp://x", "a b", "dexter; rm -rf /", "http://user:pw@host/"):
+        assert P.parse_remote(bad) is None, bad
+    assert [e["addr"] for e in P.parse_remotes("a.local\nA.local, b@c.de")] == ["a.local", "b@c.de"]
+
+
+def test_drucker_direkt_per_ip_als_jpeg(client, monkeypatch, pi):
+    """Ein Drucker (kein CUPS) unter seiner Adresse: Hyperstead findet /ipp/print, kann kein PDF -> JPEG je Seite."""
+    win(monkeypatch, enum=(["EPSON ET-2810 Series"], "EPSON ET-2810 Series", ""))
+    P._DIRECT.clear()
+    pi.update(mode="printer", formats=["image/pwg-raster", "image/jpeg"])
+    client.put("/api/printers", json={"remote_printers": pi["server"]})
+    r = client.get("/api/printers").get_json()
+    assert r["printers"][0] == "EPSON ET-2810 Series"  # eigene Drucker zuerst
+    d = [x for x in r["details"] if x["name"] == pi["server"]][0]
+    assert d["kind"] == "remote" and "EPSON ET-2810" in d["label"]
+    t = client.post("/api/printers/test", json={"printer": pi["server"]})
+    assert t.status_code == 200, t.get_data(as_text=True)
+    assert "JPEG" in t.get_json()["message"]
+    path, ops, body = pi["jobs"][-1]
+    assert path == "/ipp/print" and ops["document-format"] == ["image/jpeg"] and b"\xff\xd8" in body
+    pi["reasons"] = ["media-empty-error"]
+    st = client.get("/api/printers/status?printer=" + pi["server"]).get_json()
+    assert any("out of paper" in p for p in st["problems"])
+
+
+def test_drucker_ohne_passendes_format(pi, tmp_path):
+    P._DIRECT.clear()
+    pi.update(mode="printer", formats=["image/pwg-raster", "image/urf"])
+    ok, msg = P.print_text(pi["server"], "t", "x", tmp_path, pi["server"])
+    assert not ok and "pwg-raster" in msg and "driver" in msg
+
+
+class FakeSMTP:
+    sent = []
+
+    def __init__(self, host, port, timeout=None, **kw):
+        self.host, self.port = host, port
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+    def starttls(self, context=None):
+        self.tls = True
+
+    def login(self, user, pw):
+        assert user == "ich@example.com" and pw == "geheim"
+
+    def send_message(self, msg):
+        FakeSMTP.sent.append(msg)
+
+
+def test_drucken_per_mail(client, monkeypatch):
+    import smtplib
+    monkeypatch.setattr(smtplib, "SMTP", FakeSMTP)
+    for k in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM"):
+        monkeypatch.delenv(k, raising=False)
+    win(monkeypatch)
+    client.put("/api/printers", json={"remote_printers": "abc123@print.epsonconnect.com"})
+    r = client.get("/api/printers").get_json()
+    assert "SMTP_HOST" in r["error"] and not r["smtp"]
+    assert client.post("/api/printers/test", json={"printer": "abc123@print.epsonconnect.com"}).status_code == 400
+    for k, v in {"SMTP_HOST": "smtp.example.com", "SMTP_USER": "ich@example.com", "SMTP_PASSWORD": "geheim"}.items():
+        monkeypatch.setenv(k, v)
+    t = client.post("/api/printers/test", json={"printer": "abc123@print.epsonconnect.com"})
+    assert t.status_code == 200, t.get_data(as_text=True)
+    m = FakeSMTP.sent[-1]
+    assert m["To"] == "abc123@print.epsonconnect.com" and m["From"] == "ich@example.com"
+    att = list(m.iter_attachments())[0]
+    assert att.get_content_type() == "application/pdf" and att.get_content().startswith(b"%PDF")
+    st = client.get("/api/printers/status?printer=abc123@print.epsonconnect.com").get_json()
+    assert not st["problems"] and any("Approved Senders" in x for x in st["lines"])
+
+
+def test_windows_out_printer_scheitert_dann_printdocument(monkeypatch, tmp_path):
+    monkeypatch.setattr(P, "is_windows", lambda: True)
+    monkeypatch.setattr(P.shutil, "which", lambda n: "C:/ps.exe")
+    calls = []
+
+    def run(cmd, **kw):
+        calls.append(cmd)
+        if "Out-Printer" in cmd[-1]:
+            return subprocess.CompletedProcess(cmd, 1, "", "out-lineoutput : Das Handle ist ungültig")
+        return subprocess.CompletedProcess(cmd, 0, "OK", "")
+    monkeypatch.setattr(P.subprocess, "run", run)
+    ok, msg = P.print_text("EPSON ET-2810 Series", "t", "Hallo", tmp_path)
+    assert ok, msg
+    assert "PrintDocument" in calls[1][-1] and len(calls) == 2
+
+
+def test_cups_browsed_ohne_adresse(monkeypatch):
+    Cups(monkeypatch, state='printer EPSON_ET_2810_Series@EPSON3B79F0.local disabled since Thu -\n\t'
+         'No destination host name supplied by cups-browsed for printer "EPSON_ET_2810_Series@EPSON3B79F0.local", '
+         'is cups-browsed running?')
+    st = P.status("EPSON_ET_2810_Series@EPSON3B79F0.local")
+    assert any("cups-browsed" in p and "lpadmin" in p and "everywhere" in p for p in st["problems"])
