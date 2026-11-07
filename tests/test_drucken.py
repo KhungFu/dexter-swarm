@@ -32,6 +32,7 @@ class Fake:
     def __init__(self, monkeypatch, windows=False, out="", rc=0):
         self.calls = []
         monkeypatch.setattr(P, "is_windows", lambda: windows)
+        monkeypatch.setattr(P, "win_enum_printers", lambda: ([], "", ""))
         monkeypatch.setattr(P.shutil, "which", lambda n: "/usr/bin/" + n)
         self.out, self.rc = out, rc
 
@@ -326,8 +327,9 @@ def test_windows_powershell_fehlt_im_path(monkeypatch, tmp_path):
     assert P.powershell() == str(ps / "powershell.exe")
 
 
-def win(monkeypatch, out="", rc=0, err=""):
+def win(monkeypatch, out="", rc=0, err="", enum=([], "", "")):
     monkeypatch.setattr(P, "is_windows", lambda: True)
+    monkeypatch.setattr(P, "win_enum_printers", lambda: enum)
     monkeypatch.setattr(P.shutil, "which", lambda n: "C:/ps.exe")
     calls = []
 
@@ -441,3 +443,25 @@ def test_pi_adresse_pruefen(client):
     assert client.put("/api/printers", json={"cups_server": "dexter.local"}).get_json()["cups_server"] == "dexter.local"
     assert P.remote_split("Buero @ dexter.local", "dexter.local") == ("Buero", "dexter.local")
     assert P.remote_split("Buero @ anders", "dexter.local") == ("Buero @ anders", "")
+
+
+def test_windows_eigene_drucker_ohne_powershell(monkeypatch):
+    """Liste kommt direkt aus winspool (EnumPrinters), der Standarddrucker steht vorn, PowerShell wird nicht gebraucht."""
+    calls = win(monkeypatch, enum=(["Microsoft Print to PDF", "HP LaserJet Büro", "\\\\SERVER\\Keller"], "HP LaserJet Büro", ""))
+    items, err = P.list_details()
+    assert [i["name"] for i in items] == ["HP LaserJet Büro", "Microsoft Print to PDF", "\\\\SERVER\\Keller", P.TEST_PRINTER]
+    assert items[0]["default"] and err == "" and calls == []
+
+
+def test_windows_druck_ohne_powershell_mit_notepad(monkeypatch, tmp_path):
+    calls = win(monkeypatch)
+    monkeypatch.setattr(P, "powershell", lambda: "")
+    ok, msg = P.print_text("HP LaserJet", "t", "Hallo", tmp_path)
+    assert ok, msg
+    assert calls[0][0].lower().endswith("notepad.exe") and calls[0][1] == "/pt" and calls[0][-1] == "HP LaserJet"
+
+
+def test_windows_api_waehlt_standarddrucker(client, monkeypatch):
+    win(monkeypatch, enum=(["Microsoft Print to PDF", "Canon"], "Canon", ""))
+    r = client.get("/api/printers").get_json()
+    assert r["printers"][0] == "Canon" and r["details"][0]["default"] and r["error"] == ""

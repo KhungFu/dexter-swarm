@@ -1731,9 +1731,9 @@ async function showPrinters(){
   openOv('🖨 Printer'); const body=$('#ovbody'); body.innerHTML='<div style="color:var(--mute)">Looking for printers …</div>';
   const r=await api('/printers?pid='+S.pid);
   const kinds={network:' (found on the network, not set up)',remote:' (printer of the Pi)'};
-  const opts=(r.details||r.printers.map(n=>({name:n}))).map(d=>`<option value="${esc(d.name)}" data-kind="${esc(d.kind||'')}" ${d.name===r.selected?'selected':''}>${esc(d.name)}${kinds[d.kind]||''}</option>`).join('');
+  const opts=(r.details||r.printers.map(n=>({name:n}))).map(d=>`<option value="${esc(d.name)}" data-kind="${esc(d.kind||'')}" ${d.name===(r.selected||((r.details||[]).find(x=>x.default)||{}).name)?'selected':''}>${esc(d.name)}${d.default?' (Windows default)':''}${kinds[d.kind]||''}</option>`).join('');
   body.innerHTML=`
-    <div style="color:var(--mute);font-size:12px;margin-bottom:8px">Evening reports (result of the 👑 CEO inspection) get a 🖨 Print button in the 📬 mail and in the tasks. Nothing is printed before you confirm. ${r.system==='windows'?'Windows: connect shared printers first under Settings › Printers &amp; scanners.':'Pi/Linux: set up network printers in CUPS (docs/drucken.md).'}</div>
+    <div style="color:var(--mute);font-size:12px;margin-bottom:8px">Evening reports (result of the 👑 CEO inspection) get a 🖨 Print button in the 📬 mail and in the tasks. Nothing is printed before you confirm. ${r.system==='windows'?'Windows: all printers installed on this computer are listed (default first). Shared printers: connect them first under Settings › Printers &amp; scanners.':'Pi/Linux: set up network printers in CUPS (docs/drucken.md).'}</div>
     ${r.error?`<div class="task" style="padding:8px;margin-bottom:8px;border-color:var(--warn,#c90)">⚠ ${esc(r.error)}</div>`:''}
     <label>Printer</label>
     <select id="pr_sel"><option value="">– none –</option>${opts}</select>

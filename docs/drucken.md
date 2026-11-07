@@ -44,8 +44,14 @@ Der Windows-Rechner muss dafür eingeschaltet sein. Moderne Netzwerkdrucker lieb
 
 ## Windows-Laptop
 
+**Eigene Drucker des Laptops:** Hyperstead liest die Liste direkt aus der Windows-Druckwarteschlange (`winspool`,
+wie das Druckmenü jedes Programms), ohne PowerShell. Alle lokal installierten und verbundenen Drucker erscheinen,
+der Windows-Standarddrucker steht vorn und ist vorausgewählt. Nur wenn das scheitert, fragt Hyperstead PowerShell
+(`Get-Printer`, dann `Win32_Printer`). Gedruckt wird mit `Out-Printer` (Zeitlimit `PCL_PRINT_WIN_TIMEOUT`, Std. 120 s,
+weil PowerShell auf langsamen Laptops lange startet); fehlt PowerShell, druckt Notepad (`notepad /pt`).
+
 Windows zeigt nur Drucker, die **in Windows** eingerichtet sind. Was der Pi findet, ist dort nicht automatisch dabei.
-Zwei Wege:
+Zusätzlich zwei Wege:
 
 **A) Über den Pi drucken (empfohlen, kein Windows-Treiber):** Den Drucker zuerst auf dem Pi einrichten (oben), dann
 auf dem Pi einmalig:

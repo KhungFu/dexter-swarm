@@ -28,11 +28,11 @@ def is_windows():
     return os.name == "nt"
 
 
-def _run(cmd, env=None, input_text=None):
+def _run(cmd, env=None, input_text=None, timeout=None):
     if not is_windows() and cmd and cmd[0] in ("lp", "lpstat", "lpoptions", "lpadmin", "lpinfo"):
         # CUPS antwortet sonst in der Sprache des Pi ("Drucker Buero ist deaktiviert"), die Pruefung sucht englische Woerter
         env = dict(env or os.environ, LC_ALL="C", LANG="C", LANGUAGE="C")
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT, env=env, input=input_text,
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout or TIMEOUT, env=env, input=input_text,
                           encoding="utf-8", errors="replace")
 
 
@@ -47,6 +47,12 @@ def powershell():
     return p if os.path.isfile(p) else ""
 
 
+def notepad():
+    root = os.environ.get("SystemRoot") or os.environ.get("windir") or r"C:\Windows"
+    p = os.path.join(root, "System32", "notepad.exe")
+    return p if os.path.isfile(p) else "notepad.exe"
+
+
 # PowerShell gibt sonst in der OEM-Codeseite aus: Druckernamen mit Umlauten kaemen verstuemmelt an und waeren nicht druckbar.
 _PS_UTF8 = "[Console]::OutputEncoding = [Text.Encoding]::UTF8; $ErrorActionPreference = 'Stop'; "
 _PS_LIST = (_PS_UTF8 + "try { Get-Printer | ForEach-Object { $_.Name } } catch { "
@@ -57,11 +63,50 @@ VIRTUAL_WIN = ("microsoft print to pdf", "microsoft xps document writer", "oneno
                "an onenote senden", "pdf24", "adobe pdf")
 
 
+WIN_TIMEOUT = float(os.environ.get("PCL_PRINT_WIN_TIMEOUT", "120"))  # PowerShell startet auf langsamen Laptops oft >30 s
+
+
+def win_enum_printers():
+    """Drucker direkt aus der Windows-Druckwarteschlange (winspool.drv, EnumPrintersW), ohne PowerShell.
+    Gibt (namen, standarddrucker, fehler) zurueck. Lokale UND verbundene Drucker (\\\\server\\drucker)."""
+    import ctypes
+    from ctypes import wintypes
+    try:
+        ws = ctypes.WinDLL("winspool.drv", use_last_error=True)
+    except (OSError, AttributeError) as e:
+        return [], "", f"winspool.drv not available: {e}"
+
+    class PI4(ctypes.Structure):
+        _fields_ = [("pPrinterName", wintypes.LPWSTR), ("pServerName", wintypes.LPWSTR), ("Attributes", wintypes.DWORD)]
+    flags = 0x2 | 0x4  # PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS
+    need, ret = wintypes.DWORD(0), wintypes.DWORD(0)
+    ws.EnumPrintersW(flags, None, 4, None, 0, ctypes.byref(need), ctypes.byref(ret))
+    if not need.value:
+        err = ctypes.get_last_error()
+        return [], "", ("" if err in (0, 122) else f"EnumPrinters error {err} ({ctypes.FormatError(err).strip()})")
+    buf = ctypes.create_string_buffer(need.value)
+    if not ws.EnumPrintersW(flags, None, 4, buf, need, ctypes.byref(need), ctypes.byref(ret)):
+        err = ctypes.get_last_error()
+        return [], "", f"EnumPrinters error {err} ({ctypes.FormatError(err).strip()})"
+    arr = ctypes.cast(buf, ctypes.POINTER(PI4))
+    names = [arr[i].pPrinterName for i in range(ret.value) if arr[i].pPrinterName]
+    default = ""
+    try:
+        n = wintypes.DWORD(0)
+        ws.GetDefaultPrinterW(None, ctypes.byref(n))
+        if n.value:
+            b = ctypes.create_unicode_buffer(n.value)
+            if ws.GetDefaultPrinterW(b, ctypes.byref(n)):
+                default = b.value
+    except (OSError, AttributeError):
+        pass
+    return names, default, ""
+
+
 def system_status():
     """(bereit, Hinweis) - ob das Betriebssystem ueberhaupt drucken kann."""
     if is_windows():
-        return (bool(powershell()), "PowerShell not found on this Windows. Printing needs Windows PowerShell "
-                                    "(C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe).")
+        return True, "Windows printers (winspool)."
     if shutil.which("lp") and shutil.which("lpstat"):
         return True, "CUPS is installed."
     return False, "CUPS missing. On the Pi: sudo apt install cups-client (or ./install.sh --print)."
@@ -95,9 +140,16 @@ def list_details(server=""):
     else:
         try:
             if is_windows():
-                r = _run([powershell(), "-NoProfile", "-NonInteractive", "-Command", _PS_LIST])
-                names = [x.strip() for x in r.stdout.splitlines() if x.strip()]
-                items += [{"name": n, "kind": "windows"} for n in names]
+                names, default, werr = win_enum_printers()
+                if not names:  # Rueckfall PowerShell (Get-Printer, dann Win32_Printer)
+                    r = _ps("", _PS_LIST) if powershell() else None
+                    names = [x.strip() for x in (r.stdout if r else "").splitlines() if x.strip()]
+                    if not names:
+                        werr = " / ".join(x for x in (werr, ((r.stderr or r.stdout or "").strip()[:300] if r and r.returncode else "")) if x)
+                if default in names:  # Standarddrucker von Windows zuerst
+                    names = [default] + [n for n in names if n != default]
+                items += [{"name": n, "kind": "windows", "default": n == default} for n in names]
+                r = subprocess.CompletedProcess([], 1 if werr else 0, "", werr)
                 if r.returncode and not names:
                     errs.append("Windows could not list the printers: " + ((r.stderr or r.stdout or "").strip()[:300]
                                 or f"code {r.returncode}") + " Is the service 'Print Spooler' running (services.msc)?")
@@ -165,8 +217,12 @@ def print_text(printer, title, text, out_dir, server=""):
         tmp.close()
         if is_windows():
             env = dict(os.environ, PCL_PRN=printer, PCL_PRN_FILE=tmp.name)  # Werte per Umgebung, nie in den Befehl
-            r = _run([powershell(), "-NoProfile", "-NonInteractive", "-Command",
-                      _PS_UTF8 + "Get-Content -Raw -Encoding UTF8 -LiteralPath $env:PCL_PRN_FILE | Out-Printer -Name $env:PCL_PRN"], env=env)
+            if powershell():
+                r = _run([powershell(), "-NoProfile", "-NonInteractive", "-Command",
+                          _PS_UTF8 + "Get-Content -Raw -Encoding UTF8 -LiteralPath $env:PCL_PRN_FILE | Out-Printer -Name $env:PCL_PRN"],
+                         env=env, timeout=WIN_TIMEOUT)
+            else:  # ohne PowerShell: Notepad druckt eine Textdatei auf einen benannten Drucker (/pt)
+                r = _run([notepad(), "/pt", tmp.name, printer], timeout=WIN_TIMEOUT)
         else:
             r = _run(["lp", "-d", printer, "-t", (title or "Evening report")[:100], "--", tmp.name])
         if r.returncode:
@@ -203,7 +259,7 @@ BAD_WIN = ("error", "offline", "paused", "paperjam", "paperout", "manualfeed", "
 
 def _ps(printer, script):
     env = dict(os.environ, PCL_PRN=printer)
-    return _run([powershell(), "-NoProfile", "-NonInteractive", "-Command", _PS_UTF8 + script], env=env)
+    return _run([powershell(), "-NoProfile", "-NonInteractive", "-Command", _PS_UTF8 + script], env=env, timeout=WIN_TIMEOUT)
 
 
 def status(printer, server=""):
@@ -222,6 +278,12 @@ def status(printer, server=""):
         return out
     try:
         if is_windows():
+            if not powershell():
+                names, _, _ = win_enum_printers()
+                out["lines"].append("Detailed check needs Windows PowerShell (not found).")
+                if printer not in names:
+                    out["problems"].append("Windows does not know this printer (any more). ↻ Search again.")
+                return out
             r = _ps(printer, _PS_STATUS)
             if r.returncode:
                 out["problems"].append("Windows does not know this printer: " + (r.stderr or "").strip()[:200])
