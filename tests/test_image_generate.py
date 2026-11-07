@@ -398,3 +398,65 @@ def test_hf_bild_und_fehler(monkeypatch, tmp_path):
     monkeypatch.setattr(T.requests, "post", lambda url, **kw: Resp({"error": "credits exceeded"}, 402))
     with pytest.raises(T.ToolError, match="HTTP 402 \\(Guthaben aufgebraucht\\)"):
         T.image_generate(tmp_path, {"prompt": "x"})
+
+
+def test_ausweich_bildrechner_behaelt_referenzen(monkeypatch, tmp_path):
+    monkeypatch.setenv("IMAGE_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "or-test")
+    monkeypatch.setenv("IMAGE_FALLBACK", "sdcpp")
+    monkeypatch.setenv("SDCPP_URL", "http://127.0.0.1:1234")
+    monkeypatch.delenv("POLLINATIONS_API_KEY", raising=False)
+    urls = []
+
+    def post(url, **kw):
+        urls.append(url)
+        if "openrouter" in url:
+            return Resp({"error": {"message": "Insufficient credits"}}, 402)
+        assert len(kw["json"]["extra_images"]) == 1
+        return Resp({"images": [base64.b64encode(PNG).decode()]})
+    monkeypatch.setattr(T.requests, "post", post)
+    (tmp_path / "ref.png").write_bytes(PNG)
+    out = T.image_generate(tmp_path, {"prompt": "x", "refs": ["ref.png"], "path": "karten/k.png"})
+    assert urls[-1] == "http://127.0.0.1:1234/sdapi/v1/txt2img" and (tmp_path / "karten/k.png").exists()
+    assert out.startswith("NOTE: switched to your own image computer (sdcpp)") and "openrouter (HTTP 402)" in out
+    assert "with 1 reference image" in out
+
+
+def test_ausweich_kette_bildrechner_aus_dann_pollinations(monkeypatch, tmp_path):
+    monkeypatch.setenv("IMAGE_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "g-test")
+    monkeypatch.setenv("IMAGE_FALLBACK", "sdcpp,pollinations")
+    monkeypatch.setenv("SDCPP_URL", "http://laptop:1234")
+    monkeypatch.delenv("POLLINATIONS_API_KEY", raising=False)
+
+    def post(url, **kw):
+        if "laptop" in url:
+            raise T.requests.ConnectionError("connection refused")
+        return Resp({"error": {"message": "quota"}}, 429)
+    got = []
+    monkeypatch.setattr(T.requests, "post", post)
+    monkeypatch.setattr(T.requests, "get", lambda url, **kw: got.append(url) or Raw())
+    out = T.image_generate(tmp_path, {"prompt": "x"})
+    assert "pollinations" in got[0] and out.startswith("NOTE: switched to Pollinations")
+    assert "gemini" in out and "sdcpp (ConnectionError" in out
+
+
+def test_ausweich_bildrechner_aus_ohne_weiteren(monkeypatch, tmp_path):
+    monkeypatch.setenv("IMAGE_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "or-test")
+    monkeypatch.setenv("IMAGE_FALLBACK", "sdcpp")
+    monkeypatch.setenv("SDCPP_URL", "http://laptop:1234")
+
+    def post(url, **kw):
+        if "laptop" in url:
+            raise T.requests.ConnectionError("connection refused")
+        return Resp({"error": {"message": "Insufficient credits"}}, 402)
+    monkeypatch.setattr(T.requests, "post", post)
+    with pytest.raises(T.ToolError, match="402.*Fallback failed too: own image computer sdcpp"):
+        T.image_generate(tmp_path, {"prompt": "x"})
+
+
+def test_ausweich_liste_ohne_hauptanbieter(monkeypatch):
+    monkeypatch.setenv("IMAGE_FALLBACK", "sdcpp, pollinations, quatsch, sdcpp")
+    assert T.image_fallbacks("sdcpp") == ["pollinations"]
+    assert T.image_fallbacks("gemini") == ["sdcpp", "pollinations"]

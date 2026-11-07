@@ -1197,6 +1197,62 @@ def canva_upload(root, path, upload_url):
             "Use the media ID from this answer in generate-image imageReferences.")
 
 
+IMAGE_FALLBACKS = {"sdcpp": "_gen_sdcpp", "pollinations": "_gen_pollinations"}
+
+
+def image_fallbacks(prov=None):
+    """IMAGE_FALLBACK als Liste in Reihenfolge, z. B. "sdcpp,pollinations". Nur bekannte Ersatzanbieter, ohne den Hauptanbieter."""
+    prov = (prov or _env("IMAGE_PROVIDER", "pollinations")).lower()
+    out = []
+    for p in _env("IMAGE_FALLBACK").lower().replace(";", ",").split(","):
+        p = p.strip()
+        if p in IMAGE_FALLBACKS and p != prov and p not in out:
+            out.append(p)
+    return out
+
+
+def _err_code(e):
+    code = re.search(r"HTTP \d{3}", str(e))
+    return code.group(0) if code else type(e).__name__
+
+
+def _image_fallback(e, prov, gen, prompt, refs, fmt, call):
+    """Hauptanbieter ist gescheitert: IMAGE_FALLBACK der Reihe nach probieren.
+    sdcpp = eigener Bildrechner (Laptop, gratis, MIT Referenzbildern); pollinations = gratis, ohne Key OHNE Referenzbilder.
+    Gibt (data, refs, Hinweis) zurueck oder wirft den Fehler weiter."""
+    canva = (f" Alternative: {CANVA_HOWTO}" if canva_enabled() else "")
+    chain = [p for p in image_fallbacks(prov) if not (p == "pollinations" and gen is _gen_pollinations)
+             and not (p == "sdcpp" and gen is _gen_sdcpp)]
+    if not chain:
+        if canva:
+            raise ToolError(f"{_clip(str(e), 300)}.{canva}")
+        raise e
+    first = f"{prov} ({_err_code(e)})"
+    tried = []  # gescheiterte Ersatzanbieter, fuer Hinweis/Fehlermeldung
+    for alt in chain:
+        if alt == "sdcpp":
+            try:
+                data = _gen_sdcpp(prompt, refs, fmt, call)
+            except (ToolError, requests.RequestException) as e2:
+                tried.append(f"own image computer sdcpp ({_err_code(e2)}: {_clip(str(e2), 120)})")
+                continue
+            how = "with the same reference images" if refs else "on your own image computer"
+            return data, refs, (f"NOTE: switched to your own image computer (sdcpp), generation not possible with {first}. "
+                                f"Created {how}. Error: {_clip(str(e), 160)} ")
+        # pollinations
+        if refs and canva and not _env("POLLINATIONS_API_KEY").strip():
+            # Ersatzbild ohne Referenzbild wuerde Figuren/Stil verfehlen: lieber Canva mit Referenzbild
+            raise ToolError(f"{_clip(str(e), 300)}. Free fallback skipped because it cannot use reference images.{canva}")
+        keep = refs if _env("POLLINATIONS_API_KEY").strip() else []  # mit Key gehen Referenzbilder auch dort
+        data = _gen_pollinations(prompt, keep, fmt, call)
+        how = ("created with pollen credit and reference images" if keep else
+               "created for free and WITHOUT reference images" + (", characters and style may differ" if refs else ""))
+        also = f" Also failed: {'; '.join(tried)}." if tried else ""
+        return data, keep, (f"NOTE: switched to Pollinations, free generation not possible with {first}. "
+                            f"{how}.{also} Error: {_clip(str(e), 160)} ")
+    raise ToolError(f"{_clip(str(e), 300)}. Fallback failed too: {'; '.join(tried)}.{canva}")
+
+
 def image_generate(root, call):
     prompt = str(call.get("prompt") or "").strip()[:4000]
     if not prompt:
@@ -1221,23 +1277,7 @@ def image_generate(root, call):
     try:
         data = gen(prompt, refs, fmt, call)
     except (ToolError, requests.RequestException) as e:
-        # IMAGE_FALLBACK=pollinations: kostenloser Ersatz, aber OHNE Referenzbilder (Figuren/Stil koennen abweichen)
-        canva = (f" Alternative: {CANVA_HOWTO}" if canva_enabled() else "")
-        if gen is _gen_pollinations or _env("IMAGE_FALLBACK").lower() != "pollinations":
-            if canva:
-                raise ToolError(f"{_clip(str(e), 300)}.{canva}")
-            raise
-        if refs and canva and not _env("POLLINATIONS_API_KEY").strip():
-            # Ersatzbild ohne Referenzbild wuerde Figuren/Stil verfehlen: lieber Canva mit Referenzbild
-            raise ToolError(f"{_clip(str(e), 300)}. Free fallback skipped because it cannot use reference images.{canva}")
-        keep = refs if _env("POLLINATIONS_API_KEY").strip() else []  # mit Key gehen Referenzbilder auch dort
-        data = _gen_pollinations(prompt, keep, fmt, call)
-        code = re.search(r"HTTP \d{3}", str(e))
-        how = ("created with pollen credit and reference images" if keep else
-               "created for free and WITHOUT reference images" + (", characters and style may differ" if refs else ""))
-        fallback = (f"NOTE: switched to Pollinations, free generation not possible with {prov} "
-                    f"({code.group(0) if code else type(e).__name__}). {how}. Error: {_clip(str(e), 160)} ")
-        refs = keep
+        data, refs, fallback = _image_fallback(e, prov, gen, prompt, refs, fmt, call)
     if len(data) > MAX_IMAGE_BYTES * 3:
         raise ToolError("Created image is too large")
     ext = _sniff(data)

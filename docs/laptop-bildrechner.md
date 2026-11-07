@@ -128,6 +128,21 @@ IMAGE_STYLE=farbige Buntstiftzeichnung auf Pastellflaeche, sichtbare Strichstruk
 Dann `sudo systemctl restart hyperstead` und `./venv/bin/python selftest.py web`.
 Der Selbsttest erzeugt ein Bild und eins mit Referenz, das dauert entsprechend.
 
+## 7. Bildrechner nur als Ersatz (wenn der Hauptanbieter ausfällt)
+
+Du kannst einen anderen Bildanbieter als Standard behalten (z. B. Gemini) und den Bildrechner nur einspringen lassen,
+wenn der Hauptanbieter scheitert (Guthaben leer, Kontingent aufgebraucht, Netz). In `.env`:
+
+```
+IMAGE_PROVIDER=gemini
+SDCPP_URL=http://127.0.0.1:1234      # auf dem Pi: IP des Laptops
+IMAGE_FALLBACK=sdcpp                 # oder sdcpp,pollinations: ist auch der Laptop aus, kommt das Gratis-Bild
+```
+
+Der Bildrechner bekommt dieselben Referenzbilder, das Ergebnis beginnt mit „NOTE: switched to your own image computer (sdcpp)“.
+Ist er aus, steht der Grund in der Meldung. Unter Windows bietet `hyperstead-start.bat` auch in diesem Fall an, ihn zu starten.
+Hyperstead neu starten, damit die `.env` gilt.
+
 Weitere Schalter: `SDCPP_SIZE` (längste Bildseite, Standard 1024; 768 ist etwa doppelt so schnell),
 `SDCPP_STEPS` (Standard 4), `SDCPP_CFG` (Standard 1.0), `SDCPP_TIMEOUT` (Sekunden, Standard 1800).
 

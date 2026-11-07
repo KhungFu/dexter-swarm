@@ -212,7 +212,9 @@ def blender_da():
 
 
 def bildrechner_relevant():
-    return cfg("IMAGE_PROVIDER").lower() == "sdcpp"
+    """Bildrechner als Hauptanbieter (IMAGE_PROVIDER=sdcpp) oder als Ausweichanbieter (IMAGE_FALLBACK enthaelt sdcpp)."""
+    ersatz = [p.strip() for p in cfg("IMAGE_FALLBACK").lower().replace(";", ",").split(",")]
+    return cfg("IMAGE_PROVIDER").lower() == "sdcpp" or "sdcpp" in ersatz
 
 
 def bildrechner_install():
@@ -319,7 +321,7 @@ def teile():
              r"Download (github.com/oschwartz10612/poppler-windows) nach tools\poppler", lambda: bool(wo("pdftoppm")), poppler_install),
         Teil("blender", "Blender", "Filmstudio (Werkzeug film)", "ca. 400 MB Download",
              W + "BlenderFoundation.Blender", blender_da, wg("BlenderFoundation.Blender")),
-        Teil("bildrechner", "Bildrechner (sd-server + FLUX-Modelle)", "eigene Bilder ohne Cloud (IMAGE_PROVIDER=sdcpp)", "ca. 4 GB",
+        Teil("bildrechner", "Bildrechner (sd-server + FLUX-Modelle)", "eigene Bilder ohne Cloud (IMAGE_PROVIDER=sdcpp oder IMAGE_FALLBACK=sdcpp)", "ca. 4 GB",
              r"powershell -ExecutionPolicy Bypass -File deploy\windows\bildrechner-einrichten.ps1",
              lambda: (BILDRECHNER / "sd-server.exe").exists(), bildrechner_install, relevant=bildrechner_relevant),
         Teil("bildrechner-start", "Bildrechner starten", "laeuft nicht, Bilder (sdcpp) gehen sonst nicht", "nur starten",

@@ -178,3 +178,16 @@ def test_skripte_rufen_pruefung_auf():
     bat = (ROOT / "deploy" / "windows" / "hyperstead-start.bat").read_bytes()
     assert b"voraussetzungen.py --start" in bat and b"\r\n" in bat
     assert bat.index(b"voraussetzungen.py --start") < bat.index(b"app.py")
+
+
+def test_bildrechner_auch_als_ausweich(monkeypatch):
+    monkeypatch.delenv("IMAGE_PROVIDER", raising=False)
+    monkeypatch.delenv("IMAGE_FALLBACK", raising=False)
+    assert not V.bildrechner_relevant()
+    monkeypatch.setenv("IMAGE_FALLBACK", "pollinations")
+    assert not V.bildrechner_relevant()
+    monkeypatch.setenv("IMAGE_FALLBACK", "sdcpp, pollinations")
+    assert V.bildrechner_relevant()
+    monkeypatch.delenv("IMAGE_FALLBACK")
+    monkeypatch.setenv("IMAGE_PROVIDER", "sdcpp")
+    assert V.bildrechner_relevant()
