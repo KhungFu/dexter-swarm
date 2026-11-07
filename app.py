@@ -4611,12 +4611,18 @@ def report_print_text(t):
     return f"{head}\n\n{(t.get('result') or '(empty)').strip()}\n"
 
 
+def cups_server():
+    """CUPS des Pi fuer den Laptop: Einstellung im Drucker-Fenster, sonst PCL_CUPS_SERVER aus der .env."""
+    return (get_setting("cups_server", "") or os.environ.get("PCL_CUPS_SERVER", "")).strip()
+
+
 @app.get("/api/printers")
 def api_printers():
-    names, err = printing.list_printers()
+    items, err = printing.list_details(cups_server())
     pid = request.args.get("pid", type=int)
-    out = {"printers": names, "error": err, "selected": get_setting("printer", ""), "test": printing.TEST_PRINTER,
-           "system": "windows" if printing.is_windows() else "cups"}
+    out = {"printers": [i["name"] for i in items], "details": items, "error": err, "selected": get_setting("printer", ""),
+           "test": printing.TEST_PRINTER, "system": "windows" if printing.is_windows() else "cups",
+           "cups_server": cups_server()}
     if pid:
         ceo = ceo_of(pid)
         out.update(allowed=print_allowed(pid), ceo={"id": ceo["id"], "name": ceo["name"]} if ceo else None)
@@ -4625,12 +4631,36 @@ def api_printers():
 
 @app.put("/api/printers")
 def api_printers_set():
-    name = str((request.get_json(force=True) or {}).get("printer", "")).strip()
+    d = request.get_json(force=True) or {}
+    if "cups_server" in d:  # Adresse des Pi (nur das Feld, Drucker bleibt)
+        srv = str(d.get("cups_server") or "").strip()
+        if srv.startswith(("http://", "https://", "ipp://")):
+            srv = srv.split("://", 1)[1].split("/", 1)[0]
+        if srv and not printing.valid_server(srv):
+            abort(400, "Invalid Pi address. Example: dexter.local or 192.168.1.20")
+        set_setting("cups_server", srv)
+        log("printer_server", srv or "(none)")
+        if "printer" not in d:
+            return jsonify({"ok": True, "cups_server": srv})
+    name = str(d.get("printer", "")).strip()
     if name and not printing.valid_name(name):
         abort(400, "Invalid printer name.")
     set_setting("printer", name)
     log("printer_set", name or "(none)")
     return jsonify({"ok": True})
+
+
+@app.post("/api/printers/setup")
+def api_printers_setup():
+    """Pi: einen nur im Netzwerk gefundenen Drucker als feste CUPS-Warteschlange einrichten (Klick des Besitzers)."""
+    name = str((request.get_json(force=True) or {}).get("printer", "")).strip()
+    if not name or not printing.network_only(name):
+        abort(400, "Only for printers that CUPS found on the network but that are not set up yet.")
+    ok, msg = printing.setup_printer(name)
+    log("printer_setup" if ok else "print_failed", f"{name}: {msg}"[:400])
+    if not ok:
+        abort(400, msg)
+    return jsonify({"ok": True, "message": msg})
 
 
 def test_page_text(printer):
@@ -4646,10 +4676,10 @@ def test_page_text(printer):
 def api_printers_test():
     """Testseite auf einem Drucker aus der Liste, damit der Besitzer sieht, ob es der richtige ist (vor dem Speichern)."""
     name = str((request.get_json(force=True) or {}).get("printer", "")).strip()
-    names, _ = printing.list_printers()
+    names, _ = printing.list_printers(cups_server())
     if not name or name not in names:
         abort(400, "This printer does not exist (any more). ↻ Search again and choose from the list.")
-    ok, msg = printing.print_text(name, "Hyperstead Testseite", test_page_text(name), WORKSPACE / ".druck")
+    ok, msg = printing.print_text(name, "Hyperstead Testseite", test_page_text(name), WORKSPACE / ".druck", cups_server())
     log("print_test" if ok else "print_failed", f"Testseite -> {name}: {msg}"[:400])
     if not ok:
         abort(400, msg)
@@ -4662,7 +4692,7 @@ def api_printers_status():
     name = (request.args.get("printer") or get_setting("printer", "") or "").strip()
     if not name or not printing.valid_name(name):
         abort(400, "Select a printer first.")
-    return jsonify(printing.status(name))
+    return jsonify(printing.status(name, cups_server()))
 
 
 @app.put("/api/projects/<int:pid>/print")
@@ -4695,7 +4725,7 @@ def api_task_print(tid):
     printer = get_setting("printer", "")
     if not printer:
         abort(400, "No printer chosen yet (🖨 Printer in the sidebar).")
-    ok, msg = printing.print_text(printer, f"Abendbericht #{tid}", report_print_text(t), WORKSPACE / ".druck")
+    ok, msg = printing.print_text(printer, f"Abendbericht #{tid}", report_print_text(t), WORKSPACE / ".druck", cups_server())
     log("print" if ok else "print_failed", f"Abendbericht #{tid} -> {printer}: {msg}"[:400], t["project_id"], t["agent_id"], tid)
     if not ok:
         abort(400, msg)

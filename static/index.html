@@ -1730,14 +1730,18 @@ async function showPrinters(){
   if(!S.pid){ toast('Choose a project first.'); return; }
   openOv('🖨 Printer'); const body=$('#ovbody'); body.innerHTML='<div style="color:var(--mute)">Looking for printers …</div>';
   const r=await api('/printers?pid='+S.pid);
-  const opts=r.printers.map(n=>`<option value="${esc(n)}" ${n===r.selected?'selected':''}>${esc(n)}</option>`).join('');
+  const kinds={network:' (found on the network, not set up)',remote:' (printer of the Pi)'};
+  const opts=(r.details||r.printers.map(n=>({name:n}))).map(d=>`<option value="${esc(d.name)}" data-kind="${esc(d.kind||'')}" ${d.name===r.selected?'selected':''}>${esc(d.name)}${kinds[d.kind]||''}</option>`).join('');
   body.innerHTML=`
     <div style="color:var(--mute);font-size:12px;margin-bottom:8px">Evening reports (result of the 👑 CEO inspection) get a 🖨 Print button in the 📬 mail and in the tasks. Nothing is printed before you confirm. ${r.system==='windows'?'Windows: connect shared printers first under Settings › Printers &amp; scanners.':'Pi/Linux: set up network printers in CUPS (docs/drucken.md).'}</div>
     ${r.error?`<div class="task" style="padding:8px;margin-bottom:8px;border-color:var(--warn,#c90)">⚠ ${esc(r.error)}</div>`:''}
     <label>Printer</label>
     <select id="pr_sel"><option value="">– none –</option>${opts}</select>
     <small style="color:var(--mute);display:block;margin-top:4px">“${esc(r.test)}” does not print but saves the printout as a text file (workspace/.druck/). Good for trying it out.</small>
-    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Use this printer for all evening reports">Save</button><button class="btn sm" id="pr_test" title="Print a test page on the selected printer to see whether it is the right one">🧾 Print test page</button><button class="btn sm" id="pr_diag" title="Check why nothing comes out: printer state, waiting jobs, driver">🩺 Check printer</button><button class="btn sm" id="pr_reload" title="Fetch the printer list from the system again">↻ Search again</button></div>
+    <label style="margin-top:8px">Pi address (to print on the Pi's printers)</label>
+    <div class="row"><input id="pr_srv" value="${esc(r.cups_server||'')}" placeholder="${r.system==='windows'?'e.g. dexter.local or 192.168.1.20':'only needed on the laptop'}" style="flex:1"><button class="btn sm" id="pr_srv_save" title="Save the Pi's address and search again">Use</button></div>
+    <small style="color:var(--mute);display:block;margin-top:4px">Printers the Pi has set up then appear here as “Name @ address”. No Windows driver needed. Once on the Pi: <code>sudo cupsctl --remote-any --share-printers</code></small>
+    <div class="row" style="margin-top:8px"><button class="btn pri sm" id="pr_save" title="Use this printer for all evening reports">Save</button><button class="btn sm" id="pr_test" title="Print a test page on the selected printer to see whether it is the right one">🧾 Print test page</button><button class="btn sm" id="pr_diag" title="Check why nothing comes out: printer state, waiting jobs, driver">🩺 Check printer</button><button class="btn sm" id="pr_reload" title="Fetch the printer list from the system again">↻ Search again</button><button class="btn sm" id="pr_setup" style="display:none" title="Set up this network printer once in CUPS (driverless, shared for the laptop)">🔧 Set up printer</button></div>
     <div id="pr_out"></div>
     <div class="task" style="padding:10px;margin-top:12px">
       <b>Printing in this project: ${r.allowed?'✅ allowed':'⛔ blocked'}</b>
@@ -1746,6 +1750,10 @@ async function showPrinters(){
     </div>`;
   $('#pr_save').onclick=async()=>{ await api('/printers','PUT',{printer:$('#pr_sel').value}); toast('Printer saved'); };
   $('#pr_reload').onclick=showPrinters;
+  const kindNow=()=>{ const o=$('#pr_sel').selectedOptions[0]; return o?o.dataset.kind:''; };
+  const upd=()=>{ $('#pr_setup').style.display=kindNow()==='network'?'':'none'; }; upd(); $('#pr_sel').onchange=upd;
+  $('#pr_srv_save').onclick=async()=>{ try{ await api('/printers','PUT',{cups_server:$('#pr_srv').value.trim()}); toast('Pi address saved'); showPrinters(); }catch(_){} };
+  $('#pr_setup').onclick=()=>prSetup($('#pr_sel').value);
   $('#pr_test').onclick=async()=>{ const n=$('#pr_sel').value; if(!n){ toast('Select a printer first.'); return; }
     if(!confirm('Print a test page on “'+n+'”?')) return;
     const b=$('#pr_test'), out=$('#pr_out'); b.disabled=true; out.innerHTML='<div style="color:var(--mute);margin-top:8px">Sending test page and checking the job (a few seconds) …</div>';
@@ -1755,14 +1763,22 @@ async function showPrinters(){
   $('#pr_diag').onclick=()=>{ const n=$('#pr_sel').value; if(!n){ toast('Select a printer first.'); return; } prDiag(n,false); };
   if($('#pr_allow')) $('#pr_allow').onclick=async()=>{ await api('/projects/'+S.pid+'/print','PUT',{allowed:!r.allowed}); toast(r.allowed?'Printing blocked':'Printing allowed'); showPrinters(); };
 }
+async function prSetup(n){
+  if(!n||!confirm('Set up “'+n+'” as a printer in CUPS on this Pi (driverless, shared so the laptop can use it)?')) return;
+  const out=$('#pr_out'); out.innerHTML='<div style="color:var(--mute);margin-top:8px">Setting up the printer …</div>';
+  try{ const x=await api('/printers/setup','POST',{printer:n}); toast('✅ '+x.message); await showPrinters(); }
+  catch(e){ out.innerHTML=`<div class="task" style="padding:8px;margin-top:8px;border-color:var(--warn,#c90)">⚠ ${esc(String(e.message||e))}</div>`; }
+}
 async function prDiag(n,append){
   const out=$('#pr_out'); if(!out) return;
   let r; try{ r=await api('/printers/status?printer='+encodeURIComponent(n)); }catch(_){ return; }
   const html=`<div class="task" style="padding:8px;margin-top:8px"><b>🩺 ${esc(n)}</b>
+    ${r.setup?`<div style="margin:6px 0"><button class="btn sm pri" data-prsetup="1" title="Set up this network printer once in CUPS (driverless, shared for the laptop)">🔧 Set up printer</button></div>`:''}
     ${r.problems.length?`<ul style="margin:6px 0 4px 18px">${r.problems.map(p=>`<li>⚠ ${esc(p)}</li>`).join('')}</ul>`:'<div style="margin:6px 0">No problem found by the system. If nothing comes out: is the printer on, has paper, and is it reachable from this computer?</div>'}
     <div style="font-size:12px;color:var(--mute)">Waiting jobs: ${r.jobs.length?r.jobs.map(esc).join('<br>'):'none'}</div>
     ${r.lines.length?`<details style="margin-top:4px"><summary style="cursor:pointer;font-size:12px;color:var(--mute)">Details</summary><pre style="white-space:pre-wrap;font-size:11px">${esc(r.lines.join('\n'))}</pre></details>`:''}</div>`;
   if(append) out.insertAdjacentHTML('beforeend',html); else out.innerHTML=html;
+  out.querySelectorAll('[data-prsetup]').forEach(b=>b.onclick=()=>prSetup(n));
 }
 $('#btnPrint').onclick=showPrinters;
 document.addEventListener('click',async e=>{
