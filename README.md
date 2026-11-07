@@ -176,6 +176,7 @@ sind davon nie betroffen, Git kennt sie nicht.
 - **Wann:** Blender muss nicht offen sein, Hyperstead startet es für jede Szene im Hintergrund und beendet es wieder.
 - **Prüfen:** `python selftest.py film` (Windows) bzw. `python3 selftest.py film`.
 - **Wie lange:** bei 640×360 und 12 Bildern/s je nach Laptop etwa 1 bis 5 Minuten pro 10 Sekunden Film. Blender läuft nie gleichzeitig mit dem Bildrechner.
+- **Ansehen und anhören:** Sidebar „📁 Files & connections“ → **📁 Files**. Ganz oben spielt „🎬 Finished videos“ den neuesten fertigen Film aus `output/` (Auswahlliste für ältere, „⬇ Download“, „↗ Open in new tab“). Einzelne Szenen liegen in `film/clips/<szene>.mp4`, Tonspuren und Stimmen als `.wav`/`.mp3`: in der Liste auf ▶️ tippen, der Abspieler klappt unter der Zeile auf; ⬇ lädt die einzelne Datei herunter. Die Dateien bleiben dabei im Projektordner (`workspace/<projekt>/`).
 
 ### Umziehen (z. B. Pi → Laptop)
 
@@ -226,6 +227,7 @@ Diese Liste wird bei jeder Änderung am Programm ergänzt. Jede Zeile sagt, was 
 | Ordner `.rust/` im Projekt (Bauordner) | Wird beim nächsten Bau neu angelegt, das dauert dann länger (alles wird neu geladen und kompiliert). Er ist versteckt und nicht im ZIP-Download. | Nichts. Löschen ist erlaubt, wenn Platz fehlt. |
 | Telegram-Token oder Chat-ID | Telegram bleibt aus, alles andere läuft. Der Selbsttest zeigt MISSING. | Nur nötig, wenn du Nachrichten aufs Handy willst. |
 | Ein Ordner oder eine Datei im Projekt (`wissen/`, `input/`) | Nicht vorhandene Ordner gelten als leer. Die Agenten arbeiten ohne Firmenwissen weiter. | Datei oder Ordner im Projekt anlegen oder hochladen. |
+| Abspielbares Format im Browser (Dateiansicht ▶️) | Spielt der Browser eine Datei nicht ab (z. B. `.mov` mit Apple-Codec, `.mkv`, `.avi`), erscheint unter dem Abspieler „This browser cannot play this file“. Die Datei selbst ist in Ordnung. Fehlt ein fertiger Film in `output/`, gibt es den Kasten „🎬 Finished videos“ nicht, die Szenen in `film/clips/` lassen sich trotzdem einzeln abspielen. | Mit ⬇ herunterladen und in VLC öffnen, oder den Agenten bitten, die Datei mit `video_edit` als MP4 auszugeben. Für den fertigen Film `film op=assemble` laufen lassen. |
 | Gelöschte Datei oder geleerter Ordner (Dateiansicht, „🗑 Delete selected“ / „🧹 Empty folder“) | Die Dateien sind endgültig weg, es gibt keinen Papierkorb. Der Ordner selbst bleibt stehen, die Agenten arbeiten weiter und behandeln fehlende Dateien wie oben. Steht eine gelöschte Datei im Drehbuch oder wird sie im Auftrag genannt, meldet der Agent sie als fehlend. | Vorher „⬇ Everything as ZIP“ herunterladen, falls du die Dateien noch brauchst, sonst die Datei neu hochladen. |
 | Key eines Videoanbieters (z. B. `KLING_SECRET_KEY`, `HIGGSFIELD_API_KEY_SECRET`) | `video_generate` meldet „VIDEO_PROVIDER=…, but … is missing in .env“ und erzeugt nichts, die anderen Anbieter aus der Liste gehen weiter. Der Selbsttest zeigt den Anbieter als MISSING. | Key eintragen ([docs/videodienste.md](docs/videodienste.md)) oder den Anbieter aus `VIDEO_PROVIDER` streichen, neu starten. |
 | Guthaben beim Videoanbieter | Der Anbieter antwortet mit einem Fehler (oft HTTP 402/429 oder „insufficient balance“), der Agent bekommt den Text ins Ergebnis. Es springt kein anderer Anbieter ein. | Guthaben aufladen oder mit `provider` bzw. in `VIDEO_PROVIDER` einen anderen Anbieter wählen. |
@@ -393,7 +395,7 @@ fertig sind (max. `PCL_MAX_TOOL_STEPS`). Rechte pro Agent: **Internet recherchie
 | `list_files` / `read_file` | Dateien im Projektordner lesen (z. B. Texte der Kollegen) | ja |
 
 Alles Erzeugte liegt unter `workspace/<projekt-id>/`. In der Sidebar zeigt **📁 Dateien** die Dateien, öffnet `index.html`
-als Webseite (isolierte Sandbox) und lädt alles als ZIP. Der Link enthält einen geheimen Schlüssel.
+als Webseite (isolierte Sandbox) und lädt alles als ZIP. Der Link enthält einen geheimen Schlüssel. Videos und Ton (MP4, WebM, MOV, MP3, WAV, OGG, M4A, FLAC) spielt die Dateiansicht direkt ab (▶️, Kasten „🎬 Finished videos“), ⬇ lädt jede Datei einzeln herunter. Medien laufen ohne Sandbox, weil Chrome sie darin nicht abspielt; sie bekommen stattdessen eine CSP, die nur das Medium selbst erlaubt.
 
 **Firmenvorlagen** (Knopf „＋ New project“): *Webagentur*, *Buchhaltung/Steuerkanzlei*, *Import/Export-Handel* legen Projekt,
 Organigramm, Arbeitsanweisungen und Rechte komplett an. Eigene Firmen: Projektziel schreiben („ihr seid eine …“, Land,

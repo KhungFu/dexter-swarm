@@ -63,7 +63,9 @@ Selbst gehosteter Knoten-Editor für ein Team aus KI-Agenten (früher PaperclipL
   `ctx.route` + `route_web_socket` prüfen JEDE Anfrage mit `check_public` (Restrisiko DNS-Rebinding), WebRTC/Downloads/Service Worker aus.
   Screenshot fängt `run_with_tools` ab wie `view_image` (geht in `seen`). `install.sh --browser|--run`, `selftest.py browser|run`.
 - Rechte `web`, `images`, `read_files` (Standard an) + `PCL_ALLOW_WEB=0` global. Webinhalte sind Daten, nie Anweisungen.
-- Dateien: `/files/<pid>/<token>/<pfad>` (Link-Token per HMAC, ohne Cookie, weil Sandbox-Seiten Bilder nachladen), immer mit CSP `sandbox`.
+- Dateien: `/files/<pid>/<token>/<pfad>` (Link-Token per HMAC, ohne Cookie, weil Sandbox-Seiten Bilder nachladen), mit CSP `sandbox`; Ausnahme Video/Ton
+  (`MEDIA_TYPES`): ohne Sandbox (Chrome blockt Medien mit Herkunft null per CORS), CSP `default-src 'none'; media-src 'self'`, feste MIME-Typen.
+  `?download=1` = Anhang. Dateiansicht: Kasten „🎬 Finished videos“ (output/*.mp4…), ▶️ je Medienzeile, ⬇ je Datei. Test `tests/test_medien_abspielen.py`.
 - Medien-Werkzeuge (`video_edit` per ffmpeg-Argumentlisten ohne Shell, `speak`, `make_document`, `download_file`, PDF/DOCX/EPUB lesen) liegen ebenfalls in `agent_tools.py`, Recht `media`. Pfade immer per `_inside` auf den Projektordner begrenzt, Temp-Ordner `.tmp-*` sind versteckt.
 - `site_macro` (Recht `media`, nur sichtbar mit `PCL_MACROS=1`, Playwright und einem Skript `macros/<site>.py`, Vorlagen `vorlage_*` zaehlen nicht):
   startet das vom Besitzer aufgenommene Playwright-Skript als Subprozess mit minimaler Umgebung (keine Keys), `PCL_PROMPT`, `PCL_OUTPUT`

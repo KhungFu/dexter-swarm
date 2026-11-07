@@ -5547,11 +5547,26 @@ def serve_file(pid, tok, rel):
         resp = Response(buf.getvalue(), mimetype="application/zip")
         resp.headers["Content-Disposition"] = f'attachment; filename="{root.name}.zip"'
         return resp
-    resp = send_from_directory(root, rel)
-    resp.headers["Content-Security-Policy"] = ("sandbox allow-scripts allow-popups allow-forms; "
-                                               "default-src 'self' https: data: blob: 'unsafe-inline'")
+    dl = request.args.get("download") == "1"
+    ext = rel.rsplit(".", 1)[-1].lower() if "." in rel else ""
+    resp = send_from_directory(root, rel, as_attachment=dl, mimetype=MEDIA_TYPES.get(ext))
+    if ext in MEDIA_TYPES:
+        # Video/Ton: Chrome spielt Medien in einer Sandbox (Herkunft "null") nicht ab (CORS-Sperre), deshalb hier
+        # ohne Sandbox. Eine Mediendatei fuehrt kein Skript aus; nosniff (security_headers) verhindert, dass der
+        # Browser sie als HTML deutet, und die CSP erlaubt nur das Medium selbst.
+        resp.headers["Content-Security-Policy"] = "default-src 'none'; media-src 'self'; style-src 'unsafe-inline'"
+    else:
+        resp.headers["Content-Security-Policy"] = ("sandbox allow-scripts allow-popups allow-forms; "
+                                                   "default-src 'self' https: data: blob: 'unsafe-inline'")
     resp.headers["X-Frame-Options"] = "SAMEORIGIN"
     return resp
+
+
+# Video und Ton, die der Browser direkt abspielen darf (Dateiansicht ▶, Link im neuen Tab). Feste Typen, damit
+# Windows-Registry oder fehlende mime.types den Typ nicht verfaelschen.
+MEDIA_TYPES = {"mp4": "video/mp4", "m4v": "video/mp4", "webm": "video/webm", "mov": "video/quicktime",
+               "mp3": "audio/mpeg", "wav": "audio/wav", "ogg": "audio/ogg", "oga": "audio/ogg", "opus": "audio/ogg",
+               "m4a": "audio/mp4", "aac": "audio/aac", "flac": "audio/flac"}
 
 
 def default_provider():

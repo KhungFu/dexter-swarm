@@ -1571,7 +1571,9 @@ async function showFiles(){
   if(!S.pid){ toast('Choose a project first.'); return; }
   openOv('Files of this project'); const body=$('#ovbody');
   const r=await api('/projects/'+S.pid+'/files');
-  const isImg=p=>/\.(png|jpe?g|gif|webp|svg)$/i.test(p), isVid=p=>/\.(mp4|webm|mov)$/i.test(p), isAud=p=>/\.(mp3|wav|ogg|m4a)$/i.test(p);
+  const isImg=p=>/\.(png|jpe?g|gif|webp|svg)$/i.test(p), isVid=p=>/\.(mp4|m4v|webm|mov)$/i.test(p), isAud=p=>/\.(mp3|wav|ogg|oga|opus|m4a|aac|flac)$/i.test(p);
+  const dl=u=>u+(u.includes('?')?'&':'?')+'download=1';
+  const films=r.files.filter(f=>f.path.startsWith('output/')&&isVid(f.path)).sort((x,y)=>y.mtime-x.mtime);
   const kb=n=>n<1024?n+' B':n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).toFixed(1)+' MB';
   const icon=p=>isVid(p)?'🎬':isAud(p)?'🎵':/\.pdf$/i.test(p)?'📕':/\.(epub|docx)$/i.test(p)?'📘':'📄';
   const idx=r.files.find(f=>f.path==='www/index.html')||r.files.find(f=>f.path==='index.html');
@@ -1591,6 +1593,14 @@ async function showFiles(){
       <div style="color:var(--mute);font-size:12px;margin:3px 0 6px">Videos to edit, PDFs to read, images, texts. They land in <code>input/</code>, where the team finds them.</div>
       <input type="file" id="upf" multiple style="width:auto"><div id="upst" style="font-size:12px;color:var(--mute);margin-top:4px"></div>
     </div>`
+    + (films.length ? `<div class="task" style="padding:10px;margin-bottom:12px" id="filmbox">
+      <b>🎬 Finished videos</b>
+      <div style="color:var(--mute);font-size:12px;margin:3px 0 6px">Newest first, from <code>output/</code>. Watch and listen right here, or download. Single scenes are under <code>film/clips/</code> (▶ in the list below).</div>
+      <select id="filmsel" aria-label="Choose a video" style="width:100%;margin-bottom:6px">${films.map((f,i)=>`<option value="${i}">${esc(f.path)} · ${kb(f.size)}</option>`).join('')}</select>
+      <video id="filmplay" controls preload="metadata" playsinline style="width:100%;max-height:60vh;background:#000;border-radius:6px" src="${films[0].url}"></video>
+      <div class="row" style="margin-top:6px"><a class="btn sm" id="filmdl" href="${dl(films[0].url)}" download>⬇ Download</a>
+        <a class="btn sm" id="filmtab" href="${films[0].url}" target="_blank" rel="noopener">↗ Open in new tab</a></div>
+    </div>` : '')
     + (r.files.length ? `<div class="row" style="margin:0 0 10px"><a class="btn pri sm" href="${r.zip}">⬇ Everything as ZIP</a>
       ${idx?`<a class="btn sm" target="_blank" rel="noopener" href="${idx.url}">🌐 Open website (index.html)</a>`:''}</div>
       <div style="color:var(--mute);font-size:12px;margin-bottom:8px">The preview runs isolated (sandbox). The link contains a secret key, do not share it.</div>`
@@ -1610,6 +1620,8 @@ async function showFiles(){
         ${isImg(f.path)?`<img src="${f.url}" style="width:44px;height:44px;object-fit:cover;border-radius:6px">`:`<span style="width:44px;text-align:center;font-size:22px">${icon(f.path)}</span>`}
         <a href="${f.url}" target="_blank" rel="noopener" style="flex:1;color:var(--text);word-break:break-all">${esc(f.path)}</a>
         <span style="color:var(--mute);font-size:12px;white-space:nowrap">${kb(f.size)}</span>
+        ${isVid(f.path)||isAud(f.path)?`<button class="icon-btn" title="Play here (video and sound)" data-play="${esc(f.url)}" data-kind="${isVid(f.path)?'video':'audio'}">▶️</button>`:''}
+        <a class="icon-btn" title="Download" href="${dl(f.url)}" download style="text-decoration:none">⬇</a>
         <button class="icon-btn" title="Upload (GitHub, Google Drive, OneDrive) or send to Telegram" data-cup="${esc(f.path)}">☁️</button>
         <button class="icon-btn" title="Delete file" data-delf="${esc(f.path)}">🗑</button></div>`).join('')+'</div>').join('')
       : '<div style="color:var(--mute)">No files yet. What the team creates (websites, images, videos, documents) appears here.</div>');
@@ -1624,6 +1636,19 @@ async function showFiles(){
   };
   body.querySelectorAll('[data-delf]').forEach(b=>b.onclick=async()=>{ if(confirm('Delete “'+b.dataset.delf+'”?')){ await fetch('/api/projects/'+S.pid+'/files?path='+encodeURIComponent(b.dataset.delf),{method:'DELETE',headers:{'X-PCL':'1'}}); showFiles(); } });
   body.querySelectorAll('[data-cup]').forEach(b=>b.onclick=()=>cloudUpload(b.dataset.cup));
+  const fsel=$('#filmsel'); if(fsel) fsel.onchange=()=>{ const f=films[+fsel.value]; const v=$('#filmplay'); v.src=f.url; v.load();
+    $('#filmdl').href=dl(f.url); $('#filmtab').href=f.url; };
+  // ▶ in der Liste: Abspieler direkt unter der Zeile auf- und zuklappen (nur einer spielt gleichzeitig)
+  body.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>{
+    const row=b.closest('.task'), nx=row.nextElementSibling;
+    if(nx&&nx.classList.contains('fplay')){ nx.remove(); b.textContent='▶️'; return; }
+    body.querySelectorAll('.fplay').forEach(x=>{ x.previousElementSibling.querySelector('[data-play]').textContent='▶️'; x.remove(); });
+    const box=document.createElement('div'); box.className='fplay'; box.style.cssText='padding:4px 8px 10px';
+    const m=document.createElement(b.dataset.kind); m.controls=true; m.preload='metadata'; m.src=b.dataset.play; m.setAttribute('playsinline','');
+    m.style.cssText=b.dataset.kind==='video'?'width:100%;max-height:60vh;background:#000;border-radius:6px':'width:100%';
+    m.onerror=()=>{ box.insertAdjacentHTML('beforeend','<div style="color:var(--mute);font-size:12px">This browser cannot play this file. Use ⬇ and open it with VLC.</div>'); };
+    box.appendChild(m); row.after(box); b.textContent='⏹'; m.play().catch(()=>{});
+  });
   const sels=[...body.querySelectorAll('[data-fsel]')], all=$('#f_all'), del=$('#f_del');
   const grps=[...body.querySelectorAll('[data-fgrp]')];
   const picked=()=>sels.filter(c=>c.checked).map(c=>c.dataset.fsel);
@@ -2041,7 +2066,7 @@ const HELP=[
  {id:'betrieb',t:'🛰 Operations center and costs',h:`<ul><li><b>🛰 Operations center:</b> what is running and waiting, open approvals, errors of the last 7 days (↻ Retry restarts them), schedules (▶ Now) and the latest events. Tapping the numbers in the bar also opens it.</li>
 <li><b>💶 Costs:</b> estimated AI costs for today and 7 days. Subscription (Claude/Codex CLI) and Ollama count as $0. <b>📊 Usage &amp; costs</b> shows everything by project, agent and model.</li>
 <li><b>📜 History:</b> every event is logged and never deleted.</li></ul>`},
- {id:'dateien',t:'📁 Files, cloud and connections',h:`<ul><li><b>📁 Files:</b> everything the agents have created. Tapping opens it, “⬇ Everything as ZIP” downloads the project. Uploaded files land in <code>input/</code>.</li>
+ {id:'dateien',t:'📁 Files, cloud and connections',h:`<ul><li><b>📁 Files:</b> everything the agents have created. Tapping opens it, “⬇ Everything as ZIP” downloads the project. Videos and sounds play right there: “🎬 Finished videos” at the top shows the newest film from <code>output/</code>, ▶️ next to any video or sound file plays it in the list, ⬇ downloads a single file. Uploaded files land in <code>input/</code>.</li>
 <li><b>Publishing a website:</b> if <code>www/index.html</code> is in the project, Hyperstead can serve it as a website (“Publish”).</li>
 <li><b>🖨 Printer:</b> choose the printer for the evening reports (network printers via CUPS or Windows). With 🧾 Print test page you see beforehand whether it is the right printer. The CEO allows or blocks printing. Every evening report then shows 🖨 Print; printing happens after your confirmation. Nothing comes out? 🩺 Check printer names the cause (stopped, offline, no driver, stuck job).</li>
 <li><b>☁️ Cloud:</b> set up GitHub, Google Drive, OneDrive and Telegram. Every upload by an agent waits for your approval. ☁️ next to a file uploads it yourself.</li>
