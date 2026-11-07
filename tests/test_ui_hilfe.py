@@ -57,7 +57,7 @@ def test_postkorb_und_seitenmenue():
         assert f'id="{i}"' in HTML
     assert "/inbox/clear" in HTML and "confirm(" in HTML[HTML.index("in_clear"):]
     assert HTML.count('class="side-grp"') >= 4
-    menu = HTML[HTML.index('id="sidemenu"'):HTML.index('<div class="side-h"><span>Projects')]
+    menu = HTML[HTML.index('id="sidemenu"'):HTML.index('class="side-sec pnew"')]
     for b in ("btnInbox", "btnApprovals", "btnOps", "btnGoals", "btnSched", "btnGroupAI", "btnModels", "btnKnow",
               "btnFiles", "btnCloud", "btnConn", "btnUsage", "btnAudit", "btnHelp", "btnLogout"):
         assert f'id="{b}"' in menu
@@ -110,3 +110,17 @@ def test_atom_ist_eigene_welt():
     assert "'atom'" in sync and "'kosmos'" in sync and "/world" in sync
     sky = HTML[HTML.index("function atomSky("):HTML.index("function atomPlace(")]
     assert "requestAnimationFrame" not in sky  # Atom bleibt ruhig
+
+
+def test_projekte_zuklappbar():
+    """Wunsch ABI 2026-11-07: die angelegten Firmen (Projekte) lassen sich zuklappen wie die anderen Menuepunkte."""
+    i = HTML.index('id="projgrp"')
+    grp = HTML[HTML.rindex("<details", 0, i):HTML.index("</details>", i)]
+    assert 'class="side-grp"' in grp and 'data-grp="projekte"' in grp and " open>" in grp
+    assert "<summary" in grp and 'id="projlist"' in grp and 'id="projcount"' in grp
+    # „＋ New project“ bleibt immer sichtbar, ausserhalb der Klappgruppe
+    assert HTML.index('id="btnNewProj"') < HTML.rindex("<details", 0, i)
+    # Zustand wird wie bei den anderen Kategorien je Geraet gemerkt (gleicher Code fuer alle .side-grp)
+    assert "localStorage.setItem('hs-side'" in HTML
+    assert HTML.count('class="side-grp"') >= 5
+    assert "$('#projcount').textContent" in HTML

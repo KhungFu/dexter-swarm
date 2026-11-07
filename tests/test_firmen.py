@@ -98,7 +98,7 @@ def test_projekte_menue_neu_und_ansichten():
     """Wunsch ABI 2026-11-04 (Bilder): großer Knopf „＋ Neues Projekt“, kein 🏙 links, Grafik-Menü in Klassik und Modern."""
     import re
     html = open(os.path.join(os.path.dirname(__file__), "..", "static", "index.html"), encoding="utf-8").read()
-    side = html[html.index('<div class="side-h"><span>Projects'):html.index('id="projlist"')]
+    side = html[html.index('class="side-sec pnew"'):html.index('id="projlist"')]
     assert 'id="btnNewProj"' in side and "＋ New project</button>" in side and 'id="btnHub"' not in html
     assert all("title=" in t for t in re.findall(r"<button\b[^>]*>", side))
     dlg = html[html.index("async function newProjectDialog("):html.index("toast('Company founded.')")]

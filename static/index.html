@@ -46,6 +46,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .side-grp[open]>summary::after{transform:rotate(90deg)}
 .side-grp>summary:hover{background:var(--panel2);color:var(--text)}
 .side-grp>.side-btn{padding-left:18px}
+#projlist .side-btn{padding-left:18px}
 .vmenu hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
 .grp-dot{display:none;width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .side-grp:not([open]).has-badge .grp-dot{display:inline-block}
@@ -53,7 +54,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:10px;padding:0 7px;font-size:11px}
 .icon-btn{background:none;border:0;color:var(--mute);cursor:pointer;font-size:16px;padding:0 4px}
 .icon-btn:hover{color:var(--text)}
-#projlist{overflow:auto;flex:1;min-height:120px}
+#projwrap{overflow:auto;flex:1 1 auto;min-height:0}
+.pcount{font-weight:400;letter-spacing:0;text-transform:none}
+.pcount:not(:empty)::before{content:'('}.pcount:not(:empty)::after{content:')'}
 #sidemenu{overflow:auto;flex:0 1 auto;min-height:0}
 .pdot{width:9px;height:9px;border-radius:50%;flex:none}
 /* Hauptbereich */
@@ -617,9 +620,13 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible,select:focus-visib
       </details>
         <button class="side-btn" id="btnLogout" style="display:none" onclick="location.href='/logout'">🚪 Log out</button>
     </div>
-    <div class="side-h"><span>Projects</span></div>
     <div class="side-sec pnew"><button class="side-btn" id="btnNewProj" title="Create a new project: empty or as a ready-made company from a template (web agency, accounting, retail …)">＋ New project</button></div>
-    <div id="projlist" class="side-sec"></div>
+    <div class="side-sec" id="projwrap">
+      <details class="side-grp" id="projgrp" data-grp="projekte" open>
+        <summary title="Your companies (projects): tap to expand or collapse the list">🏢 Projects<span class="pcount" id="projcount"></span><span class="grp-dot" aria-hidden="true"></span></summary>
+        <div id="projlist"></div>
+      </details>
+    </div>
   </aside>
 
   <div id="sideBack"></div>
@@ -753,6 +760,7 @@ async function loadProjects(){
     b.onclick = ()=>openProject(p.id);
     el.appendChild(b);
   });
+  $('#projcount').textContent = S.projects.length || '';
 }
 async function openProject(id){
   S.pid = id; S.sel = null; closePanel(); WORLD.g = null; WORLD.at = 0;
@@ -2038,7 +2046,7 @@ const HELP=[
 <li><b>Create an agent:</b> In the blueprint view tap a building block such as “👑 CEO” or “</> Developer” at the top, or drag it onto the canvas. Every agent needs an AI (provider + model) in its settings.</li>
 <li><b>Give a task:</b> Tap an agent → “Tasks” tab → describe the task → “Assign task”. The boss distributes the work to their team, reviews the reports and delivers the result to the 📬 mail.</li>
 <li><b>Collect the result:</b> Open 📬 Mail. “✅ Done” closes the task, “🔁 Revise…” sends it back with your note.</li></ul>
-<p>On a phone, ☰ at the top left opens the sidebar. The sidebar is sorted into categories (📬 Daily business, 🤖 Team &amp; AI, 📁 Files &amp; connections, 📊 Reports): tapping expands or collapses a category, the device remembers it. A colored dot on a collapsed category means something is waiting in it (e.g. new mail).</p>`},
+<p>On a phone, ☰ at the top left opens the sidebar. The sidebar is sorted into categories (📬 Daily business, 🤖 Team &amp; AI, 📁 Files &amp; connections, 📊 Reports, 🏢 Projects with your companies): tapping expands or collapses a category, the device remembers it. A colored dot on a collapsed category means something is waiting in it (e.g. new mail).</p>`},
  {id:'welt',t:'🌱 Growth and graphics',h:`<p>Every project grows from stage to stage with its successes. In the bar at the top you see the stage, points and the progress to the next stage. This only changes the look, never the agents' work.</p>
 <ul><li><b>Points:</b> delivery accepted the first time +10, after revision +5, task done in the mail +20, failed −3, rework requested −5.</li>
 <li><b>Stages:</b> from 0, 100, 300, 700 and 1500 points. The stage only limits how many agents the management recruits <i>by itself</i>. You can always create everything by hand. Turn it off under ⓘ in the bar.</li>
